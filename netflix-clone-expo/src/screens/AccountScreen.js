@@ -9,7 +9,7 @@ import { EditProfileModal } from '../components/EditProfileModal';
 import { AppearanceSettingsModal } from '../components/AppearanceSettingsModal';
 import { RedeemCodeModal } from '../components/RedeemCodeModal';
 import { OtpVerificationModal } from '../components/OtpVerificationModal';
-import { RealAuthService } from '../services/realAuthService';
+import { SocialAuthModal } from '../components/SocialAuthModal';
 
 export const AccountScreen = () => {
   const {
@@ -27,6 +27,8 @@ export const AccountScreen = () => {
   const [name, setName] = useState('');
   
   // Modals & Settings
+  const [showSocialModal, setShowSocialModal] = useState(false);
+  const [socialProvider, setSocialProvider] = useState('Google');
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
   const [showVipModal, setShowVipModal] = useState(false);
@@ -69,22 +71,14 @@ export const AccountScreen = () => {
     }
   };
 
-  const handleRealAppleLogin = async () => {
-    const res = await RealAuthService.signInWithRealApple();
-    if (res.pending) {
-      Alert.alert('Apple ID', res.message);
-    } else if (res.error) {
-      Alert.alert('Thông báo', res.error);
-    }
+  const handleOpenSocialAuth = (provider) => {
+    setSocialProvider(provider);
+    setShowSocialModal(true);
   };
 
-  const handleRealGoogleLogin = async () => {
-    const res = await RealAuthService.signInWithRealGoogle();
-    if (res.pending) {
-      Alert.alert('Google Sign-In', res.message);
-    } else if (res.error) {
-      Alert.alert('Thông báo', res.error);
-    }
+  const handleSocialSuccess = (authedUser) => {
+    setUser(authedUser);
+    Alert.alert('Thành công', `Đăng nhập thành công với tài khoản ${authedUser.email}!`);
   };
 
   const handleSaveDevConfig = () => {
@@ -147,17 +141,24 @@ export const AccountScreen = () => {
           <View style={styles.socialSection}>
             <Text style={[styles.socialDividerText, { color: theme.textMuted }]}>HOẶC ĐĂNG NHẬP VỚI</Text>
             <View style={styles.socialBtnRow}>
-              <TouchableOpacity style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.8} onPress={handleRealAppleLogin}>
+              <TouchableOpacity style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.8} onPress={() => handleOpenSocialAuth('Apple')}>
                 <Ionicons name="logo-apple" size={20} color={theme.textPrimary} />
                 <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Apple ID</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.8} onPress={handleRealGoogleLogin}>
+              <TouchableOpacity style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.8} onPress={() => handleOpenSocialAuth('Google')}>
                 <Ionicons name="logo-google" size={18} color="#EA4335" />
                 <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Google</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
+
+        <SocialAuthModal
+          visible={showSocialModal}
+          provider={socialProvider}
+          onClose={() => setShowSocialModal(false)}
+          onSuccess={handleSocialSuccess}
+        />
 
         <OtpVerificationModal visible={showOtpModal} destination={email} onVerifySuccess={handleOtpSuccess} onCancel={() => setShowOtpModal(false)} />
       </KeyboardAvoidingView>

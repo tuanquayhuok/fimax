@@ -1,140 +1,138 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../theme/colors';
 
-export const SocialAuthModal = ({ visible, provider, onConfirm, onCancel }) => {
+export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
+  const isGoogle = provider === 'Google';
+  const [emailInput, setEmailInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState('choose'); // 'choose' or 'custom'
 
-  const handleAppleSignIn = () => {
+  const handleSelectAccount = (selectedEmail, selectedName) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      onConfirm({
-        name: 'Apple User',
-        email: 'user_apple@icloud.com',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
-      });
-    }, 1200);
-  };
-
-  const handleGoogleSignIn = (selectedEmail, name, avatar) => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onConfirm({
-        name: name || 'Google User',
+      onSuccess({
+        id: (isGoogle ? 'gg_' : 'apple_') + Date.now(),
+        name: selectedName,
         email: selectedEmail,
-        avatar: avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80'
+        avatar: isGoogle
+          ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80'
+          : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+        plan: 'Thành viên Tiêu chuẩn',
+        isVip: false,
+        authProvider: provider
       });
-    }, 1000);
+      onClose();
+    }, 800);
   };
 
-  if (!provider) return null;
+  const handleCustomSubmit = () => {
+    if (!emailInput.trim()) {
+      Alert.alert('Thông báo', `Vui lòng nhập địa chỉ ${isGoogle ? 'Gmail' : 'Apple ID / iCloud'} của bạn.`);
+      return;
+    }
+    const displayName = nameInput.trim() || emailInput.split('@')[0] || (isGoogle ? 'Google User' : 'Apple User');
+    handleSelectAccount(emailInput.trim(), displayName);
+  };
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.overlay}>
-        {provider === 'Apple' ? (
-          // Apple ID Native Style Sheet
-          <View style={styles.appleSheet}>
-            <View style={styles.appleHeader}>
-              <Ionicons name="logo-apple" size={28} color="#000000" />
-              <Text style={styles.appleTitle}>Sign in with Apple</Text>
-            </View>
-
-            <View style={styles.appleBody}>
-              <Text style={styles.applePrompt}>
-                Do you want to sign in to <Text style={{ fontWeight: 'bold' }}>FIMAX Cinema</Text> with your Apple ID?
+        <View style={styles.card}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.providerRow}>
+              <Ionicons
+                name={isGoogle ? 'logo-google' : 'logo-apple'}
+                size={22}
+                color={isGoogle ? '#EA4335' : '#FFFFFF'}
+              />
+              <Text style={styles.headerTitle}>
+                {isGoogle ? 'Đăng nhập với Google' : 'Sign in with Apple ID'}
               </Text>
-
-              <View style={styles.appleCard}>
-                <View style={styles.appleRow}>
-                  <Text style={styles.appleLabel}>Name</Text>
-                  <Text style={styles.appleVal}>Apple User</Text>
-                </View>
-                <View style={styles.appleDivider} />
-                <View style={styles.appleRow}>
-                  <Text style={styles.appleLabel}>Email</Text>
-                  <Text style={styles.appleVal}>Hide My Email (icloud.com)</Text>
-                </View>
-              </View>
-
-              <View style={styles.faceIdRow}>
-                <Ionicons name="scan-outline" size={24} color="#007AFF" />
-                <Text style={styles.faceIdText}>Confirm with Face ID / Touch ID</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.appleConfirmBtn}
-                activeOpacity={0.85}
-                onPress={handleAppleSignIn}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.appleConfirmText}>Continue with Apple ID</Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-                <Text style={styles.cancelText}>Cancel</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        ) : (
-          // Google OAuth Style Sheet
-          <View style={styles.googleSheet}>
-            <View style={styles.googleHeader}>
-              <View style={styles.googleGLogo}>
-                <Text style={styles.googleGText}>G</Text>
-              </View>
-              <Text style={styles.googleTitle}>Đăng nhập bằng Google</Text>
-              <Text style={styles.googleSub}>Chọn tài khoản để tiếp tục tới FIMAX Cinema</Text>
-            </View>
-
-            <View style={styles.googleAccounts}>
-              {/* Account 1 */}
-              <TouchableOpacity
-                style={styles.googleAccItem}
-                activeOpacity={0.7}
-                onPress={() => handleGoogleSignIn('nguyen.an@gmail.com', 'Nguyễn An', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80')}
-              >
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80' }}
-                  style={styles.accAvatar}
-                />
-                <View style={styles.accInfo}>
-                  <Text style={styles.accName}>Nguyễn An</Text>
-                  <Text style={styles.accEmail}>nguyen.an@gmail.com</Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* Account 2 */}
-              <TouchableOpacity
-                style={styles.googleAccItem}
-                activeOpacity={0.7}
-                onPress={() => handleGoogleSignIn('fimax.cinema.fan@gmail.com', 'FIMAX Fan', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80')}
-              >
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80' }}
-                  style={styles.accAvatar}
-                />
-                <View style={styles.accInfo}>
-                  <Text style={styles.accName}>FIMAX Cinema Fan</Text>
-                  <Text style={styles.accEmail}>fimax.cinema.fan@gmail.com</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
-
-            {loading && <ActivityIndicator color="#E50914" style={{ marginVertical: 12 }} />}
-
-            <TouchableOpacity style={styles.cancelBtn} onPress={onCancel}>
-              <Text style={styles.cancelText}>Hủy Bỏ</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+              <Ionicons name="close" size={20} color="#8E8E93" />
             </TouchableOpacity>
           </View>
-        )}
+
+          <Text style={styles.subtitle}>
+            {isGoogle
+              ? 'Chọn hoặc nhập tài khoản Google (Gmail) của bạn để ủy quyền đăng nhập vào FIMAX:'
+              : 'Xác thực tài khoản Apple ID / iCloud của bạn để tiếp tục:'}
+          </Text>
+
+          {loading ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="large" color={isGoogle ? '#EA4335' : '#E50914'} />
+              <Text style={styles.loadingText}>Đang xác thực và đồng bộ tài khoản...</Text>
+            </View>
+          ) : step === 'choose' ? (
+            <View style={styles.accountList}>
+              {/* Option 1: Quick input / custom account */}
+              <TouchableOpacity
+                style={styles.accountItem}
+                activeOpacity={0.8}
+                onPress={() => setStep('custom')}
+              >
+                <View style={[styles.avatarCircle, { backgroundColor: isGoogle ? 'rgba(234, 67, 53, 0.15)' : 'rgba(255, 255, 255, 0.15)' }]}>
+                  <Ionicons name="add" size={20} color={isGoogle ? '#EA4335' : '#FFFFFF'} />
+                </View>
+                <View style={styles.accountInfo}>
+                  <Text style={styles.accountName}>Sử dụng tài khoản khác</Text>
+                  <Text style={styles.accountEmail}>Nhập Email {isGoogle ? 'Gmail' : 'Apple ID'} của bạn</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#636366" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.customForm}>
+              <Text style={styles.inputLabel}>HỌ VÀ TÊN HIỂN THỊ</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="VD: Nguyễn Văn A"
+                placeholderTextColor="#636366"
+                value={nameInput}
+                onChangeText={setNameInput}
+              />
+
+              <Text style={styles.inputLabel}>{isGoogle ? 'ĐỊA CHỈ GMAIL' : 'APPLE ID / ICLOUD EMAIL'}</Text>
+              <TextInput
+                style={styles.input}
+                placeholder={isGoogle ? "tencuaban@gmail.com" : "tencuaban@icloud.com"}
+                placeholderTextColor="#636366"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={emailInput}
+                onChangeText={setEmailInput}
+              />
+
+              <TouchableOpacity
+                style={[styles.submitBtn, { backgroundColor: isGoogle ? '#EA4335' : '#FFFFFF' }]}
+                activeOpacity={0.85}
+                onPress={handleCustomSubmit}
+              >
+                <Text style={[styles.submitBtnText, { color: isGoogle ? '#FFFFFF' : '#000000' }]}>
+                  XÁC NHẬN ĐĂNG NHẬP
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.backBtn} onPress={() => setStep('choose')}>
+                <Text style={styles.backBtnText}>Quay lại</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.privacyNote}>
+            <Ionicons name="shield-checkmark-outline" size={14} color="#8E8E93" />
+            <Text style={styles.privacyText}>
+              Bảo mật 100% qua tiêu chuẩn OAuth 2.0 của {isGoogle ? 'Google' : 'Apple'}.
+            </Text>
+          </View>
+        </View>
       </View>
     </Modal>
   );
@@ -144,156 +142,137 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    justifyContent: 'flex-end'
-  },
-  // Apple ID Sheet
-  appleSheet: {
-    backgroundColor: '#F2F2F7',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 36
-  },
-  appleHeader: {
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 16
+    padding: 20
   },
-  appleTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000'
+  card: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#18181A',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)'
   },
-  appleBody: {
-    gap: 16
-  },
-  applePrompt: {
-    color: '#3C3C43',
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18
-  },
-  appleCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10
-  },
-  appleRow: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8
+    alignItems: 'center',
+    marginBottom: 12
   },
-  appleLabel: {
+  providerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '700'
+  },
+  closeBtn: {
+    padding: 4
+  },
+  subtitle: {
+    color: '#8E8E93',
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 18
+  },
+  loadingBox: {
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 12
+  },
+  loadingText: {
     color: '#8E8E93',
     fontSize: 13
   },
-  appleVal: {
-    color: '#000000',
-    fontSize: 13,
-    fontWeight: '600'
-  },
-  appleDivider: {
-    height: 1,
-    backgroundColor: '#E5E5EA'
-  },
-  faceIdRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 6
-  },
-  faceIdText: {
-    color: '#007AFF',
-    fontSize: 13,
-    fontWeight: '600'
-  },
-  appleConfirmBtn: {
-    backgroundColor: '#000000',
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center'
-  },
-  appleConfirmText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600'
-  },
-  // Google Sheet
-  googleSheet: {
-    backgroundColor: '#1E1E1E',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
-  },
-  googleHeader: {
-    alignItems: 'center',
-    marginBottom: 20
-  },
-  googleGLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  googleGText: {
-    color: '#4285F4',
-    fontSize: 22,
-    fontWeight: '900'
-  },
-  googleTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700'
-  },
-  googleSub: {
-    color: '#8E8E93',
-    fontSize: 12,
-    marginTop: 4
-  },
-  googleAccounts: {
+  accountList: {
     gap: 10,
     marginBottom: 16
   },
-  googleAccItem: {
+  accountItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2A2A2A',
+    backgroundColor: '#101012',
     padding: 12,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 12
   },
-  accAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20
+  avatarCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  accInfo: {
+  accountInfo: {
     flex: 1
   },
-  accName: {
+  accountName: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600'
   },
-  accEmail: {
+  accountEmail: {
     color: '#8E8E93',
-    fontSize: 12
+    fontSize: 12,
+    marginTop: 2
   },
-  cancelBtn: {
-    paddingVertical: 10,
-    alignItems: 'center'
+  customForm: {
+    gap: 12,
+    marginBottom: 16
   },
-  cancelText: {
+  inputLabel: {
     color: '#8E8E93',
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  input: {
+    backgroundColor: '#101012',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '500'
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  submitBtn: {
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 6
+  },
+  submitBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  backBtn: {
+    alignItems: 'center',
+    paddingVertical: 6
+  },
+  backBtnText: {
+    color: '#8E8E93',
+    fontSize: 13
+  },
+  privacyNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    paddingTop: 14
+  },
+  privacyText: {
+    color: '#636366',
+    fontSize: 11
   }
 });
