@@ -49,7 +49,7 @@ export const AccountScreen = () => {
 
     if (authMode === 'login') {
       login(email, password);
-      Alert.alert('Thành công', 'Đăng nhập tài khoản thành công!');
+      Alert.alert('Thành công', `Đăng nhập thành công với tài khoản ${email}!`);
     } else {
       if (!name) {
         Alert.alert('Thông báo', 'Vui lòng nhập Họ và tên.');
@@ -65,22 +65,25 @@ export const AccountScreen = () => {
     if (pendingRegistration) {
       register(pendingRegistration.name, pendingRegistration.email, pendingRegistration.password);
       setPendingRegistration(null);
+      Alert.alert('Thành công', `Kích hoạt tài khoản ${pendingRegistration.email} thành công!`);
     }
   };
 
   const handleRealAppleLogin = async () => {
     const res = await RealAuthService.signInWithRealApple();
-    if (res.success) {
-      setUser(res.user);
-      Alert.alert('Thành công', 'Đăng nhập Apple ID thành công!');
+    if (res.pending) {
+      Alert.alert('Apple ID', res.message);
+    } else if (res.error) {
+      Alert.alert('Thông báo', res.error);
     }
   };
 
   const handleRealGoogleLogin = async () => {
     const res = await RealAuthService.signInWithRealGoogle();
-    if (res.success) {
-      setUser(res.user);
-      Alert.alert('Thành công', 'Đăng nhập Google thành công!');
+    if (res.pending) {
+      Alert.alert('Google Sign-In', res.message);
+    } else if (res.error) {
+      Alert.alert('Thông báo', res.error);
     }
   };
 
@@ -128,7 +131,7 @@ export const AccountScreen = () => {
 
             <View style={styles.inputWrap}>
               <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>EMAIL / SỐ ĐIỆN THOẠI</Text>
-              <TextInput style={[styles.textInput, { backgroundColor: theme.inputBg, color: theme.textPrimary, borderColor: theme.border }]} placeholder="example@fimax.vn" placeholderTextColor={theme.textMuted} keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+              <TextInput style={[styles.textInput, { backgroundColor: theme.inputBg, color: theme.textPrimary, borderColor: theme.border }]} placeholder="example@fimax.vn hoặc 0901234567" placeholderTextColor={theme.textMuted} keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
             </View>
 
             <View style={styles.inputWrap}>
@@ -467,6 +470,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600'
   },
+  // Profile Hero
   profileHero: {
     flexDirection: 'row',
     alignItems: 'center',
