@@ -1,0 +1,2 @@
+Line 1: Special symbols $  " ' \ /
+Line 2: Ready
