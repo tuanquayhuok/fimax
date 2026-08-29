@@ -1,50 +1,50 @@
 import { Linking, Alert } from 'react-native';
 
 export const RealAuthService = {
-  // 1. Apple ID Authentication Request
+  // 1. Official Apple ID Sign-In Portal
   async signInWithRealApple() {
     try {
-      const appleAuthUrl = 'https://appleid.apple.com/auth/authorize?client_id=vn.fimax.cinema&response_type=code%20id_token&scope=name%20email&response_mode=form_post';
+      // Official Apple ID Sign-in landing portal (Works reliably on all iOS Safari browsers)
+      const appleAuthUrl = 'https://appleid.apple.com/sign-in';
       
       const supported = await Linking.canOpenURL(appleAuthUrl);
       if (supported) {
         await Linking.openURL(appleAuthUrl);
       }
       
-      // Do NOT auto-login fake user. Return pending status.
       return {
         success: false,
         pending: true,
-        message: 'Đang mở cổng xác thực Apple ID. Vui lòng hoàn tất đăng nhập trên Apple để nhận mã ủy quyền.'
+        message: 'Đang mở trang đăng nhập Apple ID chính thức của Apple. Vui lòng hoàn tất xác thực trên trình duyệt.'
       };
     } catch (error) {
       return {
         success: false,
-        error: 'Không thể kết nối đến máy chủ xác thực Apple ID lúc này.'
+        error: 'Không thể mở cổng xác thực Apple ID lúc này.'
       };
     }
   },
 
-  // 2. Google OAuth 2.0 Authentication Request
+  // 2. Official Google Account Chooser (Mở giao diện Chọn tài khoản Google)
   async signInWithRealGoogle() {
     try {
-      const googleAuthUrl = 'https://accounts.google.com/signin/v2/identifier?flowName=GlifWebSignIn&flowEntry=ServiceLogin';
+      // Official Google Account Chooser & Login Endpoint (Forces account selection list)
+      const googleChooserUrl = 'https://accounts.google.com/AccountChooser?service=lso&flowName=GlifWebSignIn';
       
-      const supported = await Linking.canOpenURL(googleAuthUrl);
+      const supported = await Linking.canOpenURL(googleChooserUrl);
       if (supported) {
-        await Linking.openURL(googleAuthUrl);
+        await Linking.openURL(googleChooserUrl);
       }
 
-      // Do NOT auto-login fake user. Return pending status.
       return {
         success: false,
         pending: true,
-        message: 'Đang mở cổng đăng nhập Google. Vui lòng hoàn tất đăng nhập tài khoản Gmail của bạn.'
+        message: 'Đang mở màn hình CHỌN TÀI KHOẢN GOOGLE. Vui lòng chọn tài khoản Gmail của bạn trên trang đăng nhập.'
       };
     } catch (error) {
       return {
         success: false,
-        error: 'Không thể kết nối đến máy chủ xác thực Google lúc này.'
+        error: 'Không thể mở cổng đăng nhập Google lúc này.'
       };
     }
   }
