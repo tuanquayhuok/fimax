@@ -9,9 +9,8 @@ import { EditProfileModal } from '../components/EditProfileModal';
 import { AppearanceSettingsModal } from '../components/AppearanceSettingsModal';
 import { RedeemCodeModal } from '../components/RedeemCodeModal';
 import { OtpVerificationModal } from '../components/OtpVerificationModal';
-import { SocialAuthModal } from '../components/SocialAuthModal';
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 import { AdminManagerModal } from '../components/AdminManagerModal';
-import { RealAuthService } from '../services/realAuthService';
 
 export const AccountScreen = () => {
   const {
@@ -24,22 +23,27 @@ export const AccountScreen = () => {
   const theme = getThemeColors(themeMode);
   
   // Auth Form State (for guests)
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   
   // Modals & Settings
-  const [showSocialModal, setShowSocialModal] = useState(false);
-  const [socialProvider, setSocialProvider] = useState('Google');
+  const [showForgotModal, setShowForgotModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [showAppearanceModal, setShowAppearanceModal] = useState(false);
   const [showVipModal, setShowVipModal] = useState(false);
   const [showSubManagerModal, setShowSubManagerModal] = useState(false);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpMode, setOtpMode] = useState('register'); // 'register' | 'forgot_password'
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState(null);
+  const [pendingReset, setPendingReset] = useState(null);
   
   // Secret 5-tap gesture counter for Owner Admin
   const [tapCount, setTapCount] = useState(0);
@@ -52,54 +56,69 @@ export const AccountScreen = () => {
   const [inputCallbackUrl, setInputCallbackUrl] = useState(callbackUrl);
 
   const handleAuthSubmit = () => {
-    if (!email || !password) {
-      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ Email / Số điện thoại và Mật khẩu.');
-      return;
-    }
+    const cleanEmail = email.trim().toLowerCase();
 
     // Secret Admin Login trigger directly from login form
-    if (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@fimax.vn') {
+    if (cleanEmail === 'admin' || cleanEmail === 'admin@fimax.vn') {
       if (password === 'Admin@2026' || password === '123456' || password === 'admin') {
         setShowAdminModal(true);
         return;
       }
     }
 
+    if (!cleanEmail || !password) {
+      Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ Email và Mật khẩu.');
+      return;
+    }
+
+    if (!cleanEmail.endsWith('@gmail.com')) {
+      Alert.alert('Email không hợp lệ', 'Hệ thống chỉ hỗ trợ tài khoản @gmail.com. Vui lòng nhập đúng định dạng.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Thông báo', 'Mật khẩu phải có tối thiểu 6 ký tự.');
+      return;
+    }
+
     if (authMode === 'login') {
-      login(email, password);
-      Alert.alert('Thành công', `Đăng nhập thành công với tài khoản ${email}!`);
+      login(cleanEmail, password);
+      Alert.alert('Thành công', `Chào mừng bạn quay trở lại FIMAX Cinema!`);
     } else {
-      if (!name) {
+      if (!name.trim()) {
         Alert.alert('Thông báo', 'Vui lòng nhập Họ và tên.');
         return;
       }
-      setPendingRegistration({ name, email, password });
+      if (password !== confirmPassword) {
+        Alert.alert('Thông báo', 'Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.');
+        return;
+      }
+      setPendingRegistration({ name: name.trim(), email: cleanEmail, password });
+      setOtpMode('register');
       setShowOtpModal(true);
     }
   };
 
+  const handleForgotPasswordSubmit = ({ email: resetEmail, newPassword }) => {
+    setPendingReset({ email: resetEmail, newPassword });
+    setShowForgotModal(false);
+    setOtpMode('forgot_password');
+    setShowOtpModal(true);
+  };
+
   const handleOtpSuccess = () => {
     setShowOtpModal(false);
-    if (pendingRegistration) {
+    if (otpMode === 'register' && pendingRegistration) {
       register(pendingRegistration.name, pendingRegistration.email, pendingRegistration.password);
       setPendingRegistration(null);
       Alert.alert('Thành công', `Kích hoạt tài khoản ${pendingRegistration.email} thành công!`);
+    } else if (otpMode === 'forgot_password' && pendingReset) {
+      Alert.alert('Thành công', `Đặt lại mật khẩu cho tài khoản ${pendingReset.email} thành công! Vui lòng đăng nhập với mật khẩu mới.`);
+      setEmail(pendingReset.email);
+      setPassword('');
+      setPendingReset(null);
+      setAuthMode('login');
     }
-  };
-
-  const handleLaunchSocialAuth = async (provider) => {
-    setSocialProvider(provider);
-    if (provider === 'Google') {
-      await RealAuthService.signInWithGoogleBrowser();
-    } else {
-      await RealAuthService.signInWithFacebookBrowser();
-    }
-    setShowSocialModal(true);
-  };
-
-  const handleSocialSuccess = (authedUser) => {
-    setUser(authedUser);
-    Alert.alert('Thành công', `Đã đồng bộ và đăng nhập thành công với ${authedUser.authProvider} (${authedUser.email})!`);
   };
 
   const handleNotificationToggle = (val) => {
@@ -184,65 +203,129 @@ export const AccountScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Form Inputs */}
+          {/* Clean Form Inputs (No redundant labels) */}
           <View style={styles.formContainer}>
             {authMode === 'register' && (
-              <View style={styles.inputWrap}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>HỌ VÀ TÊN</Text>
-                <TextInput style={[styles.textInput, { backgroundColor: theme.inputBg, color: theme.textPrimary, borderColor: theme.border }]} placeholder="Nhập tên của bạn" placeholderTextColor={theme.textMuted} value={name} onChangeText={setName} />
+              <View style={[styles.inputBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+                <Ionicons name="person-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={[styles.cleanInput, { color: theme.textPrimary }]}
+                  placeholder="Họ và tên"
+                  placeholderTextColor={theme.textMuted}
+                  value={name}
+                  onChangeText={setName}
+                />
               </View>
             )}
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>EMAIL / SỐ ĐIỆN THOẠI</Text>
-              <TextInput style={[styles.textInput, { backgroundColor: theme.inputBg, color: theme.textPrimary, borderColor: theme.border }]} placeholder="example@fimax.vn hoặc 0901234567" placeholderTextColor={theme.textMuted} keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+            {/* Email Input */}
+            <View style={[styles.inputBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+              <Ionicons name="mail-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={[styles.cleanInput, { color: theme.textPrimary }]}
+                placeholder="Email @gmail.com"
+                placeholderTextColor={theme.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+              />
             </View>
 
-            <View style={styles.inputWrap}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>MẬT KHẨU</Text>
-              <TextInput style={[styles.textInput, { backgroundColor: theme.inputBg, color: theme.textPrimary, borderColor: theme.border }]} placeholder="Tối thiểu 6 ký tự" placeholderTextColor={theme.textMuted} secureTextEntry value={password} onChangeText={setPassword} />
+            {/* Password Input */}
+            <View style={[styles.inputBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+              <Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+              <TextInput
+                style={[styles.cleanInput, { color: theme.textPrimary }]}
+                placeholder="Mật khẩu"
+                placeholderTextColor={theme.textMuted}
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Ionicons
+                  name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                  size={18}
+                  color={theme.textMuted}
+                />
+              </TouchableOpacity>
             </View>
 
+            {/* Confirm Password Input (Register only) */}
+            {authMode === 'register' && (
+              <View style={[styles.inputBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+                <Ionicons name="shield-checkmark-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+                <TextInput
+                  style={[styles.cleanInput, { color: theme.textPrimary }]}
+                  placeholder="Xác nhận mật khẩu"
+                  placeholderTextColor={theme.textMuted}
+                  secureTextEntry={!showConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={styles.eyeBtn}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                    size={18}
+                    color={theme.textMuted}
+                  />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Remember Me & Forgot Password Row */}
+            <View style={styles.authOptionsRow}>
+              <TouchableOpacity
+                style={styles.rememberRow}
+                activeOpacity={0.8}
+                onPress={() => setRememberMe(!rememberMe)}
+              >
+                <Ionicons
+                  name={rememberMe ? "checkbox" : "square-outline"}
+                  size={20}
+                  color={rememberMe ? accentColor : theme.textMuted}
+                />
+                <Text style={[styles.rememberText, { color: theme.textSecondary }]}>Duy trì đăng nhập</Text>
+              </TouchableOpacity>
+
+              {authMode === 'login' && (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => setShowForgotModal(true)}
+                  style={styles.forgotBtn}
+                >
+                  <Text style={[styles.forgotText, { color: accentColor }]}>Quên mật khẩu?</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Submit Button */}
             <TouchableOpacity style={[styles.submitBtn, { backgroundColor: accentColor }]} activeOpacity={0.85} onPress={handleAuthSubmit}>
               <Text style={styles.submitBtnText}>{authMode === 'login' ? 'ĐĂNG NHẬP' : 'TẠO TÀI KHOẢN'}</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Social Logins */}
-          <View style={styles.socialSection}>
-            <Text style={[styles.socialDividerText, { color: theme.textMuted }]}>HOẶC ĐĂNG NHẬP VỚI</Text>
-            <View style={styles.socialBtnRow}>
-              <TouchableOpacity
-                style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                activeOpacity={0.8}
-                onPress={() => handleLaunchSocialAuth('Google')}
-              >
-                <Ionicons name="logo-google" size={18} color="#EA4335" />
-                <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Google</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                activeOpacity={0.8}
-                onPress={() => handleLaunchSocialAuth('Facebook')}
-              >
-                <Ionicons name="logo-facebook" size={20} color="#1877F2" />
-                <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Facebook</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
           {/* Secret Tap Area for Admin */}
-          <TouchableOpacity activeOpacity={1} onPress={handleSecretVersionTap} style={{ marginTop: 32, alignItems: 'center' }}>
+          <TouchableOpacity activeOpacity={1} onPress={handleSecretVersionTap} style={{ marginTop: 40, alignItems: 'center' }}>
             <Text style={[styles.appVersion, { color: theme.textMuted }]}>FIMAX Cinema v2.4.0 (Build 2026)</Text>
           </TouchableOpacity>
         </ScrollView>
 
-        <SocialAuthModal
-          visible={showSocialModal}
-          provider={socialProvider}
-          onClose={() => setShowSocialModal(false)}
-          onSuccess={handleSocialSuccess}
+        <ForgotPasswordModal
+          visible={showForgotModal}
+          onClose={() => setShowForgotModal(false)}
+          onSubmitReset={handleForgotPasswordSubmit}
+          themeMode={themeMode}
+          accentColor={accentColor}
         />
 
         <AdminManagerModal
@@ -250,7 +333,12 @@ export const AccountScreen = () => {
           onClose={() => setShowAdminModal(false)}
         />
 
-        <OtpVerificationModal visible={showOtpModal} destination={email} onVerifySuccess={handleOtpSuccess} onCancel={() => setShowOtpModal(false)} />
+        <OtpVerificationModal
+          visible={showOtpModal}
+          destination={otpMode === 'register' ? pendingRegistration?.email : pendingReset?.email}
+          onVerifySuccess={handleOtpSuccess}
+          onCancel={() => setShowOtpModal(false)}
+        />
       </KeyboardAvoidingView>
     );
   }
@@ -527,38 +615,68 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   formContainer: {
-    gap: 16
+    gap: 14
   },
-  inputWrap: {
-    gap: 6
-  },
-  inputLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5
-  },
-  textInput: {
-    borderRadius: 10,
+  inputBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
     paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
+    height: 50,
     borderWidth: 1
+  },
+  inputIcon: {
+    marginRight: 10
+  },
+  cleanInput: {
+    flex: 1,
+    fontSize: 14,
+    height: '100%'
+  },
+  eyeBtn: {
+    padding: 6
+  },
+  authOptionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 2,
+    marginTop: 2
+  },
+  rememberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4
+  },
+  rememberText: {
+    fontSize: 13,
+    fontWeight: '500'
+  },
+  forgotBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 4
+  },
+  forgotText: {
+    fontSize: 13,
+    fontWeight: '700'
   },
   submitBtn: {
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 6,
+    shadowColor: '#E50914',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6
   },
   submitBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5
-  },
-  socialSection: {
-    marginTop: 28,
-    alignItems: 'center'
   },
   socialDividerText: {
     fontSize: 11,
