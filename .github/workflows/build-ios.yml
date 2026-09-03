@@ -30,11 +30,6 @@ jobs:
         run: |
           npm install
 
-      - name: 📦 Pre-bundle JavaScript & Assets
-        working-directory: ./netflix-clone-expo
-        run: |
-          npx expo export --platform ios
-
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
         env:
@@ -49,7 +44,12 @@ jobs:
         run: |
           pod install || pod install --repo-update || true
 
-      - name: 🔨 Compile Native iOS Release App
+      - name: 📦 Pre-bundle main.jsbundle into iOS folder
+        working-directory: ./netflix-clone-expo
+        run: |
+          npx react-native bundle --platform ios --dev false --entry-file index.js --bundle-output ios/main.jsbundle --assets-dest ios
+
+      - name: 🔨 Compile Native iOS Release App with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
@@ -61,7 +61,7 @@ jobs:
           xcodebuild -workspace FIMAXCinema.xcworkspace \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
-                     -destination "generic/platform=iOS Simulator" \
+                     -destination "generic/platform=iOS" \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
@@ -69,13 +69,8 @@ jobs:
                      ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
                      ONLY_ACTIVE_ARCH=NO \
-                     build > xcodebuild.log 2>&1 || {
-            echo "### ❌ Xcode Build Error Log" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 xcodebuild.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
+                     SKIP_BUNDLING=1 \
+                     build
 
       - name: 📦 Package into .IPA File
         run: |
@@ -87,7 +82,6 @@ jobs:
           
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: No .app found!"
-            find netflix-clone-expo/ios
             exit 1
           fi
           
