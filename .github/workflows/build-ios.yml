@@ -36,22 +36,20 @@ jobs:
           LANG: en_US.UTF-8
         run: |
           npx expo prebuild --platform ios --clean --no-install
-          echo "📁 Contents of ios directory:"
-          ls -la ios/
+          
+          # Setup .xcode.env.local for Xcode Node binary detection
+          NODE_PATH=$(which node)
+          echo "export NODE_BINARY=$NODE_PATH" > ios/.xcode.env.local
+          echo "export PATH=\"$(dirname $NODE_PATH):$PATH\"" >> ios/.xcode.env.local
+          echo "Configured .xcode.env.local with Node at: $NODE_PATH"
+          cat ios/.xcode.env.local
 
       - name: 🍫 Run CocoaPods Install
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          pod install --repo-update
-
-      - name: 🔍 Inspect Xcode Schemes and Workspaces
-        working-directory: ./netflix-clone-expo/ios
-        run: |
-          echo "Available Workspaces & Projects:"
-          ls -la
-          xcodebuild -list || true
+          pod install || pod install --repo-update || true
 
       - name: 🔨 Compile Native iOS Release App with Xcode
         working-directory: ./netflix-clone-expo/ios
@@ -88,9 +86,9 @@ jobs:
           if [ -n "$BUILD_EXIT_CODE" ] && [ "$BUILD_EXIT_CODE" -ne 0 ]; then
             echo "❌ Xcodebuild failed with exit code $BUILD_EXIT_CODE"
             echo "==== ERROR SNIPPET ===="
-            grep -i -C 3 "error:" xcodebuild_output.log | head -n 60 || true
-            echo "==== LAST 80 LINES OF LOG ===="
-            tail -n 80 xcodebuild_output.log
+            grep -i -C 3 "error:" xcodebuild_output.log | head -n 80 || true
+            echo "==== LAST 100 LINES OF LOG ===="
+            tail -n 100 xcodebuild_output.log
             exit $BUILD_EXIT_CODE
           fi
           
