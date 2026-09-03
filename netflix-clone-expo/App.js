@@ -1,4 +1,4 @@
-﻿import React, { Component, useContext } from 'react';
+﻿import React, { Component, useState, useContext } from 'react';
 import { View, StyleSheet, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { AppProvider, AppContext } from './src/context/AppContext';
 import { getThemeColors } from './src/theme/colors';
 
 import { CustomTabBar } from './src/components/CustomTabBar';
+import { SplashScreen } from './src/components/SplashScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ExploreScreen } from './src/screens/ExploreScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
@@ -106,6 +107,7 @@ function DownloadStack() {
 
 function MainNavigation() {
   const { activeMovieForPlayer, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
+  const [showSplash, setShowSplash] = useState(true);
   const theme = getThemeColors(themeMode);
 
   const customNavigationTheme = {
@@ -127,6 +129,7 @@ function MainNavigation() {
         backgroundColor={theme.background}
       />
       
+      {/* 1. Underlying Main Navigation (always active & mounted immediately) */}
       <NavigationContainer theme={customNavigationTheme}>
         <Tab.Navigator
           tabBar={(props) => <CustomTabBar {...props} />}
@@ -140,13 +143,18 @@ function MainNavigation() {
         </Tab.Navigator>
       </NavigationContainer>
 
-      {/* Global Cinema Player Modal */}
+      {/* 2. Global Cinema Player Modal */}
       {activeMovieForPlayer && (
         <CinemaPlayer
           visible={!!activeMovieForPlayer}
           movie={activeMovieForPlayer}
           onClose={() => setActiveMovieForPlayer(null)}
         />
+      )}
+
+      {/* 3. Smooth Cinematic Splash Screen Overlay */}
+      {showSplash && (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
       )}
     </View>
   );
