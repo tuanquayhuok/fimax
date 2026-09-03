@@ -8,20 +8,42 @@ let memoryCache = [...MOCK_MOVIES];
 let isFetchingBackground = false;
 let lastFetchTimestamp = 0;
 
-async function syncWebSourceInBackground() {
+// Callbacks for real-time listeners
+const listeners = new Set();
+
+export function subscribeMovieUpdates(callback) {
+  listeners.add(callback);
+  return () => listeners.delete(callback);
+}
+
+function notifyListeners() {
+  listeners.forEach(cb => {
+    try {
+      cb(memoryCache);
+    } catch (e) {}
+  });
+}
+
+async function syncWebSourceInBackground(force = false) {
   const now = Date.now();
-  // Throttle background fetches to at most once every 5 minutes
-  if (isFetchingBackground || (now - lastFetchTimestamp < 300000 && memoryCache.length > 20)) {
+  // If not forced, only throttle to 5 seconds
+  if (isFetchingBackground || (!force && (now - lastFetchTimestamp < 5000) && memoryCache.length > 20)) {
     return memoryCache;
   }
 
   isFetchingBackground = true;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s fast timeout
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    const response = await fetch(WEB_SOURCE_URL, {
-      headers: { 'User-Agent': 'FIMAX-Cinema-App/2.4' },
+    // Add cache buster query parameter to guarantee 0 delay from CDN/server cache
+    const fetchUrl = `${WEB_SOURCE_URL}?_nocache=${Date.now()}`;
+    const response = await fetch(fetchUrl, {
+      headers: {
+        'User-Agent': 'FIMAX-Cinema-App/2.4',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
       signal: controller.signal
     });
     clearTimeout(timeoutId);
@@ -86,11 +108,12 @@ async function syncWebSourceInBackground() {
         if (movies.length > 0) {
           memoryCache = movies;
           lastFetchTimestamp = Date.now();
+          notifyListeners();
         }
       }
     }
   } catch (e) {
-    // Timeout or network error - use instant memoryCache smoothly
+    // Graceful fallback
   } finally {
     isFetchingBackground = false;
   }
@@ -98,17 +121,16 @@ async function syncWebSourceInBackground() {
   return memoryCache;
 }
 
-// Trigger initial fast background sync immediately
-syncWebSourceInBackground();
+// Initial immediate sync
+syncWebSourceInBackground(true);
 
 export const ApiService = {
-  // Returns instant cache in 0ms, triggers background sync if needed
+  // Instant retrieval + background real-time sync
   async getAllMovies(apiUrl = DEFAULT_API_URL, forceRefresh = false) {
     if (forceRefresh) {
-      await syncWebSourceInBackground();
+      await syncWebSourceInBackground(true);
     } else {
-      // Trigger background sync silently without blocking
-      syncWebSourceInBackground();
+      syncWebSourceInBackground(false);
     }
     return memoryCache;
   },

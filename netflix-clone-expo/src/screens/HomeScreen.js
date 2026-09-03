@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, ScrollView, StyleSheet, RefreshControl, Text, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, RefreshControl, Text, TouchableOpacity, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
-import { ApiService } from '../services/apiService';
+import { ApiService, subscribeMovieUpdates } from '../services/apiService';
 import { HeaderBar } from '../components/HeaderBar';
 import { HeroBanner } from '../components/HeroBanner';
 import { MovieRow } from '../components/MovieRow';
@@ -13,7 +13,7 @@ import { TrailerModal } from '../components/TrailerModal';
 import { NetflixGenreModal } from '../components/NetflixGenreModal';
 
 export const HomeScreen = ({ navigation }) => {
-  const { themeMode, accentColor, fontSizeScale } = useContext(AppContext);
+  const { themeMode, accentColor } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   const [selectedCategory, setSelectedCategory] = useState('Tất Cả');
@@ -33,29 +33,24 @@ export const HomeScreen = ({ navigation }) => {
     korean: []
   });
 
+  const updateSectionState = (allList) => {
+    if (!allList || allList.length === 0) return;
+    setMoviesBySection({
+      all: allList,
+      trending: allList.slice(0, 10),
+      newReleases: allList.filter(m => m.categoryTag === 'latest' || m.isNew).slice(0, 8),
+      topRated: allList.filter(m => m.categoryTag === 'cinema' || m.rating >= 8.5).slice(0, 8),
+      comingSoon: allList.slice(10, 18),
+      vietnam: allList.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam'),
+      hollywood: allList.filter(m => m.country !== 'Việt Nam' && m.categoryTag !== 'vietnam'),
+      korean: allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean')
+    });
+  };
+
   const loadData = async (forceRefresh = false) => {
     try {
-      const [all, trending, newReleases, topRated, comingSoon, vietnam, hollywood, korean] = await Promise.all([
-        ApiService.getAllMovies(undefined, forceRefresh),
-        ApiService.getTrendingMovies(),
-        ApiService.getNewReleases(),
-        ApiService.getTopRatedMovies(),
-        ApiService.getComingSoonMovies(),
-        ApiService.getMoviesByCountry('Việt Nam'),
-        ApiService.getMoviesByCountry('Âu Mỹ'),
-        ApiService.getMoviesByCountry('Hàn Quốc')
-      ]);
-
-      setMoviesBySection({
-        all: all || [],
-        trending: trending || [],
-        newReleases: newReleases || [],
-        topRated: topRated || [],
-        comingSoon: comingSoon || [],
-        vietnam: vietnam || [],
-        hollywood: hollywood || [],
-        korean: korean || []
-      });
+      const all = await ApiService.getAllMovies(undefined, forceRefresh);
+      updateSectionState(all);
     } catch (e) {
       console.warn('API loadData error:', e.message);
     } finally {
@@ -65,6 +60,29 @@ export const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadData(false);
+
+    // 1. Subscribe to Real-Time Web Movie updates
+    const unsubscribe = subscribeMovieUpdates((updatedList) => {
+      updateSectionState(updatedList);
+    });
+
+    // 2. 10s Silent Background Poller (Tự động cập nhật tức thì nếu web đổi phim)
+    const interval = setInterval(() => {
+      ApiService.getAllMovies(undefined, true);
+    }, 10000);
+
+    // 3. Auto-sync on App Focus (Khi người dùng mở lại app)
+    const appStateSub = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        ApiService.getAllMovies(undefined, true);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+      appStateSub.remove();
+    };
   }, []);
 
   const onRefresh = () => {
