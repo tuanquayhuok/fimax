@@ -3,108 +3,114 @@ import { MOCK_MOVIES } from '../data/mockMovies';
 const DEFAULT_API_URL = 'http://127.0.0.1:4000/api';
 const WEB_SOURCE_URL = 'http://fimax.aecongnghe.online/';
 
-// Helper to parse live web movies from fimax.aecongnghe.online HTML
-let cachedWebMovies = null;
+// Global in-memory cache for 0ms instant loading
+let memoryCache = [...MOCK_MOVIES];
+let isFetchingBackground = false;
+let lastFetchTimestamp = 0;
 
-async function fetchFromWebSource() {
-  if (cachedWebMovies && cachedWebMovies.length > 0) {
-    return cachedWebMovies;
+async function syncWebSourceInBackground() {
+  const now = Date.now();
+  // Throttle background fetches to at most once every 5 minutes
+  if (isFetchingBackground || (now - lastFetchTimestamp < 300000 && memoryCache.length > 20)) {
+    return memoryCache;
   }
 
+  isFetchingBackground = true;
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500); // 3.5s fast timeout
+
     const response = await fetch(WEB_SOURCE_URL, {
-      headers: { 'User-Agent': 'FIMAX-Cinema-App/2.4' }
+      headers: { 'User-Agent': 'FIMAX-Cinema-App/2.4' },
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
-    if (!response.ok) return null;
+    if (response.ok) {
+      const html = await response.text();
+      const match = html.match(/window\.categoryMovies\s*=\s*(\{.*?\});/s);
 
-    const html = await response.text();
-    const match = html.match(/window\.categoryMovies\s*=\s*(\{.*?\});/s);
+      if (match && match[1]) {
+        const data = JSON.parse(match[1]);
+        const movies = [];
 
-    if (match && match[1]) {
-      const data = JSON.parse(match[1]);
-      const movies = [];
+        for (const [cat, list] of Object.entries(data)) {
+          if (!Array.isArray(list)) continue;
 
-      for (const [cat, list] of Object.entries(data)) {
-        if (!Array.isArray(list)) continue;
+          for (const m of list) {
+            const videoUrl = m.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+            const poster = m.poster_path || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600';
+            const backdrop = m.backdrop_path || poster;
+            const country = cat === 'vietnam' ? 'Việt Nam' : (cat === 'korean' ? 'Hàn Quốc' : 'Âu Mỹ');
+            const genreList = cat === 'vietnam' ? ['Điện ảnh', 'Việt Nam', 'Tâm lý'] : (cat === 'korean' ? ['Hàn Quốc', 'Tình cảm', 'Hành động'] : ['Chiếu Rạp', 'Bom tấn']);
 
-        for (const m of list) {
-          const videoUrl = m.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-          const poster = m.poster_path || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600';
-          const backdrop = m.backdrop_path || poster;
-          const country = cat === 'vietnam' ? 'Việt Nam' : (cat === 'korean' ? 'Hàn Quốc' : 'Âu Mỹ');
-          const genreList = cat === 'vietnam' ? ['Điện ảnh', 'Việt Nam', 'Tâm lý'] : (cat === 'korean' ? ['Hàn Quốc', 'Tình cảm', 'Hành động'] : ['Chiếu Rạp', 'Bom tấn']);
+            movies.push({
+              id: 'web_' + (m.id || Math.random().toString(36).substr(2, 9)),
+              title: m.title || 'Phim Chiếu Rạp',
+              originalTitle: m.slug || m.title,
+              rating: parseFloat(m.vote_average) || 8.8,
+              releaseYear: m.release_date ? parseInt(m.release_date.substring(0, 4)) : 2025,
+              duration: (m.duration || 115) + ' phút',
+              country: country,
+              ageRating: '16+',
+              isFeatured: true,
+              isHot: true,
+              isNew: cat === 'latest',
+              isTrending: true,
+              isUpcoming: false,
+              viewCount: (parseInt(m.vote_count) || 1200) * 100,
+              genres: genreList,
+              director: 'Đang cập nhật',
+              cast: [],
+              overview: m.description || `Bộ phim điện ảnh ${m.title} phát hành rạp chất lượng cao tại FIMAX.`,
+              backdropUrl: backdrop,
+              posterUrl: poster,
+              trailerUrl: m.trailer_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+              videoSources: {
+                '1080p': videoUrl,
+                '720p': videoUrl,
+                'auto': videoUrl
+              },
+              subtitles: [
+                { language: 'Tiếng Việt', code: 'vi', label: 'Tiếng Việt (Chuẩn)' },
+                { language: 'None', code: 'none', label: 'Tắt phụ đề' }
+              ],
+              audioTracks: [
+                { language: 'Gốc - Dolby 5.1', code: 'vi_orig', label: 'Âm thanh Gốc' }
+              ],
+              categoryTag: cat
+            });
+          }
+        }
 
-          movies.push({
-            id: 'web_' + (m.id || Math.random().toString(36).substr(2, 9)),
-            title: m.title || 'Phim Chiếu Rạp',
-            originalTitle: m.slug || m.title,
-            rating: parseFloat(m.vote_average) || 8.8,
-            releaseYear: m.release_date ? parseInt(m.release_date.substring(0, 4)) : 2025,
-            duration: (m.duration || 115) + ' phút',
-            country: country,
-            ageRating: '16+',
-            isFeatured: true,
-            isHot: true,
-            isNew: cat === 'latest',
-            isTrending: true,
-            isUpcoming: false,
-            viewCount: (parseInt(m.vote_count) || 1200) * 100,
-            genres: genreList,
-            director: 'Đang cập nhật',
-            cast: [],
-            overview: m.description || `Bộ phim điện ảnh ${m.title} phát hành rạp chất lượng cao tại FIMAX.`,
-            backdropUrl: backdrop,
-            posterUrl: poster,
-            trailerUrl: m.trailer_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-            videoSources: {
-              '1080p': videoUrl,
-              '720p': videoUrl,
-              'auto': videoUrl
-            },
-            subtitles: [
-              { language: 'Tiếng Việt', code: 'vi', label: 'Tiếng Việt (Chuẩn)' },
-              { language: 'None', code: 'none', label: 'Tắt phụ đề' }
-            ],
-            audioTracks: [
-              { language: 'Gốc - Dolby 5.1', code: 'vi_orig', label: 'Âm thanh Gốc' }
-            ],
-            categoryTag: cat
-          });
+        if (movies.length > 0) {
+          memoryCache = movies;
+          lastFetchTimestamp = Date.now();
         }
       }
-
-      if (movies.length > 0) {
-        cachedWebMovies = movies;
-        return movies;
-      }
     }
-  } catch (error) {
-    console.log('fetchFromWebSource error, using local fallback:', error.message);
+  } catch (e) {
+    // Timeout or network error - use instant memoryCache smoothly
+  } finally {
+    isFetchingBackground = false;
   }
 
-  return null;
+  return memoryCache;
 }
 
+// Trigger initial fast background sync immediately
+syncWebSourceInBackground();
+
 export const ApiService = {
-  async getAllMovies(apiUrl = DEFAULT_API_URL) {
-    // 1. Try Live Web Source fimax.aecongnghe.online
-    const webMovies = await fetchFromWebSource();
-    if (webMovies && webMovies.length > 0) {
-      return webMovies;
+  // Returns instant cache in 0ms, triggers background sync if needed
+  async getAllMovies(apiUrl = DEFAULT_API_URL, forceRefresh = false) {
+    if (forceRefresh) {
+      await syncWebSourceInBackground();
+    } else {
+      // Trigger background sync silently without blocking
+      syncWebSourceInBackground();
     }
-
-    // 2. Try Backend Server
-    try {
-      const response = await fetch(`${apiUrl}/movies`);
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) return data;
-      }
-    } catch (e) {}
-
-    // 3. Mock Fallback
-    return MOCK_MOVIES;
+    return memoryCache;
   },
 
   async getTrendingMovies(apiUrl = DEFAULT_API_URL) {

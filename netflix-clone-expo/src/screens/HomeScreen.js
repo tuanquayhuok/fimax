@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, ScrollView, StyleSheet, RefreshControl, Text, ActivityIndicator } from 'react-native';
+import { View, ScrollView, StyleSheet, RefreshControl, Text } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { ApiService } from '../services/apiService';
@@ -13,7 +13,6 @@ export const HomeScreen = ({ navigation }) => {
   const { themeMode } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [previewMovie, setPreviewMovie] = useState(null);
   const [trailerMovie, setTrailerMovie] = useState(null);
@@ -27,7 +26,7 @@ export const HomeScreen = ({ navigation }) => {
     hollywood: []
   });
 
-  const loadData = async () => {
+  const loadData = async (forceRefresh = false) => {
     try {
       const [trending, newReleases, topRated, comingSoon, vietnam, hollywood] = await Promise.all([
         ApiService.getTrendingMovies(),
@@ -49,18 +48,18 @@ export const HomeScreen = ({ navigation }) => {
     } catch (e) {
       console.warn('API loadData error:', e.message);
     } finally {
-      setLoading(false);
       setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    // 0ms instant render from memory cache
+    loadData(false);
   }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadData();
+    loadData(true);
   };
 
   const heroMovies = (moviesBySection.trending && moviesBySection.trending.length > 0)
@@ -75,79 +74,72 @@ export const HomeScreen = ({ navigation }) => {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <HeaderBar navigation={navigation} />
 
-      {loading ? (
-        <View style={styles.loadingCenter}>
-          <ActivityIndicator size="large" color="#E50914" />
-          <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Đang tải kho phim...</Text>
-        </View>
-      ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E50914" />}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* Multi-Hero Banner Carousel */}
-          {heroMovies.length > 0 && (
-            <HeroBanner
-              movies={heroMovies}
-              navigation={navigation}
-              onInfoPress={(m) => setPreviewMovie(m)}
-            />
-          )}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E50914" />}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Multi-Hero Banner Carousel */}
+        {heroMovies.length > 0 && (
+          <HeroBanner
+            movies={heroMovies}
+            navigation={navigation}
+            onInfoPress={(m) => setPreviewMovie(m)}
+          />
+        )}
 
-          {/* Section Rows with 3D Touch Long Press Support */}
-          {moviesBySection.trending.length > 0 && (
-            <MovieRow
-              title="Phim Đang Hot 🔥"
-              movies={moviesBySection.trending}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-            />
-          )}
-          {moviesBySection.newReleases.length > 0 && (
-            <MovieRow
-              title="Phim Mới Cập Nhật 🎬"
-              movies={moviesBySection.newReleases}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-            />
-          )}
-          {moviesBySection.topRated.length > 0 && (
-            <MovieRow
-              title="Đánh Giá Cao ⭐"
-              movies={moviesBySection.topRated}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-            />
-          )}
-          {moviesBySection.vietnam.length > 0 && (
-            <MovieRow
-              title="Phim Điện Ảnh Việt Nam 🇻🇳"
-              movies={moviesBySection.vietnam}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-            />
-          )}
-          {moviesBySection.hollywood.length > 0 && (
-            <MovieRow
-              title="Bom Tấn Hollywood 🍿"
-              movies={moviesBySection.hollywood}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-            />
-          )}
-          {moviesBySection.comingSoon.length > 0 && (
-            <MovieRow
-              title="Sắp Ra Mắt ⏳"
-              movies={moviesBySection.comingSoon}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-            />
-          )}
+        {/* Section Rows with 3D Touch Long Press Support */}
+        {moviesBySection.trending.length > 0 && (
+          <MovieRow
+            title="Phim Đang Hot 🔥"
+            movies={moviesBySection.trending}
+            navigation={navigation}
+            onLongPressMovie={handleLongPressMovie}
+          />
+        )}
+        {moviesBySection.newReleases.length > 0 && (
+          <MovieRow
+            title="Phim Mới Cập Nhật 🎬"
+            movies={moviesBySection.newReleases}
+            navigation={navigation}
+            onLongPressMovie={handleLongPressMovie}
+          />
+        )}
+        {moviesBySection.topRated.length > 0 && (
+          <MovieRow
+            title="Đánh Giá Cao ⭐"
+            movies={moviesBySection.topRated}
+            navigation={navigation}
+            onLongPressMovie={handleLongPressMovie}
+          />
+        )}
+        {moviesBySection.vietnam.length > 0 && (
+          <MovieRow
+            title="Phim Điện Ảnh Việt Nam 🇻🇳"
+            movies={moviesBySection.vietnam}
+            navigation={navigation}
+            onLongPressMovie={handleLongPressMovie}
+          />
+        )}
+        {moviesBySection.hollywood.length > 0 && (
+          <MovieRow
+            title="Bom Tấn Hollywood 🍿"
+            movies={moviesBySection.hollywood}
+            navigation={navigation}
+            onLongPressMovie={handleLongPressMovie}
+          />
+        )}
+        {moviesBySection.comingSoon.length > 0 && (
+          <MovieRow
+            title="Sắp Ra Mắt ⏳"
+            movies={moviesBySection.comingSoon}
+            navigation={navigation}
+            onLongPressMovie={handleLongPressMovie}
+          />
+        )}
 
-          <View style={{ height: 60 }} />
-        </ScrollView>
-      )}
+        <View style={{ height: 60 }} />
+      </ScrollView>
 
       {/* 3D Touch Quick Preview Modal */}
       <QuickPreviewModal
@@ -176,15 +168,5 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 20
-  },
-  loadingCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12
-  },
-  loadingText: {
-    fontSize: 14,
-    fontWeight: '500'
   }
 });
