@@ -42,14 +42,17 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE_NAME=$(ls -d *.xcworkspace | head -n 1)
-          SCHEME_NAME=$(basename "$WORKSPACE_NAME" .xcworkspace)
-          echo "Discovered Workspace: $WORKSPACE_NAME | Scheme: $SCHEME_NAME"
+          WORKSPACE_FILE=$(ls -d *.xcworkspace | head -n 1)
+          echo "Discovered Workspace: $WORKSPACE_FILE"
           
-          xcodebuild -workspace "$WORKSPACE_NAME" \
+          # Auto-detect the primary Scheme from xcodebuild list
+          SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_FILE" | awk '/Schemes:/{flag=1; next} /^[A-Z]/ && flag{exit} flag && NF{print $1; exit}')
+          echo "Detected Primary Scheme: $SCHEME_NAME"
+          
+          xcodebuild -workspace "$WORKSPACE_FILE" \
                      -scheme "$SCHEME_NAME" \
+                     -sdk iphoneos \
                      -configuration Release \
-                     -destination 'generic/platform=iOS' \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
@@ -61,10 +64,11 @@ jobs:
         run: |
           mkdir -p Payload
           APP_PATH=$(find netflix-clone-expo/ios/build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
-          echo "Found compiled app at: $APP_PATH"
+          echo "Found compiled iOS App: $APP_PATH"
           cp -r "$APP_PATH" Payload/
-          zip -r FIMAX-Cinema.ipa Payload
+          zip -qr FIMAX-Cinema.ipa Payload
           rm -rf Payload
+          echo "Successfully created FIMAX-Cinema.ipa!"
 
       - name: 🚀 Upload IPA to GitHub Artifacts
         uses: actions/upload-artifact@v4
