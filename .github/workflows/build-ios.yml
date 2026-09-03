@@ -37,39 +37,57 @@ jobs:
         run: |
           npx expo prebuild --platform ios --clean --no-install
 
-      - name: 🍫 Install CocoaPods with npx pod-install
-        working-directory: ./netflix-clone-expo
+      - name: 🍫 Run CocoaPods Diagnostics & Install
+        working-directory: ./netflix-clone-expo/ios
+        env:
+          LANG: en_US.UTF-8
         run: |
-          npx pod-install ios
+          echo "Ruby version:"
+          ruby -v
+          echo "CocoaPods version:"
+          pod --version
+          
+          # Try pod install and capture exact output
+          pod install --verbose || {
+            echo "--- POD INSTALL FAILED ---"
+            pod install --repo-update || true
+          }
 
       - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
-          echo "Compiling Workspace: $WORKSPACE"
+          WORKSPACE=$(ls -d *.xcworkspace 2>/dev/null | head -n 1 || ls -d *.xcodeproj | head -n 1)
+          echo "Found workspace or project: $WORKSPACE"
           
-          xcodebuild -workspace "$WORKSPACE" \
-                     -scheme "FIMAXCinema" \
-                     -configuration Release \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     ONLY_ACTIVE_ARCH=NO \
-                     COMPILER_INDEX_STORE_ENABLE=NO \
-                     clean build
+          if [[ "$WORKSPACE" == *.xcworkspace ]]; then
+            xcodebuild -workspace "$WORKSPACE" \
+                       -scheme "FIMAXCinema" \
+                       -configuration Release \
+                       -sdk iphonesimulator \
+                       -derivedDataPath build \
+                       CODE_SIGN_IDENTITY="" \
+                       CODE_SIGNING_REQUIRED=NO \
+                       CODE_SIGNING_ALLOWED=NO \
+                       build
+          else
+            xcodebuild -project "$WORKSPACE" \
+                       -scheme "FIMAXCinema" \
+                       -configuration Release \
+                       -sdk iphonesimulator \
+                       -derivedDataPath build \
+                       CODE_SIGN_IDENTITY="" \
+                       CODE_SIGNING_REQUIRED=NO \
+                       CODE_SIGNING_ALLOWED=NO \
+                       build
+          fi
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
         run: |
           mkdir -p Payload
-          APP_PATH=$(find build/Build/Products/Release-iphonesimulator -name "*.app" | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find build -name "*.app" | head -n 1)
-          fi
+          APP_PATH=$(find build -name "*.app" | head -n 1)
           echo "Found compiled app at: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -qr ../../FIMAX-Cinema.ipa Payload
