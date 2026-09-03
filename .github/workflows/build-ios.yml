@@ -5,6 +5,11 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+  actions: write
+
 jobs:
   build-ipa:
     runs-on: macos-14
@@ -62,12 +67,18 @@ jobs:
         with:
           name: FIMAX-Cinema-iOS-IPA
           path: FIMAX-Cinema.ipa
-          retention-days: 14
+          retention-days: 30
 
-      - name: 🌟 Release IPA (Optional Auto Release on Tag/Push)
+      - name: 🌟 Auto Publish IPA to GitHub Releases
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
+          tag_name: v2.4-build-${{ github.run_number }}
+          name: "FIMAX Cinema iOS IPA v2.4 (Build #${{ github.run_number }})"
+          body: |
+            ### 🎬 FIMAX Cinema iOS Native App
+            - Đầy đủ tính năng Xem phim 4K, Tự động xoay màn hình, Thu nhỏ PiP.
+            - Đồng bộ Live Web từ fimax.aecongnghe.online.
+            - Cài đặt trực tiếp qua TrollStore, Scarlet, Esign, Sideloadly hoặc AltStore.
           files: FIMAX-Cinema.ipa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
