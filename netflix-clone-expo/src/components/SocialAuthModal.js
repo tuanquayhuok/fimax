@@ -1,41 +1,73 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Modal, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../theme/colors';
 
 export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
   const isGoogle = provider === 'Google';
+  const brandColor = isGoogle ? '#EA4335' : '#1877F2';
+  const providerIcon = isGoogle ? 'logo-google' : 'logo-facebook';
+  const providerTitle = isGoogle ? 'Đăng nhập với Google' : 'Đăng nhập với Facebook';
+
   const [emailInput, setEmailInput] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState('choose'); // 'choose' or 'custom'
 
-  const handleSelectAccount = (selectedEmail, selectedName) => {
+  // Quick Account Suggestions for seamless 1-tap login
+  const sampleAccounts = isGoogle ? [
+    {
+      id: 'gg_1',
+      name: 'Nguyễn Thành Nam',
+      email: 'nam.nguyen2026@gmail.com',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'gg_2',
+      name: 'Trần Minh Anh',
+      email: 'minhanh.cinema@gmail.com',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
+    }
+  ] : [
+    {
+      id: 'fb_1',
+      name: 'Nguyễn Thành Nam (Facebook)',
+      email: 'nam.facebook@facebook.com',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80'
+    },
+    {
+      id: 'fb_2',
+      name: 'FIMAX Fan Club (Facebook)',
+      email: 'fimax.member@facebook.com',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80'
+    }
+  ];
+
+  const handleSelectAccount = (selectedEmail, selectedName, selectedAvatar) => {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       onSuccess({
-        id: (isGoogle ? 'gg_' : 'apple_') + Date.now(),
+        id: (isGoogle ? 'gg_' : 'fb_') + Date.now(),
         name: selectedName,
         email: selectedEmail,
-        avatar: isGoogle
+        avatar: selectedAvatar || (isGoogle
           ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+          : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80'),
         plan: 'Thành viên Tiêu chuẩn',
         isVip: false,
         authProvider: provider
       });
       onClose();
-    }, 800);
+    }, 700);
   };
 
   const handleCustomSubmit = () => {
     if (!emailInput.trim()) {
-      Alert.alert('Thông báo', `Vui lòng nhập địa chỉ ${isGoogle ? 'Gmail' : 'Apple ID / iCloud'} của bạn.`);
+      Alert.alert('Thông báo', `Vui lòng nhập địa chỉ ${isGoogle ? 'Gmail' : 'Email / SĐT Facebook'} của bạn.`);
       return;
     }
-    const displayName = nameInput.trim() || emailInput.split('@')[0] || (isGoogle ? 'Google User' : 'Apple User');
-    handleSelectAccount(emailInput.trim(), displayName);
+    const displayName = nameInput.trim() || (emailInput.includes('@') ? emailInput.split('@')[0] : 'Thành viên ' + provider);
+    handleSelectAccount(emailInput.trim(), displayName, null);
   };
 
   return (
@@ -45,14 +77,10 @@ export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.providerRow}>
-              <Ionicons
-                name={isGoogle ? 'logo-google' : 'logo-apple'}
-                size={22}
-                color={isGoogle ? '#EA4335' : '#FFFFFF'}
-              />
-              <Text style={styles.headerTitle}>
-                {isGoogle ? 'Đăng nhập với Google' : 'Sign in with Apple ID'}
-              </Text>
+              <View style={[styles.brandIconWrap, { backgroundColor: isGoogle ? 'rgba(234, 67, 53, 0.12)' : 'rgba(24, 119, 242, 0.12)' }]}>
+                <Ionicons name={providerIcon} size={22} color={brandColor} />
+              </View>
+              <Text style={styles.headerTitle}>{providerTitle}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Ionicons name="close" size={20} color="#8E8E93" />
@@ -61,36 +89,53 @@ export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
 
           <Text style={styles.subtitle}>
             {isGoogle
-              ? 'Chọn hoặc nhập tài khoản Google (Gmail) của bạn để ủy quyền đăng nhập vào FIMAX:'
-              : 'Xác thực tài khoản Apple ID / iCloud của bạn để tiếp tục:'}
+              ? 'Chọn tài khoản Google trên thiết bị hoặc nhập Gmail của bạn để đăng nhập nhanh:'
+              : 'Chọn tài khoản Facebook đã liên kết hoặc nhập tài khoản của bạn để đăng nhập:'}
           </Text>
 
           {loading ? (
             <View style={styles.loadingBox}>
-              <ActivityIndicator size="large" color={isGoogle ? '#EA4335' : '#E50914'} />
-              <Text style={styles.loadingText}>Đang xác thực và đồng bộ tài khoản...</Text>
+              <ActivityIndicator size="large" color={brandColor} />
+              <Text style={styles.loadingText}>Đang xác thực bảo mật với {provider}...</Text>
             </View>
           ) : step === 'choose' ? (
             <View style={styles.accountList}>
-              {/* Option 1: Quick input / custom account */}
+              {/* Preset Accounts for 1-Tap Login */}
+              {sampleAccounts.map((acc) => (
+                <TouchableOpacity
+                  key={acc.id}
+                  style={styles.accountItem}
+                  activeOpacity={0.8}
+                  onPress={() => handleSelectAccount(acc.email, acc.name, acc.avatar)}
+                >
+                  <Image source={{ uri: acc.avatar }} style={styles.accountAvatar} />
+                  <View style={styles.accountInfo}>
+                    <Text style={styles.accountName}>{acc.name}</Text>
+                    <Text style={styles.accountEmail}>{acc.email}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color="#636366" />
+                </TouchableOpacity>
+              ))}
+
+              {/* Enter Custom Account */}
               <TouchableOpacity
-                style={styles.accountItem}
+                style={[styles.accountItem, { borderColor: brandColor }]}
                 activeOpacity={0.8}
                 onPress={() => setStep('custom')}
               >
-                <View style={[styles.avatarCircle, { backgroundColor: isGoogle ? 'rgba(234, 67, 53, 0.15)' : 'rgba(255, 255, 255, 0.15)' }]}>
-                  <Ionicons name="add" size={20} color={isGoogle ? '#EA4335' : '#FFFFFF'} />
+                <View style={[styles.avatarCircle, { backgroundColor: brandColor }]}>
+                  <Ionicons name="add" size={20} color="#FFFFFF" />
                 </View>
                 <View style={styles.accountInfo}>
-                  <Text style={styles.accountName}>Sử dụng tài khoản khác</Text>
-                  <Text style={styles.accountEmail}>Nhập Email {isGoogle ? 'Gmail' : 'Apple ID'} của bạn</Text>
+                  <Text style={[styles.accountName, { color: '#FFFFFF' }]}>Nhập tài khoản {provider} khác</Text>
+                  <Text style={styles.accountEmail}>Gõ địa chỉ email của bạn</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color="#636366" />
+                <Ionicons name="arrow-forward" size={16} color={brandColor} />
               </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.customForm}>
-              <Text style={styles.inputLabel}>HỌ VÀ TÊN HIỂN THỊ</Text>
+              <Text style={styles.inputLabel}>HỌ VÀ TÊN CỦA BẠN</Text>
               <TextInput
                 style={styles.input}
                 placeholder="VD: Nguyễn Văn A"
@@ -99,10 +144,10 @@ export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
                 onChangeText={setNameInput}
               />
 
-              <Text style={styles.inputLabel}>{isGoogle ? 'ĐỊA CHỈ GMAIL' : 'APPLE ID / ICLOUD EMAIL'}</Text>
+              <Text style={styles.inputLabel}>{isGoogle ? 'ĐỊA CHỈ GMAIL' : 'EMAIL HOẶC SỐ ĐIỆN THOẠI FACEBOOK'}</Text>
               <TextInput
                 style={styles.input}
-                placeholder={isGoogle ? "tencuaban@gmail.com" : "tencuaban@icloud.com"}
+                placeholder={isGoogle ? "tencuaban@gmail.com" : "email_hoac_sdt_facebook"}
                 placeholderTextColor="#636366"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -111,25 +156,23 @@ export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
               />
 
               <TouchableOpacity
-                style={[styles.submitBtn, { backgroundColor: isGoogle ? '#EA4335' : '#FFFFFF' }]}
+                style={[styles.submitBtn, { backgroundColor: brandColor }]}
                 activeOpacity={0.85}
                 onPress={handleCustomSubmit}
               >
-                <Text style={[styles.submitBtnText, { color: isGoogle ? '#FFFFFF' : '#000000' }]}>
-                  XÁC NHẬN ĐĂNG NHẬP
-                </Text>
+                <Text style={styles.submitBtnText}>XÁC NHẬN ĐĂNG NHẬP {provider.toUpperCase()}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.backBtn} onPress={() => setStep('choose')}>
-                <Text style={styles.backBtnText}>Quay lại</Text>
+                <Text style={styles.backBtnText}>Quay lại danh sách tài khoản</Text>
               </TouchableOpacity>
             </View>
           )}
 
           <View style={styles.privacyNote}>
-            <Ionicons name="shield-checkmark-outline" size={14} color="#8E8E93" />
+            <Ionicons name="shield-checkmark" size={14} color="#30D158" />
             <Text style={styles.privacyText}>
-              Bảo mật 100% qua tiêu chuẩn OAuth 2.0 của {isGoogle ? 'Google' : 'Apple'}.
+              Xác thực bảo mật OAuth 2.0 theo tiêu chuẩn của {provider}.
             </Text>
           </View>
         </View>
@@ -141,7 +184,7 @@ export const SocialAuthModal = ({ visible, provider, onClose, onSuccess }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.78)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20
@@ -164,11 +207,18 @@ const styles = StyleSheet.create({
   providerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: 10
+  },
+  brandIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700'
   },
   closeBtn: {
@@ -176,13 +226,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: '#8E8E93',
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 18
+    fontSize: 12,
+    lineHeight: 17,
+    marginBottom: 16
   },
   loadingBox: {
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: 28,
     gap: 12
   },
   loadingText: {
@@ -203,10 +253,16 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.08)',
     gap: 12
   },
+  accountAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#333'
+  },
   avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -250,8 +306,9 @@ const styles = StyleSheet.create({
     marginTop: 6
   },
   submitBtnText: {
-    fontSize: 14,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
     letterSpacing: 0.5
   },
   backBtn: {
@@ -269,7 +326,7 @@ const styles = StyleSheet.create({
     gap: 6,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    paddingTop: 14
+    paddingTop: 12
   },
   privacyText: {
     color: '#636366',

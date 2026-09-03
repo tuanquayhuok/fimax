@@ -78,7 +78,7 @@ export const AccountScreen = () => {
 
   const handleSocialSuccess = (authedUser) => {
     setUser(authedUser);
-    Alert.alert('Thành công', `Đăng nhập thành công với tài khoản ${authedUser.email}!`);
+    Alert.alert('Thành công', `Đã kết nối và đăng nhập thành công với ${authedUser.authProvider} (${authedUser.email})!`);
   };
 
   const handleSaveDevConfig = () => {
@@ -96,6 +96,7 @@ export const AccountScreen = () => {
     return (
       <KeyboardAvoidingView style={[styles.container, { backgroundColor: theme.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.authScrollContent} showsVerticalScrollIndicator={false}>
+          {/* Brand Header */}
           <View style={styles.brandHeader}>
             <View style={styles.logoRow}>
               <Text style={[styles.logoRed, { color: accentColor }]}>F</Text>
@@ -106,6 +107,7 @@ export const AccountScreen = () => {
             </Text>
           </View>
 
+          {/* Login / Register Switcher */}
           <View style={[styles.tabSwitcher, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TouchableOpacity style={[styles.tabBtn, authMode === 'login' && { backgroundColor: theme.surfaceSecondary }]} onPress={() => setAuthMode('login')}>
               <Text style={[styles.tabText, { color: authMode === 'login' ? theme.textPrimary : theme.textSecondary }]}>Đăng Nhập</Text>
@@ -115,6 +117,7 @@ export const AccountScreen = () => {
             </TouchableOpacity>
           </View>
 
+          {/* Form Inputs */}
           <View style={styles.formContainer}>
             {authMode === 'register' && (
               <View style={styles.inputWrap}>
@@ -138,21 +141,34 @@ export const AccountScreen = () => {
             </TouchableOpacity>
           </View>
 
+          {/* Social Logins: Google & Facebook */}
           <View style={styles.socialSection}>
             <Text style={[styles.socialDividerText, { color: theme.textMuted }]}>HOẶC ĐĂNG NHẬP VỚI</Text>
             <View style={styles.socialBtnRow}>
-              <TouchableOpacity style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.8} onPress={() => handleOpenSocialAuth('Apple')}>
-                <Ionicons name="logo-apple" size={20} color={theme.textPrimary} />
-                <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Apple ID</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.8} onPress={() => handleOpenSocialAuth('Google')}>
+              {/* Google Sign In */}
+              <TouchableOpacity
+                style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                activeOpacity={0.8}
+                onPress={() => handleOpenSocialAuth('Google')}
+              >
                 <Ionicons name="logo-google" size={18} color="#EA4335" />
                 <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Google</Text>
+              </TouchableOpacity>
+
+              {/* Facebook Sign In */}
+              <TouchableOpacity
+                style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                activeOpacity={0.8}
+                onPress={() => handleOpenSocialAuth('Facebook')}
+              >
+                <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+                <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Facebook</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
 
+        {/* Social Auth Modal */}
         <SocialAuthModal
           visible={showSocialModal}
           provider={socialProvider}
@@ -160,6 +176,7 @@ export const AccountScreen = () => {
           onSuccess={handleSocialSuccess}
         />
 
+        {/* OTP Modal */}
         <OtpVerificationModal visible={showOtpModal} destination={email} onVerifySuccess={handleOtpSuccess} onCancel={() => setShowOtpModal(false)} />
       </KeyboardAvoidingView>
     );
@@ -471,7 +488,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600'
   },
-  // Profile Hero
   profileHero: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -547,6 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#1C1C1E',
     paddingVertical: 12,
     borderRadius: 10,
     gap: 6,
