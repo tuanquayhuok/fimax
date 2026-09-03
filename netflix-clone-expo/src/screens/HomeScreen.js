@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, ScrollView, StyleSheet, RefreshControl, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, ScrollView, StyleSheet, RefreshControl, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
@@ -10,24 +10,14 @@ import { MovieRow } from '../components/MovieRow';
 import { MovieCard } from '../components/MovieCard';
 import { QuickPreviewModal } from '../components/QuickPreviewModal';
 import { TrailerModal } from '../components/TrailerModal';
-
-const CATEGORIES = [
-  'Tất Cả',
-  'Phim Chiếu Rạp 🎬',
-  'Điện Ảnh Việt Nam 🇻🇳',
-  'Bom Tấn Hollywood 🍿',
-  'Phim Hàn Quốc 🇰🇷',
-  'Hành Động 🔥',
-  'Tâm Lý & Tình Cảm 🎭',
-  'Kinh Dị & Giật Gân 👻',
-  'Hoạt Hình 🦄'
-];
+import { NetflixGenreModal } from '../components/NetflixGenreModal';
 
 export const HomeScreen = ({ navigation }) => {
-  const { themeMode, accentColor } = useContext(AppContext);
+  const { themeMode, accentColor, fontSizeScale } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   const [selectedCategory, setSelectedCategory] = useState('Tất Cả');
+  const [showGenreModal, setShowGenreModal] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [previewMovie, setPreviewMovie] = useState(null);
   const [trailerMovie, setTrailerMovie] = useState(null);
@@ -86,9 +76,9 @@ export const HomeScreen = ({ navigation }) => {
     setPreviewMovie(movie);
   };
 
-  // Filter movies when a specific category pill is selected
+  // Filter movies when a specific category is selected
   const getFilteredCategoryMovies = () => {
-    if (selectedCategory === 'Tất Cả') return moviesBySection.all;
+    if (selectedCategory === 'Tất Cả' || selectedCategory === 'Tất cả thể loại') return moviesBySection.all;
     if (selectedCategory.includes('Việt Nam')) return moviesBySection.vietnam;
     if (selectedCategory.includes('Hollywood')) return moviesBySection.hollywood;
     if (selectedCategory.includes('Hàn Quốc')) return moviesBySection.korean;
@@ -112,43 +102,57 @@ export const HomeScreen = ({ navigation }) => {
       {/* Top Header Bar */}
       <HeaderBar navigation={navigation} />
 
-      {/* Interactive Category Selector Bar (Thanh Danh Mục Trượt Ngang) */}
-      <View style={[styles.categoryBarWrapper, { backgroundColor: theme.headerBg, borderBottomColor: theme.border }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryScroll}
-        >
-          {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryPill,
-                  {
-                    backgroundColor: isSelected ? accentColor : theme.surface,
-                    borderColor: isSelected ? accentColor : theme.border
-                  }
-                ]}
-                activeOpacity={0.8}
-                onPress={() => setSelectedCategory(cat)}
-              >
-                <Text
-                  style={[
-                    styles.categoryPillText,
-                    {
-                      color: isSelected ? '#FFFFFF' : theme.textSecondary,
-                      fontWeight: isSelected ? '800' : '600'
-                    }
-                  ]}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+      {/* Iconic Netflix-Style Sub-Navigation Bar */}
+      <View style={styles.netflixNavBar}>
+        {selectedCategory === 'Tất Cả' ? (
+          <View style={styles.navLinksRow}>
+            <TouchableOpacity
+              style={styles.navLinkBtn}
+              activeOpacity={0.7}
+              onPress={() => setSelectedCategory('Phim Chiếu Rạp Bom Tấn')}
+            >
+              <Text style={styles.navLinkText}>Phim Chiếu Rạp</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navLinkBtn}
+              activeOpacity={0.7}
+              onPress={() => setSelectedCategory('Điện Ảnh Việt Nam')}
+            >
+              <Text style={styles.navLinkText}>Phim Việt Nam</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.genreDropdownBtn}
+              activeOpacity={0.7}
+              onPress={() => setShowGenreModal(true)}
+            >
+              <Text style={styles.genreDropdownText}>Thể loại</Text>
+              <Ionicons name="chevron-down" size={14} color="#FFFFFF" style={{ marginLeft: 2 }} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          /* Active Filter Pill with Dismiss Button */
+          <View style={styles.activeFilterRow}>
+            <TouchableOpacity
+              style={styles.activeCategoryPill}
+              activeOpacity={0.8}
+              onPress={() => setShowGenreModal(true)}
+            >
+              <Text style={styles.activeCategoryText}>{selectedCategory}</Text>
+              <Ionicons name="chevron-down" size={13} color="#FFFFFF" style={{ marginLeft: 4 }} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.clearFilterBtn}
+              activeOpacity={0.7}
+              onPress={() => setSelectedCategory('Tất Cả')}
+            >
+              <Ionicons name="close-circle" size={18} color="#8E8E93" />
+              <Text style={styles.clearFilterText}>Tất cả</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <ScrollView
@@ -156,7 +160,7 @@ export const HomeScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E50914" />}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Multi-Hero Banner Carousel (Nguồn từ fimax.aecongnghe.online & 4K Backdrops) */}
+        {/* Multi-Hero Banner Carousel (16:9 Uncropped Cinema Ratio) */}
         {heroMovies.length > 0 && (
           <HeroBanner
             movies={heroMovies}
@@ -253,6 +257,14 @@ export const HomeScreen = ({ navigation }) => {
         <View style={{ height: 60 }} />
       </ScrollView>
 
+      {/* Netflix Fullscreen Genre Selector Modal */}
+      <NetflixGenreModal
+        visible={showGenreModal}
+        selectedGenre={selectedCategory}
+        onSelectGenre={(genre) => setSelectedCategory(genre)}
+        onClose={() => setShowGenreModal(false)}
+      />
+
       {/* 3D Touch Quick Preview Modal */}
       <QuickPreviewModal
         visible={!!previewMovie}
@@ -278,23 +290,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1
   },
-  categoryBarWrapper: {
+  netflixNavBar: {
     paddingVertical: 10,
-    borderBottomWidth: 1
+    paddingHorizontal: 20
   },
-  categoryScroll: {
-    paddingHorizontal: 16,
-    gap: 8
+  navLinksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 10
   },
-  categoryPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1
+  navLinkBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8
   },
-  categoryPillText: {
-    fontSize: 12,
+  navLinkText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
     letterSpacing: 0.2
+  },
+  genreDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 8
+  },
+  genreDropdownText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700'
+  },
+  activeFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4
+  },
+  activeCategoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)'
+  },
+  activeCategoryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  clearFilterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: 4
+  },
+  clearFilterText: {
+    color: '#8E8E93',
+    fontSize: 12,
+    fontWeight: '600'
   },
   scrollContent: {
     paddingBottom: 20
