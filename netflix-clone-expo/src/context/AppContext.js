@@ -1,4 +1,4 @@
-﻿import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { MOCK_USER } from '../data/mockMovies';
 import { CallbackService } from '../services/callbackService';
 

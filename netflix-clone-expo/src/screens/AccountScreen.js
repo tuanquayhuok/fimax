@@ -1,4 +1,4 @@
-﻿import React, { useContext, useState, useRef } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, TextInput, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';

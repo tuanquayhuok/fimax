@@ -1,14 +1,14 @@
-﻿import React, { useEffect, useRef, useContext } from 'react';
+import React, { useContext, useRef, useEffect } from 'react';
 import {
   View,
   Text,
+  Modal,
   Image,
   TouchableOpacity,
   StyleSheet,
-  Animated,
   Dimensions,
-  Platform,
-  StatusBar
+  Animated,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
@@ -17,54 +17,49 @@ import { getThemeColors } from '../theme/colors';
 const { width } = Dimensions.get('window');
 
 export const PopupNotification = () => {
-  const { popupNotification, hideNotificationPopup, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
-  const theme = getThemeColors(themeMode);
+  const {
+    popupNotification,
+    hideNotificationPopup,
+    setActiveMovieForPlayer,
+    themeMode,
+    accentColor
+  } = useContext(AppContext);
 
-  const translateY = useRef(new Animated.Value(-150)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const timerRef = useRef(null);
+  const theme = getThemeColors(themeMode);
+  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const opacityAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (popupNotification) {
-      // Slide Down & Fade In
       Animated.parallel([
-        Animated.spring(translateY, {
-          toValue: Platform.OS === 'ios' ? 50 : 20,
-          friction: 8,
-          tension: 60,
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 6,
+          tension: 80,
           useNativeDriver: true
         }),
-        Animated.timing(opacity, {
+        Animated.timing(opacityAnim, {
           toValue: 1,
           duration: 250,
           useNativeDriver: true
         })
       ]).start();
-
-      // Auto dismiss after 5 seconds
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        handleDismiss();
-      }, 5000);
     } else {
-      handleDismiss();
+      scaleAnim.setValue(0.85);
+      opacityAnim.setValue(0);
     }
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
   }, [popupNotification]);
 
-  const handleDismiss = () => {
+  const handleClose = () => {
     Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: -150,
-        duration: 250,
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 180,
         useNativeDriver: true
       }),
-      Animated.timing(opacity, {
+      Animated.timing(opacityAnim, {
         toValue: 0,
-        duration: 200,
+        duration: 180,
         useNativeDriver: true
       })
     ]).start(() => {
@@ -72,148 +67,314 @@ export const PopupNotification = () => {
     });
   };
 
-  const handlePress = () => {
+  const handleWatchNow = () => {
     if (popupNotification?.movie) {
       setActiveMovieForPlayer(popupNotification.movie);
     }
-    handleDismiss();
+    handleClose();
   };
 
   if (!popupNotification) return null;
 
+  const movie = popupNotification.movie;
+
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          transform: [{ translateY }],
-          opacity
-        }
-      ]}
+    <Modal
+      visible={!!popupNotification}
+      transparent={true}
+      animationType="none"
+      onRequestClose={handleClose}
     >
-      <TouchableOpacity
-        style={[
-          styles.banner,
-          {
-            backgroundColor: theme.isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(24, 24, 28, 0.96)',
-            borderColor: theme.isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'
-          }
-        ]}
-        activeOpacity={0.9}
-        onPress={handlePress}
-      >
-        {/* Left Icon / Poster */}
-        {popupNotification.movie?.posterUrl ? (
-          <Image
-            source={{ uri: popupNotification.movie.posterUrl }}
-            style={styles.poster}
-          />
-        ) : (
-          <View style={[styles.iconWrap, { backgroundColor: `${accentColor}25` }]}>
-            <Ionicons
-              name={popupNotification.type === 'vip' ? 'sparkles' : 'notifications'}
-              size={20}
-              color={accentColor}
-            />
-          </View>
-        )}
-
-        {/* Content */}
-        <View style={styles.contentWrap}>
-          <View style={styles.headerRow}>
-            <Text style={[styles.appName, { color: accentColor }]}>FIMAX NOTIFICATION</Text>
-            <Text style={[styles.timeTag, { color: theme.textMuted }]}>Vừa xong</Text>
-          </View>
-          <Text
-            style={[styles.title, { color: theme.textPrimary }]}
-            numberOfLines={1}
-          >
-            {popupNotification.title}
-          </Text>
-          <Text
-            style={[styles.message, { color: theme.textSecondary }]}
-            numberOfLines={2}
-          >
-            {popupNotification.message}
-          </Text>
-        </View>
-
-        {/* Dismiss Button */}
+      <View style={styles.backdrop}>
         <TouchableOpacity
-          onPress={handleDismiss}
-          style={styles.closeBtn}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={handleClose}
+        />
+
+        <Animated.View
+          style={[
+            styles.dialogContainer,
+            {
+              backgroundColor: theme.isLight ? '#FFFFFF' : '#16161A',
+              borderColor: theme.isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)',
+              opacity: opacityAnim,
+              transform: [{ scale: scaleAnim }]
+            }
+          ]}
         >
-          <Ionicons name="close-circle" size={20} color={theme.textMuted} />
-        </TouchableOpacity>
-      </TouchableOpacity>
-    </Animated.View>
+          {/* Header Image / Poster Banner */}
+          {movie?.backdropUrl || movie?.posterUrl ? (
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: movie.backdropUrl || movie.posterUrl }}
+                style={styles.headerImage}
+                resizeMode="cover"
+              />
+              <View style={styles.imageGradientOverlay} />
+              <View style={[styles.badgeTag, { backgroundColor: accentColor }]}>
+                <Ionicons name="film" size={11} color="#FFF" style={{ marginRight: 4 }} />
+                <Text style={styles.badgeTagText}>PHIM MỚI CHIẾU RẠP</Text>
+              </View>
+            </View>
+          ) : (
+            <View style={[styles.iconHeader, { backgroundColor: `${accentColor}18` }]}>
+              <View style={[styles.iconCircle, { backgroundColor: accentColor }]}>
+                <Ionicons name="notifications" size={26} color="#FFFFFF" />
+              </View>
+              <Text style={[styles.appBrandText, { color: accentColor }]}>FIMAX CINEMA PRO</Text>
+            </View>
+          )}
+
+          {/* Close Button Top Right */}
+          <TouchableOpacity
+            style={styles.closeRoundBtn}
+            onPress={handleClose}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
+            <Ionicons name="close" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {/* Dialog Body */}
+          <View style={styles.body}>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>
+              {popupNotification.title || 'Thông Báo FIMAX'}
+            </Text>
+
+            <Text style={[styles.message, { color: theme.textSecondary }]}>
+              {popupNotification.message}
+            </Text>
+
+            {/* Movie Feature Badges */}
+            {movie && (
+              <View style={styles.tagsRow}>
+                {movie.rating && (
+                  <View style={styles.tagPill}>
+                    <Ionicons name="star" size={12} color="#FFD700" />
+                    <Text style={styles.tagPillText}>{movie.rating}</Text>
+                  </View>
+                )}
+                {movie.releaseYear && (
+                  <View style={styles.tagPill}>
+                    <Text style={styles.tagPillText}>{movie.releaseYear}</Text>
+                  </View>
+                )}
+                <View style={[styles.tagPill, { borderColor: accentColor }]}>
+                  <Text style={[styles.tagPillText, { color: accentColor, fontWeight: '700' }]}>4K ULTRA HD</Text>
+                </View>
+                <View style={styles.tagPill}>
+                  <Text style={styles.tagPillText}>Dolby Atmos</Text>
+                </View>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.buttonGroup}>
+              {movie ? (
+                <TouchableOpacity
+                  style={[styles.primaryBtn, { backgroundColor: accentColor }]}
+                  activeOpacity={0.85}
+                  onPress={handleWatchNow}
+                >
+                  <Ionicons name="play" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.primaryBtnText}>Xem Phim Ngay</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.primaryBtn, { backgroundColor: accentColor }]}
+                  activeOpacity={0.85}
+                  onPress={handleClose}
+                >
+                  <Text style={styles.primaryBtnText}>Tuyệt Vời</Text>
+                </TouchableOpacity>
+              )}
+
+              <TouchableOpacity
+                style={[
+                  styles.secondaryBtn,
+                  {
+                    backgroundColor: theme.isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'
+                  }
+                ]}
+                activeOpacity={0.8}
+                onPress={handleClose}
+              >
+                <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>
+                  Để Sau
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+    </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 14,
-    right: 14,
-    zIndex: 999999,
-    alignItems: 'center'
-  },
-  banner: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 16,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
-    elevation: 12,
-    gap: 12
-  },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  poster: {
-    width: 40,
-    height: 52,
-    borderRadius: 8,
-    backgroundColor: '#333'
-  },
-  contentWrap: {
+  backdrop: {
     flex: 1,
-    gap: 2
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: 'rgba(0, 0, 0, 0.78)',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 2
+    paddingHorizontal: 22
   },
-  appName: {
+  dialogContainer: {
+    width: Math.min(width - 40, 360),
+    borderRadius: 22,
+    borderWidth: 1.2,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.6,
+    shadowRadius: 28,
+    elevation: 20
+  },
+  imageContainer: {
+    width: '100%',
+    height: 165,
+    position: 'relative',
+    backgroundColor: '#000'
+  },
+  headerImage: {
+    width: '100%',
+    height: '100%'
+  },
+  imageGradientOverlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 60,
+    backgroundColor: 'rgba(22, 22, 26, 0.6)'
+  },
+  badgeTag: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8
+  },
+  badgeTagText: {
+    color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.5
   },
-  timeTag: {
-    fontSize: 10
+  iconHeader: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  iconCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6
+  },
+  appBrandText: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1
+  },
+  closeRoundBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)'
+  },
+  body: {
+    padding: 20,
+    alignItems: 'center'
   },
   title: {
-    fontSize: 13,
-    fontWeight: '700'
+    fontSize: 18,
+    fontWeight: '800',
+    textAlign: 'center',
+    marginBottom: 8,
+    lineHeight: 24
   },
   message: {
-    fontSize: 12,
-    lineHeight: 16
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    marginBottom: 14,
+    paddingHorizontal: 6
   },
-  closeBtn: {
-    padding: 4
+  tagsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 18
+  },
+  tagPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)'
+  },
+  tagPillText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '600'
+  },
+  buttonGroup: {
+    width: '100%',
+    gap: 10,
+    marginTop: 4
+  },
+  primaryBtn: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+    borderRadius: 12,
+    shadowColor: '#E50914',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6
+  },
+  primaryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700'
+  },
+  secondaryBtn: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 11,
+    borderRadius: 12
+  },
+  secondaryBtnText: {
+    fontSize: 13,
+    fontWeight: '600'
   }
 });

@@ -3,6 +3,7 @@ import { View, Text, Switch, TouchableOpacity, TextInput, StyleSheet, ScrollView
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { Colors } from '../theme/colors';
+import { MOCK_MOVIES } from '../data/mockMovies';
 
 export const SettingsScreen = () => {
   const {
@@ -13,6 +14,7 @@ export const SettingsScreen = () => {
     defaultSubtitle, setDefaultSubtitle,
     autoPlayPreview, setAutoPlayPreview,
     notificationsEnabled, setNotificationsEnabled,
+    showNotificationPopup,
     clearHistory
   } = useContext(AppContext);
 
@@ -147,14 +149,43 @@ export const SettingsScreen = () => {
         <View style={styles.settingItem}>
           <View style={styles.settingLabelGroup}>
             <Text style={styles.settingLabel}>Thông báo phim mới</Text>
-            <Text style={styles.settingSubLabel}>Nhận tin khi có phim bom tấn ra mắt</Text>
+            <Text style={styles.settingSubLabel}>Nhận popup khi có phim bom tấn ra mắt</Text>
           </View>
           <Switch
             value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
+            onValueChange={(val) => {
+              setNotificationsEnabled(val);
+              if (val) {
+                showNotificationPopup(
+                  '🔥 Bom Tấn Chiếu Rạp Mới Ra Mắt!',
+                  'Lật Mặt 7: Một Điều Ước chính thức phát hành bản 4K Ultra HD độc quyền trên FIMAX.',
+                  MOCK_MOVIES[1] || MOCK_MOVIES[0],
+                  'movie'
+                );
+              }
+            }}
             trackColor={{ false: '#444', true: Colors.primary }}
           />
         </View>
+
+        <TouchableOpacity
+          style={[styles.settingItem, { borderBottomWidth: 0 }]}
+          activeOpacity={0.7}
+          onPress={() => {
+            showNotificationPopup(
+              '🔥 Siêu Phẩm Chiếu Rạp Độc Quyền!',
+              'Phim "Mai" của Trấn Thành đã sẵn sàng phát sóng với chất lượng 4K HDR và âm thanh Dolby Atmos.',
+              MOCK_MOVIES[0],
+              'movie'
+            );
+          }}
+        >
+          <View style={styles.settingLabelGroup}>
+            <Text style={[styles.settingLabel, { color: Colors.primary, fontWeight: '700' }]}>Xem Thử Popup Thông Báo</Text>
+            <Text style={styles.settingSubLabel}>Bấm để mở trải nghiệm popup rạp phim ngay trên app</Text>
+          </View>
+          <Ionicons name="play-circle-outline" size={24} color={Colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.sectionHeader}>Dữ Liệu & Bộ Nhớ</Text>
