@@ -37,35 +37,44 @@ jobs:
         run: |
           npx expo prebuild --platform ios --clean
 
-      - name: 🔨 Archive iOS Project with Xcode
+      - name: 🔨 Build iOS App with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE_FILE=$(ls -d *.xcworkspace | head -n 1)
-          SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_FILE" | awk '/Schemes:/{flag=1; next} /^[A-Z]/ && flag{exit} flag && NF{print $1; exit}')
-          echo "Building Workspace: $WORKSPACE_FILE | Scheme: $SCHEME_NAME"
+          WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 1 | head -n 1)
+          echo "Found workspace: $WORKSPACE"
+          xcodebuild -list -workspace "$WORKSPACE"
           
-          xcodebuild archive \
-                     -workspace "$WORKSPACE_FILE" \
-                     -scheme "$SCHEME_NAME" \
-                     -configuration Release \
+          xcodebuild -workspace "$WORKSPACE" \
+                     -scheme "FIMAXCinema" \
                      -sdk iphoneos \
-                     -archivePath build/FIMAXCinema.xcarchive \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO \
+                     -configuration Release \
+                     -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
-                     PROVISIONING_PROFILE="" \
-                     COMPILER_INDEX_STORE_ENABLE=NO
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     clean build || \
+          xcodebuild -workspace "$WORKSPACE" \
+                     -scheme "FIMAX Cinema" \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     -derivedDataPath build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     clean build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
         run: |
           mkdir -p Payload
-          cp -r build/FIMAXCinema.xcarchive/Products/Applications/*.app Payload/
+          APP_DIR=$(find build/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
+          echo "Found compiled app at: $APP_DIR"
+          cp -r "$APP_DIR" Payload/
           zip -qr ../../FIMAX-Cinema.ipa Payload
           rm -rf Payload
-          echo "Successfully created FIMAX-Cinema.ipa!"
+          echo "Successfully generated FIMAX-Cinema.ipa!"
 
       - name: 🚀 Upload IPA to GitHub Artifacts
         uses: actions/upload-artifact@v4
