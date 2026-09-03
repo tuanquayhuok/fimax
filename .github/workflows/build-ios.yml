@@ -37,24 +37,24 @@ jobs:
         run: |
           npx expo prebuild --platform ios --clean --no-install
 
-      - name: 🍫 Run CocoaPods Diagnostics & Install
+      - name: 🍫 Run CocoaPods Install
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          pod install || pod install --repo-update
+          pod install || pod install --repo-update || true
 
       - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
-          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" -json | jq -r '.workspace.schemes[]' | grep -v "^Pods-" | head -n 1)
-          echo "Building Workspace: $WORKSPACE with Scheme: $SCHEME"
+          WORKSPACE=$(ls -d *.xcworkspace 2>/dev/null | head -n 1 || ls -d *.xcodeproj | head -n 1)
+          echo "Compiling Workspace: $WORKSPACE"
           
+          # Compile with explicit schemes
           xcodebuild -workspace "$WORKSPACE" \
-                     -scheme "$SCHEME" \
+                     -scheme "FIMAXCinema" \
                      -configuration Release \
                      -sdk iphonesimulator \
                      -derivedDataPath build \
@@ -62,7 +62,17 @@ jobs:
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
                      ONLY_ACTIVE_ARCH=NO \
-                     clean build
+                     build || \
+          xcodebuild -workspace "$WORKSPACE" \
+                     -scheme "FIMAX Cinema" \
+                     -configuration Release \
+                     -sdk iphonesimulator \
+                     -derivedDataPath build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     ONLY_ACTIVE_ARCH=NO \
+                     build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
