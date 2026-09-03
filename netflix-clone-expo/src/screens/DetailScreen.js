@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Share, FlatList } from 'react-native';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Share, FlatList, Animated, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
@@ -13,9 +13,34 @@ export const DetailScreen = ({ route, navigation }) => {
   const { favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
+  // Transition animations
+  const pageFade = useRef(new Animated.Value(0)).current;
+  const pageSlide = useRef(new Animated.Value(20)).current;
+  const [isReady, setIsReady] = useState(false);
+
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
   const [userRating, setUserRating] = useState(null);
+
+  useEffect(() => {
+    // Smooth Page Entry Animation
+    Animated.parallel([
+      Animated.timing(pageFade, {
+        toValue: 1,
+        duration: 350,
+        useNativeDriver: true
+      }),
+      Animated.spring(pageSlide, {
+        toValue: 0,
+        friction: 6,
+        tension: 60,
+        useNativeDriver: true
+      })
+    ]).start();
+
+    const timer = setTimeout(() => setIsReady(true), 150);
+    return () => clearTimeout(timer);
+  }, [movie]);
 
   if (!movie) {
     return (
@@ -39,9 +64,9 @@ export const DetailScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <Animated.View style={[styles.container, { backgroundColor: theme.background, opacity: pageFade, transform: [{ translateY: pageSlide }] }]}>
       {/* Top Floating Back Button */}
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
         <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
       </TouchableOpacity>
 
@@ -168,7 +193,7 @@ export const DetailScreen = ({ route, navigation }) => {
       {/* Trailer & Rating Modals */}
       <TrailerModal visible={showTrailerModal} trailerUrl={movie.trailerUrl} onClose={() => setShowTrailerModal(false)} />
       <RatingModal visible={showRatingModal} movieTitle={movie.title} onClose={() => setShowRatingModal(false)} onRateSubmit={setUserRating} />
-    </View>
+    </Animated.View>
   );
 };
 
@@ -189,9 +214,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)'
   },
   backdropWrap: {
     width: '100%',

@@ -3,27 +3,47 @@ import { View, StyleSheet, StatusBar } from 'react-native';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
 
 import { AppProvider, AppContext } from './src/context/AppContext';
 import { getThemeColors } from './src/theme/colors';
 
 import { SplashScreen } from './src/components/SplashScreen';
+import { CustomTabBar } from './src/components/CustomTabBar';
+
 import { HomeScreen } from './src/screens/HomeScreen';
-import { DetailScreen } from './src/screens/DetailScreen';
+import { ExploreScreen } from './src/screens/ExploreScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
+import { DownloadScreen } from './src/screens/DownloadScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
+import { DetailScreen } from './src/screens/DetailScreen';
 import { CinemaPlayer } from './src/components/CinemaPlayer';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+const screenOptions = {
+  headerShown: false,
+  animation: 'slide_from_right',
+  animationDuration: 280
+};
+
 function HomeStack() {
   const { themeMode } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
+    <Stack.Navigator screenOptions={{ ...screenOptions, contentStyle: { backgroundColor: theme.background } }}>
       <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Detail" component={DetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function ExploreStack() {
+  const { themeMode } = useContext(AppContext);
+  const theme = getThemeColors(themeMode);
+  return (
+    <Stack.Navigator screenOptions={{ ...screenOptions, contentStyle: { backgroundColor: theme.background } }}>
+      <Stack.Screen name="ExploreMain" component={ExploreScreen} />
       <Stack.Screen name="Detail" component={DetailScreen} />
     </Stack.Navigator>
   );
@@ -33,8 +53,19 @@ function LibraryStack() {
   const { themeMode } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}>
+    <Stack.Navigator screenOptions={{ ...screenOptions, contentStyle: { backgroundColor: theme.background } }}>
       <Stack.Screen name="LibraryMain" component={LibraryScreen} />
+      <Stack.Screen name="Detail" component={DetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function DownloadStack() {
+  const { themeMode } = useContext(AppContext);
+  const theme = getThemeColors(themeMode);
+  return (
+    <Stack.Navigator screenOptions={{ ...screenOptions, contentStyle: { backgroundColor: theme.background } }}>
+      <Stack.Screen name="DownloadMain" component={DownloadScreen} />
       <Stack.Screen name="Detail" component={DetailScreen} />
     </Stack.Navigator>
   );
@@ -64,35 +95,21 @@ function MainNavigation() {
         backgroundColor={theme.background}
       />
       
-      {/* 2.2-Second Minimalist Splash Animation */}
+      {/* Minimalist Apple/Netflix Splash Intro */}
       {showSplash ? (
         <SplashScreen onFinish={() => setShowSplash(false)} />
       ) : (
         <>
           <NavigationContainer theme={customNavigationTheme}>
             <Tab.Navigator
-              screenOptions={({ route }) => ({
-                headerShown: false,
-                tabBarStyle: {
-                  backgroundColor: theme.tabBarBg,
-                  borderTopColor: theme.tabBarBorder,
-                  height: 64,
-                  paddingBottom: 10,
-                  paddingTop: 8
-                },
-                tabBarActiveTintColor: accentColor,
-                tabBarInactiveTintColor: theme.textSecondary,
-                tabBarIcon: ({ focused, color, size }) => {
-                  let iconName;
-                  if (route.name === 'HomeTab') iconName = focused ? 'home' : 'home-outline';
-                  else if (route.name === 'LibraryTab') iconName = focused ? 'file-tray-full' : 'file-tray-full-outline';
-                  else if (route.name === 'AccountTab') iconName = focused ? 'person' : 'person-outline';
-                  return <Ionicons name={iconName} size={22} color={color} />;
-                }
-              })}
+              tabBar={(props) => <CustomTabBar {...props} />}
+              screenOptions={{ headerShown: false }}
             >
+              {/* 5 Core Tabs with Animated Sliding Indicator */}
               <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Trang Chủ' }} />
+              <Tab.Screen name="ExploreTab" component={ExploreStack} options={{ title: 'Khám Phá' }} />
               <Tab.Screen name="LibraryTab" component={LibraryStack} options={{ title: 'Thư Viện' }} />
+              <Tab.Screen name="DownloadTab" component={DownloadStack} options={{ title: 'Tải Xuống' }} />
               <Tab.Screen name="AccountTab" component={AccountScreen} options={{ title: 'Tài Khoản' }} />
             </Tab.Navigator>
           </NavigationContainer>
