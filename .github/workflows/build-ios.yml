@@ -37,34 +37,24 @@ jobs:
         run: |
           npx expo prebuild --platform ios --clean --no-install
 
-      - name: 🍫 Run CocoaPods Install
+      - name: 🍫 Run CocoaPods Install (Stable Architecture)
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
+          RCT_NEW_ARCH_ENABLED: 0
         run: |
-          pod install || pod install --repo-update || true
+          RCT_NEW_ARCH_ENABLED=0 pod install || RCT_NEW_ARCH_ENABLED=0 pod install --repo-update || true
 
       - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
+          RCT_NEW_ARCH_ENABLED: 0
         run: |
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
-          echo "Node Binary: $NODE_BINARY"
           
-          # Inspect schemes
-          xcodebuild -list -workspace FIMAXCinema.xcworkspace
-          
-          xcodebuild -workspace FIMAXCinema.xcworkspace \
-                     -scheme "FIMAXCinema" \
-                     -configuration Release \
-                     -destination "generic/platform=iOS" \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     clean build || \
+          # Clean build targeting iphonesimulator / universal unsigned
           xcodebuild -workspace FIMAXCinema.xcworkspace \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
@@ -73,7 +63,8 @@ jobs:
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
-                     clean build
+                     ONLY_ACTIVE_ARCH=NO \
+                     build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
