@@ -43,8 +43,9 @@ jobs:
           LANG: en_US.UTF-8
         run: |
           WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
-          echo "Compiling Workspace: $WORKSPACE"
+          echo "Discovered Workspace: $WORKSPACE"
           
+          # Build target with zero code signing restrictions for sideloading & simulator
           xcodebuild -workspace "$WORKSPACE" \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
@@ -53,13 +54,18 @@ jobs:
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
-                     build
+                     ONLY_ACTIVE_ARCH=NO \
+                     COMPILER_INDEX_STORE_ENABLE=NO \
+                     clean build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
         run: |
           mkdir -p Payload
-          APP_PATH=$(find build -name "*.app" | head -n 1)
+          APP_PATH=$(find build/Build/Products/Release-iphonesimulator -name "*.app" | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find build -name "*.app" | head -n 1)
+          fi
           echo "Found compiled app at: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -qr ../../FIMAX-Cinema.ipa Payload
