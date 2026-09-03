@@ -35,20 +35,17 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          npx expo prebuild --platform ios --clean --no-install
+          npx expo prebuild --platform ios --clean
           
           # Setup .xcode.env.local for Xcode Node binary detection
           NODE_PATH=$(which node)
           echo "export NODE_BINARY=$NODE_PATH" > ios/.xcode.env.local
           echo "export PATH=\"$(dirname $NODE_PATH):$PATH\"" >> ios/.xcode.env.local
+          echo "Configured .xcode.env.local with: $NODE_PATH"
           cat ios/.xcode.env.local
-
-      - name: 🍫 Run CocoaPods Install
-        working-directory: ./netflix-clone-expo/ios
-        env:
-          LANG: en_US.UTF-8
-        run: |
-          pod install || pod install --repo-update || true
+          
+          echo "📁 Contents of ios directory:"
+          ls -la ios/
 
       - name: 🔨 Compile Native iOS Release App with Xcode
         working-directory: ./netflix-clone-expo/ios
@@ -59,13 +56,27 @@ jobs:
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
-          WORKSPACE_FILE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -n 1)
-          WORKSPACE_NAME=$(basename "$WORKSPACE_FILE")
-          SCHEME_NAME=$(basename "$WORKSPACE_FILE" .xcworkspace)
+          # Detect workspace or project dynamically
+          WORKSPACE_PATH=$(find . -name "*.xcworkspace" -not -path "*/project.xcworkspace*" | head -n 1)
+          PROJECT_PATH=$(find . -name "*.xcodeproj" | head -n 1)
           
-          echo "Building Workspace: $WORKSPACE_NAME with Scheme: $SCHEME_NAME"
+          if [ -n "$WORKSPACE_PATH" ]; then
+            echo "Found Workspace: $WORKSPACE_PATH"
+            BUILD_FLAG="-workspace $WORKSPACE_PATH"
+            SCHEME_NAME=$(basename "$WORKSPACE_PATH" .xcworkspace)
+          elif [ -n "$PROJECT_PATH" ]; then
+            echo "Found Project: $PROJECT_PATH"
+            BUILD_FLAG="-project $PROJECT_PATH"
+            SCHEME_NAME=$(basename "$PROJECT_PATH" .xcodeproj)
+          else
+            echo "❌ ERROR: No .xcworkspace or .xcodeproj found!"
+            ls -la
+            exit 1
+          fi
           
-          xcodebuild -workspace "$WORKSPACE_NAME" \
+          echo "🔨 Compiling Scheme: $SCHEME_NAME..."
+          
+          xcodebuild $BUILD_FLAG \
                      -scheme "$SCHEME_NAME" \
                      -configuration Release \
                      -sdk iphoneos \
@@ -82,13 +93,10 @@ jobs:
       - name: 📦 Package into .IPA File
         run: |
           mkdir -p Payload
-          APP_PATH=$(find netflix-clone-expo/ios/build -name "*.app" -type d | head -n 1)
-          if [ -z "$APP_PATH" ]; then
-            APP_PATH=$(find netflix-clone-expo/ios -name "*.app" -type d | head -n 1)
-          fi
+          APP_PATH=$(find netflix-clone-expo/ios -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: No .app found in build outputs!"
+            echo "ERROR: No .app found in netflix-clone-expo/ios!"
             find netflix-clone-expo/ios -maxdepth 4
             exit 1
           fi
