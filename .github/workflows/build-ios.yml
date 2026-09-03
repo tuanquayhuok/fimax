@@ -53,7 +53,7 @@ jobs:
           export PATH="$PATH:$(dirname $(which node))"
           
           WORKSPACE="FIMAXCinema.xcworkspace"
-          echo "Compiling Workspace: $WORKSPACE with Sandbox Disabled"
+          echo "Compiling Workspace: $WORKSPACE"
           
           xcodebuild -workspace "$WORKSPACE" \
                      -scheme "FIMAXCinema" \
@@ -66,7 +66,13 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
                      ONLY_ACTIVE_ARCH=NO \
-                     build
+                     build > xcodebuild.log 2>&1 || {
+            echo "=== XCODE BUILD COMPILER ERRORS ==="
+            grep -E "(error:|fatal error:|BUILD FAILED)" xcodebuild.log | head -n 40
+            echo "=== LAST 80 LINES OF LOG ==="
+            tail -n 80 xcodebuild.log
+            exit 1
+          }
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
