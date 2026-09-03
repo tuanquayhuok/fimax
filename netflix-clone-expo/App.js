@@ -1,5 +1,6 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -95,7 +96,6 @@ function MainNavigation() {
         backgroundColor={theme.background}
       />
       
-      {/* Minimalist Apple/Netflix Splash Intro */}
       {showSplash ? (
         <SplashScreen onFinish={() => setShowSplash(false)} />
       ) : (
@@ -105,7 +105,6 @@ function MainNavigation() {
               tabBar={(props) => <CustomTabBar {...props} />}
               screenOptions={{ headerShown: false }}
             >
-              {/* 5 Core Tabs with Animated Sliding Indicator */}
               <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Trang Chủ' }} />
               <Tab.Screen name="ExploreTab" component={ExploreStack} options={{ title: 'Khám Phá' }} />
               <Tab.Screen name="LibraryTab" component={LibraryStack} options={{ title: 'Thư Viện' }} />
@@ -130,9 +129,11 @@ function MainNavigation() {
 
 export default function App() {
   return (
-    <AppProvider>
-      <MainNavigation />
-    </AppProvider>
+    <SafeAreaProvider>
+      <AppProvider>
+        <MainNavigation />
+      </AppProvider>
+    </SafeAreaProvider>
   );
 }
 
