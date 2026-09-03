@@ -81,7 +81,7 @@ export const QuickPreviewModal = ({ visible, movie, onClose, navigation, onOpenT
                 <Text style={[styles.trailerBtnText, { color: theme.textPrimary }]}>Trailer</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]} activeOpacity={0.85} onPress={() => toggleFavorite(movie.id)}>
+              <TouchableOpacity style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]} activeOpacity={0.85} onPress={() => toggleFavorite(movie.id, movie)}>
                 <Ionicons name={isFav ? "heart" : "heart-outline"} size={18} color={isFav ? accentColor : theme.textPrimary} />
               </TouchableOpacity>
 

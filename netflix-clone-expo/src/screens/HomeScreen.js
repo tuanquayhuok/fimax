@@ -215,7 +215,7 @@ export const HomeScreen = ({ navigation }) => {
           <>
             {moviesBySection.trending.length > 0 && (
               <MovieRow
-                title="Phim Đang Hot 🔥"
+                title="Phim Mới Cập Nhật"
                 movies={moviesBySection.trending}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -223,7 +223,7 @@ export const HomeScreen = ({ navigation }) => {
             )}
             {moviesBySection.newReleases.length > 0 && (
               <MovieRow
-                title="Phim Mới Cập Nhật 🎬"
+                title="Phim Chiếu Rạp Mới Nhất"
                 movies={moviesBySection.newReleases}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -231,7 +231,7 @@ export const HomeScreen = ({ navigation }) => {
             )}
             {moviesBySection.topRated.length > 0 && (
               <MovieRow
-                title="Đánh Giá Cao ⭐"
+                title="Phim Đánh Giá Cao"
                 movies={moviesBySection.topRated}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -239,7 +239,7 @@ export const HomeScreen = ({ navigation }) => {
             )}
             {moviesBySection.vietnam.length > 0 && (
               <MovieRow
-                title="Phim Điện Ảnh Việt Nam 🇻🇳"
+                title="Phim Điện Ảnh Việt Nam"
                 movies={moviesBySection.vietnam}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -247,7 +247,7 @@ export const HomeScreen = ({ navigation }) => {
             )}
             {moviesBySection.korean.length > 0 && (
               <MovieRow
-                title="Phim Hàn Quốc Đặc Sắc 🇰🇷"
+                title="Phim Hàn Quốc Đặc Sắc"
                 movies={moviesBySection.korean}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -255,7 +255,7 @@ export const HomeScreen = ({ navigation }) => {
             )}
             {moviesBySection.hollywood.length > 0 && (
               <MovieRow
-                title="Bom Tấn Hollywood 🍿"
+                title="Bom Tấn Hollywood"
                 movies={moviesBySection.hollywood}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -263,7 +263,7 @@ export const HomeScreen = ({ navigation }) => {
             )}
             {moviesBySection.comingSoon.length > 0 && (
               <MovieRow
-                title="Sắp Ra Mắt ⏳"
+                title="Phim Sắp Ra Mắt"
                 movies={moviesBySection.comingSoon}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -319,7 +319,9 @@ export const HomeScreen = ({ navigation }) => {
       {trailerMovie && (
         <TrailerModal
           visible={!!trailerMovie}
+          movie={trailerMovie}
           trailerUrl={trailerMovie.trailerUrl}
+          accentColor={accentColor}
           onClose={() => setTrailerMovie(null)}
         />
       )}

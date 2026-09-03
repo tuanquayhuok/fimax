@@ -14,9 +14,9 @@ import { CustomTabBar } from './src/components/CustomTabBar';
 import { SplashScreen } from './src/components/SplashScreen';
 import { PopupNotification } from './src/components/PopupNotification';
 import { HomeScreen } from './src/screens/HomeScreen';
-import { ExploreScreen } from './src/screens/ExploreScreen';
+import { RankingsScreen } from './src/screens/RankingsScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
-import { DownloadScreen } from './src/screens/DownloadScreen';
+import { ComingSoonScreen } from './src/screens/ComingSoonScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { DetailScreen } from './src/screens/DetailScreen';
 import { CinemaPlayer } from './src/components/CinemaPlayer';
@@ -75,12 +75,12 @@ function HomeStack() {
   );
 }
 
-function ExploreStack() {
+function RankingsStack() {
   const { themeMode } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   return (
     <Stack.Navigator screenOptions={{ ...screenOptions, contentStyle: { backgroundColor: theme.background } }}>
-      <Stack.Screen name="ExploreMain" component={ExploreScreen} />
+      <Stack.Screen name="RankingsMain" component={RankingsScreen} />
       <Stack.Screen name="Detail" component={DetailScreen} />
     </Stack.Navigator>
   );
@@ -97,12 +97,12 @@ function LibraryStack() {
   );
 }
 
-function DownloadStack() {
+function ComingSoonStack() {
   const { themeMode } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   return (
     <Stack.Navigator screenOptions={{ ...screenOptions, contentStyle: { backgroundColor: theme.background } }}>
-      <Stack.Screen name="DownloadMain" component={DownloadScreen} />
+      <Stack.Screen name="ComingSoonMain" component={ComingSoonScreen} />
       <Stack.Screen name="Detail" component={DetailScreen} />
     </Stack.Navigator>
   );
@@ -153,9 +153,9 @@ function MainNavigation() {
           screenOptions={{ headerShown: false }}
         >
           <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Trang Chủ' }} />
-          <Tab.Screen name="ExploreTab" component={ExploreStack} options={{ title: 'Khám Phá' }} />
+          <Tab.Screen name="ExploreTab" component={RankingsStack} options={{ title: 'Xếp Hạng' }} />
           <Tab.Screen name="LibraryTab" component={LibraryStack} options={{ title: 'Thư Viện' }} />
-          <Tab.Screen name="DownloadTab" component={DownloadStack} options={{ title: 'Tải Xuống' }} />
+          <Tab.Screen name="DownloadTab" component={ComingSoonStack} options={{ title: 'Sắp Chiếu' }} />
           <Tab.Screen name="AccountTab" component={AccountScreen} options={{ title: 'Tài Khoản' }} />
         </Tab.Navigator>
       </NavigationContainer>

@@ -1,6 +1,6 @@
 import { MOCK_MOVIES } from '../data/mockMovies';
 
-const DEFAULT_API_URL = 'http://127.0.0.1:4000/api';
+const DEFAULT_API_URL = 'http://localhost:4000/api';
 const WEB_SOURCE_URL = 'http://fimax.aecongnghe.online/';
 
 // Global in-memory cache for 0ms instant loading
@@ -50,6 +50,21 @@ async function syncWebSourceInBackground(force = false) {
 
   isFetchingBackground = true;
   try {
+    // 1. Try fetching from Local / Cloud Backend Server first (CORS friendly)
+    try {
+      const backendRes = await fetch('http://localhost:4000/api/movies');
+      if (backendRes.ok) {
+        const backendMovies = await backendRes.json();
+        if (Array.isArray(backendMovies) && backendMovies.length > 0) {
+          memoryCache = backendMovies;
+          featuredBannersCache = backendMovies.slice(0, 5);
+          lastFetchTimestamp = Date.now();
+          notifyListeners();
+        }
+      }
+    } catch (err) {}
+
+    // 2. Direct Web Source fetch (works on Native iOS/Android and proxies)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 

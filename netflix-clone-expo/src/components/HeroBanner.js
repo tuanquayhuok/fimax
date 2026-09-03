@@ -134,7 +134,7 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
               <TouchableOpacity
                 style={[styles.favoriteBtn, { backgroundColor: theme.surfaceSecondary }]}
                 activeOpacity={0.8}
-                onPress={() => toggleFavorite(movie.id)}
+                onPress={() => toggleFavorite(movie.id, movie)}
               >
                 <Ionicons
                   name={isFav ? 'heart' : 'heart-outline'}

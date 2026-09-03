@@ -68,7 +68,7 @@ export const DetailScreen = ({ route, navigation }) => {
       );
       return;
     }
-    toggleFavorite(movie.id);
+    toggleFavorite(movie.id, movie);
   };
 
   const handleOpenRating = () => {
@@ -235,8 +235,20 @@ export const DetailScreen = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Trailer & Rating Modals */}
-      <TrailerModal visible={showTrailerModal} trailerUrl={movie.trailerUrl} onClose={() => setShowTrailerModal(false)} />
-      <RatingModal visible={showRatingModal} movieTitle={movie.title} onClose={() => setShowRatingModal(false)} onRateSubmit={setUserRating} />
+      <TrailerModal
+        visible={showTrailerModal}
+        movie={movie}
+        trailerUrl={movie.trailerUrl}
+        accentColor={accentColor}
+        onClose={() => setShowTrailerModal(false)}
+      />
+      <RatingModal
+        visible={showRatingModal}
+        movie={movie}
+        movieTitle={movie.title}
+        onClose={() => setShowRatingModal(false)}
+        onRateSubmit={setUserRating}
+      />
     </Animated.View>
   );
 };

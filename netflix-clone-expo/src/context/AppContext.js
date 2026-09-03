@@ -196,13 +196,26 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  const toggleFavorite = (movieId) => {
+  const toggleFavorite = (movieId, movieObj = null) => {
     setFavorites(prev => {
       let next;
-      if (prev.includes(movieId)) {
+      const isCurrentlyFav = prev.includes(movieId);
+      if (isCurrentlyFav) {
         next = prev.filter(id => id !== movieId);
+        showNotificationPopup(
+          'Đã Xóa Khỏi Yêu Thích',
+          movieObj ? `Đã gỡ phim "${movieObj.title}" khỏi Thư Viện của bạn.` : 'Đã gỡ phim khỏi danh sách yêu thích.',
+          movieObj,
+          'movie'
+        );
       } else {
         next = [...prev, movieId];
+        showNotificationPopup(
+          '❤️ Đã Thêm Vào Yêu Thích',
+          movieObj ? `Phim "${movieObj.title}" đã được lưu vào Thư Viện của bạn!` : 'Đã lưu phim vào Thư Viện yêu thích!',
+          movieObj,
+          'movie'
+        );
       }
       StorageService.setItem('@fimax_favorites', JSON.stringify(next));
       return next;
