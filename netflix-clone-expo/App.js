@@ -109,7 +109,7 @@ function DownloadStack() {
 }
 
 function MainNavigation() {
-  const { activeMovieForPlayer, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
+  const { activeMovieForPlayer, setActiveMovieForPlayer, themeMode, accentColor, setNotificationsEnabled, showNotificationPopup } = useContext(AppContext);
   const [showSplash, setShowSplash] = useState(true);
   const theme = getThemeColors(themeMode);
 
@@ -122,6 +122,20 @@ function MainNavigation() {
       text: theme.textPrimary,
       border: theme.tabBarBorder,
       primary: accentColor
+    }
+  };
+
+  const handleSplashFinish = async () => {
+    setShowSplash(false);
+    // Automatically trigger native iOS Notification Permission request right on first launch!
+    try {
+      const { NotificationService } = require('./src/services/notificationService');
+      const granted = await NotificationService.requestPermission();
+      if (granted) {
+        setNotificationsEnabled(true);
+      }
+    } catch (e) {
+      console.warn('Auto request notification permission error:', e);
     }
   };
 
@@ -160,7 +174,7 @@ function MainNavigation() {
 
       {/* 4. Smooth Cinematic Splash Screen Overlay */}
       {showSplash && (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
+        <SplashScreen onFinish={handleSplashFinish} />
       )}
     </View>
   );
