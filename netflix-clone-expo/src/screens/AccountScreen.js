@@ -10,6 +10,7 @@ import { AppearanceSettingsModal } from '../components/AppearanceSettingsModal';
 import { RedeemCodeModal } from '../components/RedeemCodeModal';
 import { OtpVerificationModal } from '../components/OtpVerificationModal';
 import { SocialAuthModal } from '../components/SocialAuthModal';
+import { AdminManagerModal } from '../components/AdminManagerModal';
 import { RealAuthService } from '../services/realAuthService';
 
 export const AccountScreen = () => {
@@ -36,6 +37,7 @@ export const AccountScreen = () => {
   const [showSubManagerModal, setShowSubManagerModal] = useState(false);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [showAdminModal, setShowAdminModal] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState(null);
   
   // In-app Preferences
@@ -72,7 +74,6 @@ export const AccountScreen = () => {
     }
   };
 
-  // Launch In-App Browser for Google / Facebook -> Then confirm
   const handleLaunchSocialAuth = async (provider) => {
     setSocialProvider(provider);
     if (provider === 'Google') {
@@ -80,7 +81,6 @@ export const AccountScreen = () => {
     } else {
       await RealAuthService.signInWithFacebookBrowser();
     }
-    // After browser interaction, open confirmation modal to finalize account login
     setShowSocialModal(true);
   };
 
@@ -149,11 +149,10 @@ export const AccountScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Social Logins: Google & Facebook */}
+          {/* Social Logins */}
           <View style={styles.socialSection}>
             <Text style={[styles.socialDividerText, { color: theme.textMuted }]}>HOẶC ĐĂNG NHẬP VỚI</Text>
             <View style={styles.socialBtnRow}>
-              {/* Google Sign In */}
               <TouchableOpacity
                 style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 activeOpacity={0.8}
@@ -163,7 +162,6 @@ export const AccountScreen = () => {
                 <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Google</Text>
               </TouchableOpacity>
 
-              {/* Facebook Sign In */}
               <TouchableOpacity
                 style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 activeOpacity={0.8}
@@ -174,9 +172,17 @@ export const AccountScreen = () => {
               </TouchableOpacity>
             </View>
           </View>
+
+          {/* Quick Admin Master Trigger for Owner */}
+          <TouchableOpacity
+            style={styles.guestAdminBtn}
+            onPress={() => setShowAdminModal(true)}
+          >
+            <Ionicons name="shield-checkmark" size={14} color="#D4AF37" />
+            <Text style={styles.guestAdminText}>Đăng nhập Quản Trị Viên (Admin Master)</Text>
+          </TouchableOpacity>
         </ScrollView>
 
-        {/* Social Auth Modal */}
         <SocialAuthModal
           visible={showSocialModal}
           provider={socialProvider}
@@ -184,7 +190,11 @@ export const AccountScreen = () => {
           onSuccess={handleSocialSuccess}
         />
 
-        {/* OTP Modal */}
+        <AdminManagerModal
+          visible={showAdminModal}
+          onClose={() => setShowAdminModal(false)}
+        />
+
         <OtpVerificationModal visible={showOtpModal} destination={email} onVerifySuccess={handleOtpSuccess} onCancel={() => setShowOtpModal(false)} />
       </KeyboardAvoidingView>
     );
@@ -298,20 +308,23 @@ export const AccountScreen = () => {
               trackColor={{ false: '#2C2C2E', true: accentColor }}
             />
           </View>
-
-          <TouchableOpacity style={styles.rowItem} onPress={() => Alert.alert('Thiết bị', 'Đang đăng nhập trên 2 thiết bị: iPhone 15 Pro và Smart TV.')}>
-            <Ionicons name="hardware-chip-outline" size={20} color={theme.textPrimary} />
-            <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Thiết bị đã kết nối</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>iPhone (Thiết bị này) • Smart TV</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
-          </TouchableOpacity>
         </View>
 
-        {/* 4. Bộ Nhớ & Cấu Hình API Dev */}
-        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>BỘ NHỚ & HỆ THỐNG</Text>
-        <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* 4. Quản Trị Viên & Hệ Thống Master */}
+        <Text style={[styles.sectionHeader, { color: '#D4AF37' }]}>👑 QUẢN TRỊ VIÊN & HỆ THỐNG MASTER</Text>
+        <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: 'rgba(212, 175, 55, 0.3)' }]}>
+          {/* MASTER ADMIN CENTER BUTTON */}
+          <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => setShowAdminModal(true)}>
+            <Ionicons name="shield-checkmark" size={22} color="#D4AF37" />
+            <View style={styles.rowContent}>
+              <Text style={[styles.rowTitle, { color: '#D4AF37', fontWeight: '800', fontSize: 14 * fontSizeScale }]}>
+                Trung Tâm Quản Trị FIMAX Master
+              </Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Quản lý user, cấp VIP, khóa tài khoản, tạo Giftcode</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
+          </TouchableOpacity>
+
           <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={handleClearCache}>
             <Ionicons name="trash-bin-outline" size={20} color={theme.textPrimary} />
             <View style={styles.rowContent}>
@@ -322,10 +335,10 @@ export const AccountScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.rowItem} onPress={() => setShowDevConfig(!showDevConfig)}>
-            <Ionicons name="server-outline" size={20} color="#D4AF37" />
+            <Ionicons name="server-outline" size={20} color="#8E8E93" />
             <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Cấu hình Backend API & Callback URL</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Dành cho Quản trị viên / Dev</Text>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Cấu hình Backend API & Webhook</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Dành cho Dev</Text>
             </View>
             <Ionicons name={showDevConfig ? "chevron-up" : "chevron-down"} size={16} color={theme.textMuted} />
           </TouchableOpacity>
@@ -364,6 +377,10 @@ export const AccountScreen = () => {
       </ScrollView>
 
       {/* Modals */}
+      <AdminManagerModal
+        visible={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+      />
       <AppearanceSettingsModal
         visible={showAppearanceModal}
         onClose={() => setShowAppearanceModal(false)}
@@ -495,6 +512,21 @@ const styles = StyleSheet.create({
   socialBtnText: {
     fontSize: 13,
     fontWeight: '600'
+  },
+  guestAdminBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(212, 175, 55, 0.08)'
+  },
+  guestAdminText: {
+    color: '#D4AF37',
+    fontSize: 12,
+    fontWeight: '700'
   },
   profileHero: {
     flexDirection: 'row',
