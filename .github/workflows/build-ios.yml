@@ -37,34 +37,48 @@ jobs:
         run: |
           npx expo prebuild --platform ios --clean --no-install
 
-      - name: 🍫 Run CocoaPods Install (Stable Architecture)
+      - name: 🍫 Run CocoaPods Install
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
-          RCT_NEW_ARCH_ENABLED: 0
         run: |
-          RCT_NEW_ARCH_ENABLED=0 pod install || RCT_NEW_ARCH_ENABLED=0 pod install --repo-update || true
+          pod install || pod install --repo-update || true
 
       - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
-          RCT_NEW_ARCH_ENABLED: 0
         run: |
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
-          # Clean build targeting iphonesimulator / universal unsigned
-          xcodebuild -workspace FIMAXCinema.xcworkspace \
-                     -scheme "FIMAXCinema" \
-                     -configuration Release \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     ONLY_ACTIVE_ARCH=NO \
-                     build
+          # Discover workspace and scheme dynamically
+          WORKSPACE=$(ls -d *.xcworkspace 2>/dev/null | head -n 1)
+          echo "Discovered Workspace: $WORKSPACE"
+          
+          # List all schemes
+          xcodebuild -list -workspace "$WORKSPACE"
+          
+          # Build all schemes until one succeeds
+          SCHEMES=$(xcodebuild -list -workspace "$WORKSPACE" | awk '/Schemes:/{flag=1; next} flag && NF{print $0}')
+          echo "Available schemes: $SCHEMES"
+          
+          for s in "FIMAXCinema" "FIMAX Cinema" "netflix-cinema-expo" "fimax-cinema-app"; do
+            echo "Attempting build with scheme: $s"
+            if xcodebuild -workspace "$WORKSPACE" \
+                          -scheme "$s" \
+                          -configuration Release \
+                          -sdk iphonesimulator \
+                          -derivedDataPath build \
+                          CODE_SIGN_IDENTITY="" \
+                          CODE_SIGNING_REQUIRED=NO \
+                          CODE_SIGNING_ALLOWED=NO \
+                          ONLY_ACTIVE_ARCH=NO \
+                          build; then
+              echo "Build succeeded with scheme: $s"
+              break
+            fi
+          done
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
