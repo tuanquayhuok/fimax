@@ -1,20 +1,26 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, FlatList, Alert, ScrollView, Switch } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, TextInput, FlatList, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { ApiService } from '../services/apiService';
 
 export const AdminManagerModal = ({ visible, onClose }) => {
-  const { themeMode, accentColor, fontSizeScale, user, setUser } = useContext(AppContext);
+  const { themeMode, accentColor, fontSizeScale } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
-  // Security Auth State
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [adminPinInput, setAdminPinInput] = useState('');
-  const [activeTab, setActiveTab] = useState('users'); // 'users' | 'movies' | 'giftcodes' | 'broadcast'
+  // 2-Layer Authentication State
+  // Step 1: 'credentials' -> Step 2: '2fa_pin' -> Step 3: 'dashboard'
+  const [authStep, setAuthStep] = useState('credentials');
+  
+  // Inputs
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [admin2faPin, setAdmin2faPin] = useState('');
 
-  // Mock Persistent User List for Master Admin
+  const [activeTab, setActiveTab] = useState('users');
+
+  // Persistent User List for Master Admin
   const [usersList, setUsersList] = useState([
     {
       id: 'usr_001',
@@ -63,18 +69,38 @@ export const AdminManagerModal = ({ visible, onClose }) => {
   // Broadcast Message
   const [broadcastTitle, setBroadcastTitle] = useState('');
   const [broadcastContent, setBroadcastContent] = useState('');
-
-  // Sync state
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const handleAdminLogin = () => {
-    // Master PIN: 8888 or 123456
-    if (adminPinInput === '8888' || adminPinInput === '123456' || adminPinInput.toLowerCase() === 'admin') {
-      setIsAdminAuthenticated(true);
-      setAdminPinInput('');
+  // Layer 1: Check Username & Password
+  const handleVerifyCredentials = () => {
+    const u = adminUsername.trim().toLowerCase();
+    const p = adminPassword;
+
+    if ((u === 'admin' || u === 'admin@fimax.vn') && (p === 'Admin@2026' || p === '123456' || p === 'admin')) {
+      setAuthStep('2fa_pin');
+      setAdminUsername('');
+      setAdminPassword('');
     } else {
-      Alert.alert('Sai Mã PIN', 'Mã PIN Quản Trị Viên không đúng. Vui lòng nhập mã PIN bảo mật.');
+      Alert.alert('Từ chối truy cập', 'Tài khoản hoặc mật khẩu Quản Trị Viên không chính xác.');
     }
+  };
+
+  // Layer 2: Check 2FA Master PIN
+  const handleVerify2faPin = () => {
+    if (admin2faPin === '888888' || admin2faPin === '8888') {
+      setAuthStep('dashboard');
+      setAdmin2faPin('');
+    } else {
+      Alert.alert('Sai Mã PIN 2FA', 'Mã PIN xác thực 2 lớp không đúng.');
+    }
+  };
+
+  const handleModalClose = () => {
+    setAuthStep('credentials');
+    setAdminUsername('');
+    setAdminPassword('');
+    setAdmin2faPin('');
+    onClose();
   };
 
   const handleToggleVip = (userId) => {
@@ -170,38 +196,79 @@ export const AdminManagerModal = ({ visible, onClose }) => {
               </View>
               <View>
                 <Text style={styles.headerTitle}>FIMAX ADMIN MASTER</Text>
-                <Text style={styles.headerSub}>Trung tâm quản trị người dùng & nội dung</Text>
+                <Text style={styles.headerSub}>Hệ thống quản trị bảo mật 2 lớp (2FA)</Text>
               </View>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <TouchableOpacity onPress={handleModalClose} style={styles.closeBtn}>
               <Ionicons name="close" size={22} color="#8E8E93" />
             </TouchableOpacity>
           </View>
 
-          {!isAdminAuthenticated ? (
-            /* PIN Protection Screen */
-            <View style={styles.pinLockContainer}>
-              <Ionicons name="lock-closed" size={48} color="#D4AF37" />
-              <Text style={styles.pinTitle}>Xác Thực Quyền Quản Trị Viên</Text>
-              <Text style={styles.pinSub}>Vui lòng nhập Mã PIN Quản Trị Master (Mặc định: 8888):</Text>
-              
+          {/* LAYER 1: Username & Password Auth */}
+          {authStep === 'credentials' && (
+            <View style={styles.authContainer}>
+              <Ionicons name="key" size={44} color="#D4AF37" />
+              <Text style={styles.authTitle}>Lớp 1: Xác Thực Quản Trị Viên</Text>
+              <Text style={styles.authSub}>Nhập Tài khoản và Mật khẩu Quản trị Master:</Text>
+
+              <View style={styles.formWrap}>
+                <Text style={styles.fieldLabel}>TÀI KHOẢN ADMIN</Text>
+                <TextInput
+                  style={styles.authInput}
+                  placeholder="admin hoặc admin@fimax.vn"
+                  placeholderTextColor="#636366"
+                  autoCapitalize="none"
+                  value={adminUsername}
+                  onChangeText={setAdminUsername}
+                />
+
+                <Text style={[styles.fieldLabel, { marginTop: 10 }]}>MẬT KHẨU ADMIN</Text>
+                <TextInput
+                  style={styles.authInput}
+                  placeholder="Nhập mật khẩu Admin"
+                  placeholderTextColor="#636366"
+                  secureTextEntry
+                  value={adminPassword}
+                  onChangeText={setAdminPassword}
+                />
+
+                <TouchableOpacity style={styles.submitBtn} onPress={handleVerifyCredentials}>
+                  <Text style={styles.submitBtnText}>TIẾP TỤC BƯỚC 2 (2FA)</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* LAYER 2: 2FA Master PIN Auth */}
+          {authStep === '2fa_pin' && (
+            <View style={styles.authContainer}>
+              <Ionicons name="shield-checkmark" size={48} color="#30D158" />
+              <Text style={styles.authTitle}>Lớp 2: Xác Thực 2FA (Mã PIN)</Text>
+              <Text style={styles.authSub}>Nhập Mã PIN bảo mật 2 lớp của bạn (Mặc định: 888888):</Text>
+
               <TextInput
                 style={styles.pinInput}
-                placeholder="Nhập mã PIN"
+                placeholder="6 số PIN"
                 placeholderTextColor="#636366"
                 keyboardType="numeric"
                 secureTextEntry
                 maxLength={6}
-                value={adminPinInput}
-                onChangeText={setAdminPinInput}
+                value={admin2faPin}
+                onChangeText={setAdmin2faPin}
               />
 
-              <TouchableOpacity style={styles.pinSubmitBtn} onPress={handleAdminLogin}>
-                <Text style={styles.pinSubmitText}>MỞ KHÓA ADMIN</Text>
+              <TouchableOpacity style={[styles.submitBtn, { backgroundColor: '#30D158' }]} onPress={handleVerify2faPin}>
+                <Text style={[styles.submitBtnText, { color: '#000000' }]}>MỞ KHÓA TRUNG TÂM ADMIN</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.backBtn} onPress={() => setAuthStep('credentials')}>
+                <Text style={styles.backBtnText}>Quay lại Bước 1</Text>
               </TouchableOpacity>
             </View>
-          ) : (
-            /* Admin Master Dashboard */
+          )}
+
+          {/* LAYER 3: Master Admin Dashboard */}
+          {authStep === 'dashboard' && (
             <View style={styles.dashboardContainer}>
               {/* Tab Switcher */}
               <View style={styles.navRow}>
@@ -468,50 +535,79 @@ const styles = StyleSheet.create({
   closeBtn: {
     padding: 4
   },
-  pinLockContainer: {
+  authContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    gap: 12
+    gap: 8
   },
-  pinTitle: {
+  authTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
-    marginTop: 8
+    marginTop: 6
   },
-  pinSub: {
+  authSub: {
     color: '#8E8E93',
     fontSize: 12,
-    textAlign: 'center'
+    textAlign: 'center',
+    marginBottom: 12
   },
-  pinInput: {
-    width: 200,
+  formWrap: {
+    width: '100%',
+    gap: 6
+  },
+  fieldLabel: {
+    color: '#8E8E93',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  authInput: {
     backgroundColor: '#1E1E22',
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 14,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)'
+  },
+  pinInput: {
+    width: 220,
+    backgroundColor: '#1E1E22',
+    color: '#FFFFFF',
+    fontSize: 24,
     fontWeight: '900',
     textAlign: 'center',
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 14,
     letterSpacing: 8,
     borderWidth: 1,
-    borderColor: '#D4AF37',
-    marginTop: 8
+    borderColor: '#30D158',
+    marginVertical: 14
   },
-  pinSubmitBtn: {
+  submitBtn: {
     backgroundColor: '#E50914',
-    paddingHorizontal: 28,
     paddingVertical: 13,
     borderRadius: 10,
+    alignItems: 'center',
     marginTop: 10
   },
-  pinSubmitText: {
+  submitBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800',
     letterSpacing: 0.5
+  },
+  backBtn: {
+    paddingVertical: 8,
+    marginTop: 4
+  },
+  backBtnText: {
+    color: '#8E8E93',
+    fontSize: 12
   },
   dashboardContainer: {
     flex: 1

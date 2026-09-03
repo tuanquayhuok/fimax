@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, TextInput, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
@@ -40,6 +40,10 @@ export const AccountScreen = () => {
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState(null);
   
+  // Secret 5-tap gesture counter for Owner Admin
+  const [tapCount, setTapCount] = useState(0);
+  const lastTapRef = useRef(0);
+
   // In-app Preferences
   const [parentalPinEnabled, setParentalPinEnabled] = useState(false);
   const [showDevConfig, setShowDevConfig] = useState(false);
@@ -50,6 +54,14 @@ export const AccountScreen = () => {
     if (!email || !password) {
       Alert.alert('Thông báo', 'Vui lòng nhập đầy đủ Email / Số điện thoại và Mật khẩu.');
       return;
+    }
+
+    // Secret Admin Login trigger directly from login form
+    if (email.trim().toLowerCase() === 'admin' || email.trim().toLowerCase() === 'admin@fimax.vn') {
+      if (password === 'Admin@2026' || password === '123456' || password === 'admin') {
+        setShowAdminModal(true);
+        return;
+      }
     }
 
     if (authMode === 'login') {
@@ -87,6 +99,22 @@ export const AccountScreen = () => {
   const handleSocialSuccess = (authedUser) => {
     setUser(authedUser);
     Alert.alert('Thành công', `Đã đồng bộ và đăng nhập thành công với ${authedUser.authProvider} (${authedUser.email})!`);
+  };
+
+  // Secret 5-tap gesture handler on app version to open Master Admin
+  const handleSecretVersionTap = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 600) {
+      const newCount = tapCount + 1;
+      setTapCount(newCount);
+      if (newCount >= 5) {
+        setTapCount(0);
+        setShowAdminModal(true);
+      }
+    } else {
+      setTapCount(1);
+    }
+    lastTapRef.current = now;
   };
 
   const handleSaveDevConfig = () => {
@@ -173,13 +201,9 @@ export const AccountScreen = () => {
             </View>
           </View>
 
-          {/* Quick Admin Master Trigger for Owner */}
-          <TouchableOpacity
-            style={styles.guestAdminBtn}
-            onPress={() => setShowAdminModal(true)}
-          >
-            <Ionicons name="shield-checkmark" size={14} color="#D4AF37" />
-            <Text style={styles.guestAdminText}>Đăng nhập Quản Trị Viên (Admin Master)</Text>
+          {/* Secret Tap Area for Admin (No obvious buttons) */}
+          <TouchableOpacity activeOpacity={1} onPress={handleSecretVersionTap} style={{ marginTop: 32, alignItems: 'center' }}>
+            <Text style={[styles.appVersion, { color: theme.textMuted }]}>FIMAX Cinema v2.4.0 (Build 2026)</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -310,21 +334,9 @@ export const AccountScreen = () => {
           </View>
         </View>
 
-        {/* 4. Quản Trị Viên & Hệ Thống Master */}
-        <Text style={[styles.sectionHeader, { color: '#D4AF37' }]}>👑 QUẢN TRỊ VIÊN & HỆ THỐNG MASTER</Text>
-        <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: 'rgba(212, 175, 55, 0.3)' }]}>
-          {/* MASTER ADMIN CENTER BUTTON */}
-          <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => setShowAdminModal(true)}>
-            <Ionicons name="shield-checkmark" size={22} color="#D4AF37" />
-            <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: '#D4AF37', fontWeight: '800', fontSize: 14 * fontSizeScale }]}>
-                Trung Tâm Quản Trị FIMAX Master
-              </Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Quản lý user, cấp VIP, khóa tài khoản, tạo Giftcode</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color="#D4AF37" />
-          </TouchableOpacity>
-
+        {/* 4. Bộ Nhớ & Cấu Hình */}
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>BỘ NHỚ & HỆ THỐNG</Text>
+        <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={handleClearCache}>
             <Ionicons name="trash-bin-outline" size={20} color={theme.textPrimary} />
             <View style={styles.rowContent}>
@@ -372,7 +384,10 @@ export const AccountScreen = () => {
           <Text style={[styles.logoutBtnText, { color: accentColor }]}>Đăng Xuất</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.appVersion, { color: theme.textMuted }]}>FIMAX Cinema v2.4.0 (Build 2026)</Text>
+        {/* Secret 5-Tap Gesture on App Version to trigger Master Admin */}
+        <TouchableOpacity activeOpacity={1} onPress={handleSecretVersionTap} style={{ marginTop: 16 }}>
+          <Text style={[styles.appVersion, { color: theme.textMuted }]}>FIMAX Cinema v2.4.0 (Build 2026)</Text>
+        </TouchableOpacity>
         <View style={{ height: 40 }} />
       </ScrollView>
 
@@ -512,21 +527,6 @@ const styles = StyleSheet.create({
   socialBtnText: {
     fontSize: 13,
     fontWeight: '600'
-  },
-  guestAdminBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 24,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: 'rgba(212, 175, 55, 0.08)'
-  },
-  guestAdminText: {
-    color: '#D4AF37',
-    fontSize: 12,
-    fontWeight: '700'
   },
   profileHero: {
     flexDirection: 'row',
@@ -680,7 +680,6 @@ const styles = StyleSheet.create({
   },
   appVersion: {
     fontSize: 11,
-    textAlign: 'center',
-    marginTop: 16
+    textAlign: 'center'
   }
 });
