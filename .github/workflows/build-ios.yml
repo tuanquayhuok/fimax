@@ -58,14 +58,28 @@ jobs:
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
+          # Target generic iOS Simulator with valid destination
           xcodebuild -workspace FIMAXCinema.xcworkspace \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
-                     -sdk iphonesimulator \
+                     -destination "generic/platform=iOS Simulator" \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
+                     ENABLE_USER_SCRIPT_SANDBOXING=NO \
+                     COMPILER_INDEX_STORE_ENABLE=NO \
+                     ONLY_ACTIVE_ARCH=NO \
+                     build || \
+          xcodebuild -workspace FIMAXCinema.xcworkspace \
+                     -scheme "FIMAXCinema" \
+                     -configuration Release \
+                     -destination "generic/platform=iOS" \
+                     -derivedDataPath build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
                      ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
                      ONLY_ACTIVE_ARCH=NO \
@@ -74,11 +88,17 @@ jobs:
       - name: 📦 Package into .IPA File
         run: |
           mkdir -p Payload
-          APP_PATH=$(find netflix-clone-expo/ios -name "*.app" | head -n 1)
+          APP_PATH=$(find netflix-clone-expo/ios/build -name "*.app" | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: No .app found in netflix-clone-expo/ios!"
+            APP_PATH=$(find netflix-clone-expo/ios -name "*.app" | head -n 1)
+          fi
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "ERROR: No .app found!"
+            find netflix-clone-expo/ios
             exit 1
           fi
+          
           echo "Found compiled app at: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -qr FIMAX-Cinema.ipa Payload
