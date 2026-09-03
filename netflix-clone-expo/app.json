@@ -1,14 +1,10 @@
 {
   "expo": {
-    "name": "Netflix Cinema",
-    "slug": "netflix-cinema-app",
+    "name": "FIMAX Cinema",
+    "slug": "fimax-cinema-app",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "orientation": "default",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "backgroundColor": "#141414"
-    },
     "ios": {
       "supportsTablet": true
     },
@@ -17,11 +13,8 @@
         "backgroundColor": "#141414"
       }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
-      "expo-web-browser"
+      "expo-screen-orientation"
     ]
   }
 }

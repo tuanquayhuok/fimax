@@ -2,23 +2,43 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, StatusBar, Platform, Dimensions } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { AppContext } from '../context/AppContext';
 
-const { width, height } = Dimensions.get('window');
 const SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 const QUALITY_OPTIONS = ['1080p', '720p', '360p'];
 
 export const CinemaPlayer = ({ visible, movie, onClose }) => {
   const { updateProgress, continueWatching, accentColor } = useContext(AppContext);
   const videoRef = useRef(null);
+
+  const [dimensions, setDimensions] = useState(Dimensions.get('window'));
+  const isLandscape = dimensions.width > dimensions.height;
+
   const [status, setStatus] = useState({});
   const [isPlaying, setIsPlaying] = useState(true);
   const [showControls, setShowControls] = useState(true);
+  const [isMiniPlayer, setIsMiniPlayer] = useState(false);
   const [selectedQuality, setSelectedQuality] = useState('1080p');
   const [selectedSpeed, setSelectedSpeed] = useState(1.0);
   const [selectedSubtitle, setSelectedSubtitle] = useState('Tiếng Việt');
   const [selectedAudio, setSelectedAudio] = useState('Gốc');
   const [activeSheet, setActiveSheet] = useState(null);
+
+  // Auto-listen to screen dimension / orientation changes
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+      setDimensions(window);
+    });
+
+    // Unlock all orientations when player opens
+    ScreenOrientation.unlockAsync().catch(() => {});
+
+    return () => {
+      subscription?.remove();
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+    };
+  }, []);
 
   useEffect(() => {
     if (visible && movie) {
@@ -31,11 +51,11 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
 
   useEffect(() => {
     let timer;
-    if (showControls && isPlaying) {
-      timer = setTimeout(() => setShowControls(false), 5000);
+    if (showControls && isPlaying && !isMiniPlayer) {
+      timer = setTimeout(() => setShowControls(false), 4500);
     }
     return () => clearTimeout(timer);
-  }, [showControls, isPlaying]);
+  }, [showControls, isPlaying, isMiniPlayer]);
 
   if (!movie) return null;
   const currentSource = movie.videoSources?.[selectedQuality] || movie.videoSources?.['1080p'] || movie.videoSources?.['auto'] || Object.values(movie.videoSources || {})[0] || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
@@ -45,8 +65,29 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
       if (videoRef.current) {
         await videoRef.current.stopAsync();
       }
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     } catch (e) {}
+    setIsMiniPlayer(false);
     onClose();
+  };
+
+  const toggleOrientation = async () => {
+    try {
+      if (isLandscape) {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      } else {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      }
+    } catch (e) {
+      // Fallback
+    }
+  };
+
+  const toggleMiniPlayer = () => {
+    if (!isMiniPlayer && isLandscape) {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
+    }
+    setIsMiniPlayer(prev => !prev);
   };
 
   const togglePlayPause = async () => {
@@ -88,30 +129,76 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
 
   const progressPercentage = status.durationMillis ? (status.positionMillis / status.durationMillis) * 100 : 0;
 
+  // 1. Mini-Player PiP Floating View (Khi người dùng thu nhỏ màn hình để lướt app)
+  if (isMiniPlayer) {
+    return (
+      <View style={styles.miniPlayerContainer} pointerEvents="box-none">
+        <View style={styles.miniCard}>
+          <TouchableOpacity activeOpacity={0.9} style={styles.miniVideoWrap} onPress={() => setIsMiniPlayer(false)}>
+            <Video
+              ref={videoRef}
+              source={{ uri: currentSource }}
+              rate={selectedSpeed}
+              volume={1.0}
+              resizeMode={ResizeMode.COVER}
+              shouldPlay={isPlaying}
+              onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+              style={styles.miniVideo}
+            />
+            <View style={styles.miniExpandOverlay}>
+              <Ionicons name="expand" size={16} color="#FFFFFF" />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.miniInfoWrap} activeOpacity={0.8} onPress={() => setIsMiniPlayer(false)}>
+            <Text style={styles.miniTitle} numberOfLines={1}>{movie.title}</Text>
+            <Text style={styles.miniMeta}>{formatTime(status.positionMillis)} / {formatTime(status.durationMillis)}</Text>
+          </TouchableOpacity>
+
+          <View style={styles.miniActions}>
+            <TouchableOpacity style={styles.miniBtn} onPress={togglePlayPause}>
+              <Ionicons name={isPlaying ? "pause" : "play"} size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.miniBtn} onPress={handleClose}>
+              <Ionicons name="close" size={20} color="#8E8E93" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // 2. Fullscreen / Auto-Rotating Cinema Player Modal
   return (
-    <Modal visible={visible} animationType="fade" supportedOrientations={['portrait', 'landscape']} onRequestClose={handleClose}>
+    <Modal
+      visible={visible && !isMiniPlayer}
+      animationType="fade"
+      supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
+      onRequestClose={handleClose}
+    >
       <StatusBar hidden />
-      <View style={styles.container}>
-        {/* Main Video Stream */}
+      <View style={[styles.container, { width: dimensions.width, height: dimensions.height }]}>
+        {/* Video Player */}
         <Video
           ref={videoRef}
           source={{ uri: currentSource }}
           rate={selectedSpeed}
           volume={1.0}
-          resizeMode={ResizeMode.CONTAIN}
+          resizeMode={isLandscape ? ResizeMode.COVER : ResizeMode.CONTAIN}
           shouldPlay={true}
           onPlaybackStatusUpdate={onPlaybackStatusUpdate}
           style={styles.video}
         />
 
-        {/* Screen Tap Handler to toggle controls */}
+        {/* Tap to Toggle Controls */}
         <TouchableOpacity
           style={StyleSheet.absoluteFill}
           activeOpacity={1}
           onPress={() => setShowControls(prev => !prev)}
         />
 
-        {/* Permanent Quick-Exit Close Button (always visible if controls are hidden) */}
+        {/* Floating Quick Close if controls are hidden */}
         {!showControls && (
           <TouchableOpacity
             style={styles.floatingCloseBtn}
@@ -122,17 +209,17 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
           </TouchableOpacity>
         )}
 
-        {/* Controls Overlay */}
+        {/* Overlay Controls */}
         {showControls && (
-          <View style={styles.controlsOverlay} pointerEvents="box-none">
-            {/* Top Bar with Prominent [X ĐÓNG] Button */}
+          <View style={[styles.controlsOverlay, isLandscape && styles.controlsOverlayLandscape]} pointerEvents="box-none">
+            {/* Top Bar */}
             <View style={styles.topBar}>
               <TouchableOpacity
-                style={[styles.closePlayerBtn, { backgroundColor: 'rgba(0, 0, 0, 0.7)' }]}
+                style={styles.closePlayerBtn}
                 activeOpacity={0.8}
                 onPress={handleClose}
               >
-                <Ionicons name="close" size={24} color="#FFFFFF" />
+                <Ionicons name="close" size={22} color="#FFFFFF" />
                 <Text style={styles.closePlayerText}>ĐÓNG</Text>
               </TouchableOpacity>
 
@@ -142,38 +229,51 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
               </View>
 
               <View style={styles.topRightControls}>
+                {/* Mini Player / Picture-in-Picture Button */}
+                <TouchableOpacity style={styles.topBtn} onPress={toggleMiniPlayer}>
+                  <Ionicons name="contract-outline" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+
+                {/* Manual Screen Rotate Button */}
+                <TouchableOpacity style={styles.topBtn} onPress={toggleOrientation}>
+                  <Ionicons name={isLandscape ? "phone-portrait-outline" : "phone-landscape-outline"} size={18} color="#D4AF37" />
+                </TouchableOpacity>
+
+                {/* Quality Button */}
                 <TouchableOpacity style={styles.topBtn} onPress={() => setActiveSheet('quality')}>
                   <Text style={styles.topBtnText}>{selectedQuality}</Text>
                 </TouchableOpacity>
 
+                {/* Audio/Subtitle Button */}
                 <TouchableOpacity style={styles.topBtn} onPress={() => setActiveSheet('audio_sub')}>
                   <Ionicons name="chatbubbles-outline" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
 
+                {/* Speed Button */}
                 <TouchableOpacity style={styles.topBtn} onPress={() => setActiveSheet('speed')}>
                   <Ionicons name="speedometer-outline" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Center Playback Controls */}
+            {/* Center Controls */}
             <View style={styles.centerControls}>
               <TouchableOpacity style={styles.seekBtn} onPress={() => handleSeek(-10)}>
-                <Ionicons name="play-back" size={32} color="#FFFFFF" />
+                <Ionicons name="play-back" size={isLandscape ? 38 : 32} color="#FFFFFF" />
                 <Text style={styles.seekText}>-10s</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={[styles.playPauseBtn, { backgroundColor: accentColor }]} onPress={togglePlayPause}>
-                <Ionicons name={isPlaying ? "pause" : "play"} size={42} color="#FFFFFF" style={{ marginLeft: isPlaying ? 0 : 3 }} />
+                <Ionicons name={isPlaying ? "pause" : "play"} size={isLandscape ? 48 : 42} color="#FFFFFF" style={{ marginLeft: isPlaying ? 0 : 3 }} />
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.seekBtn} onPress={() => handleSeek(10)}>
-                <Ionicons name="play-forward" size={32} color="#FFFFFF" />
+                <Ionicons name="play-forward" size={isLandscape ? 38 : 32} color="#FFFFFF" />
                 <Text style={styles.seekText}>+10s</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Bottom Timeline & Progress Bar */}
+            {/* Bottom Timeline */}
             <View style={styles.bottomBar}>
               <View style={styles.timelineRow}>
                 <Text style={styles.timeText}>{formatTime(status.positionMillis)}</Text>
@@ -181,11 +281,14 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
                   <View style={[styles.progressBarFill, { width: `${progressPercentage}%`, backgroundColor: accentColor }]} />
                 </View>
                 <Text style={styles.timeText}>{formatTime(status.durationMillis)}</Text>
+                <TouchableOpacity style={styles.rotateInlineBtn} onPress={toggleOrientation}>
+                  <Ionicons name={isLandscape ? "contract" : "expand"} size={20} color="#FFFFFF" />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.bottomFooter}>
                 <Text style={styles.badgeFooter}>Âm thanh: {selectedAudio} | Phụ đề: {selectedSubtitle}</Text>
-                <Text style={styles.badgeCallback}>📡 FIMAX Live Stream</Text>
+                <Text style={styles.badgeCallback}>{isLandscape ? '⤢ Chế độ Chiếu Rạp Ngang' : '📱 Tự động xoay khi để ngang'}</Text>
               </View>
             </View>
           </View>
@@ -284,9 +387,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: Platform.OS === 'ios' ? 48 : 24,
     left: 16,
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -302,6 +405,11 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'ios' ? 48 : 20,
     paddingBottom: 20
   },
+  controlsOverlayLandscape: {
+    paddingHorizontal: 36,
+    paddingTop: 20,
+    paddingBottom: 16
+  },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -313,6 +421,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     gap: 4
@@ -341,7 +450,7 @@ const styles = StyleSheet.create({
   },
   topBtn: {
     backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 6,
     justifyContent: 'center',
@@ -402,6 +511,9 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 3
   },
+  rotateInlineBtn: {
+    padding: 4
+  },
   bottomFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -412,7 +524,7 @@ const styles = StyleSheet.create({
     fontSize: 11
   },
   badgeCallback: {
-    color: '#30D158',
+    color: '#D4AF37',
     fontSize: 11,
     fontWeight: 'bold'
   },
@@ -476,5 +588,73 @@ const styles = StyleSheet.create({
   sheetCloseText: {
     color: '#FFFFFF',
     fontWeight: '700'
+  },
+  // Mini Player Picture-in-Picture styles
+  miniPlayerContainer: {
+    position: 'absolute',
+    bottom: 74,
+    left: 12,
+    right: 12,
+    zIndex: 99999
+  },
+  miniCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 14,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 16,
+    elevation: 10,
+    gap: 10
+  },
+  miniVideoWrap: {
+    width: 80,
+    height: 48,
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative'
+  },
+  miniVideo: {
+    width: '100%',
+    height: '100%'
+  },
+  miniExpandOverlay: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 4,
+    padding: 2
+  },
+  miniInfoWrap: {
+    flex: 1
+  },
+  miniTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  miniMeta: {
+    color: '#8E8E93',
+    fontSize: 10,
+    marginTop: 2
+  },
+  miniActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  miniBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center'
   }
 });
