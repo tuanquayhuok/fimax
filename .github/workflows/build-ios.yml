@@ -27,22 +27,42 @@ jobs:
           fi
           xcodebuild -version
 
-      - name: 🟢 Setup Node.js
+      - name: 🟢 Setup Node.js with Cache
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./netflix-clone-expo/package.json
 
       - name: 📦 Install Project Dependencies
         working-directory: ./netflix-clone-expo
         run: |
-          npm install --legacy-peer-deps
+          npm install --legacy-peer-deps --prefer-offline
+
+      - name: ⚡ Restore CocoaPods & DerivedData Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            netflix-clone-expo/ios/Pods
+            netflix-clone-expo/ios/build
+          key: ${{ runner.os }}-ios-cache-${{ hashFiles('netflix-clone-expo/package.json', 'netflix-clone-expo/app.json') }}
+          restore-keys: |
+            ${{ runner.os }}-ios-cache-
 
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
         env:
           LANG: en_US.UTF-8
         run: |
-          npx expo prebuild --platform ios --clean
+          if [ ! -d "ios" ] || [ ! -f "ios/Podfile" ]; then
+            echo "Prebuilding native iOS project from scratch..."
+            npx expo prebuild --platform ios --clean
+          else
+            echo "Updating existing native iOS project..."
+            npx expo prebuild --platform ios --no-install
+            cd ios && (pod install --prefer-local-repo || pod install) && cd ..
+          fi
           
           # Setup .xcode.env.local for Xcode Node binary detection
           NODE_PATH=$(which node)
