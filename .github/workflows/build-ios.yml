@@ -42,43 +42,26 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE_NAME=$(ls -d *.xcworkspace | head -n 1)
-          echo "Workspace: $WORKSPACE_NAME"
+          WORKSPACE_NAME=$(find . -name "*.xcworkspace" -maxdepth 1 | head -n 1 | sed 's|^\./||')
+          echo "Discovered Workspace: $WORKSPACE_NAME"
           
-          # Detect scheme safely
-          SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_NAME" | grep -A 5 "Schemes:" | tail -n +2 | head -n 1 | xargs)
-          echo "Scheme: $SCHEME_NAME"
-          
-          # Build target
+          # Explicit Application Target (Never Pods Framework)
           xcodebuild -workspace "$WORKSPACE_NAME" \
-                     -scheme "$SCHEME_NAME" \
+                     -scheme "FIMAXCinema" \
                      -configuration Release \
-                     -destination "generic/platform=iOS" \
+                     -sdk iphoneos \
                      -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_STYLE="Manual" \
-                     DEVELOPMENT_TEAM="" \
-                     COMPILER_INDEX_STORE_ENABLE=NO \
-                     ONLY_ACTIVE_ARCH=NO \
-                     ARCHS="arm64" \
-                     build || \
-          xcodebuild -workspace "$WORKSPACE_NAME" \
-                     -scheme "$SCHEME_NAME" \
-                     -configuration Release \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     build
+                     CODE_SIGN_IDENTITY="" \
+                     PROVISIONING_PROFILE="" \
+                     clean build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
         run: |
           mkdir -p Payload
-          APP_PATH=$(find build -name "*.app" | head -n 1)
+          APP_PATH=$(find build/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
           echo "Found compiled app at: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -qr ../../FIMAX-Cinema.ipa Payload
