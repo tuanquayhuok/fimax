@@ -27,17 +27,15 @@ jobs:
           fi
           xcodebuild -version
 
-      - name: 🟢 Setup Node.js with Cache
+      - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: ./netflix-clone-expo/package.json
 
-      - name: 📦 Fast Install Project Dependencies
+      - name: 📦 Install Project Dependencies
         working-directory: ./netflix-clone-expo
         run: |
-          npm install --legacy-peer-deps --prefer-offline --no-audit --no-fund
+          npm install --legacy-peer-deps
 
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
@@ -52,7 +50,7 @@ jobs:
           echo "export PATH=\"$(dirname $NODE_PATH):$PATH\"" >> ios/.xcode.env.local
           echo "Configured .xcode.env.local with: $NODE_PATH"
 
-      - name: 🔨 Ultra-Fast Multi-threaded Xcode Compilation
+      - name: 🔨 Fast Multi-threaded Xcode Compilation
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
@@ -78,14 +76,13 @@ jobs:
           fi
           
           NCPU=$(sysctl -n hw.ncpu || echo 4)
-          echo "🔨 Supercharged Build ($NCPU Cores): $SCHEME_NAME with Turbo Flags..."
+          echo "🔨 Supercharged Build ($NCPU Cores): $SCHEME_NAME..."
           
           xcodebuild $BUILD_FLAG \
                      -scheme "$SCHEME_NAME" \
                      -configuration Release \
                      -sdk iphoneos \
                      -jobs "$NCPU" \
-                     -parallelizeTargets \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
@@ -94,10 +91,6 @@ jobs:
                      ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
                      DEBUG_INFORMATION_FORMAT=dwarf \
-                     SWIFT_COMPILATION_MODE=singlefile \
-                     GCC_OPTIMIZATION_LEVEL=0 \
-                     ASSETCATALOG_COMPILER_OPTIMIZATION=time \
-                     DEAD_CODE_STRIPPING=NO \
                      ONLY_ACTIVE_ARCH=YES \
                      build
 

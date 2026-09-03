@@ -34,7 +34,7 @@ export const ForgotPasswordModal = ({ visible, onClose, onSubmitReset, themeMode
     }
 
     if (!cleanEmail.endsWith('@gmail.com')) {
-      Alert.alert('Email kh√¥ng h·ª£p l·ªá', 'H·ªá th·ªëng ch·ªâ h·ªó tr·ªÖ kh√¥i ph·ª•c qua t√†i kho·∫£n @gmail.com.');
+      Alert.alert('Email kh√¥ng h·ª£p l·ªá', 'H·ªá th·ªëng ch·ªâ h·ªó tr·ª£ t√†i kho·∫£n @gmail.com.');
       return;
     }
 
@@ -44,14 +44,128 @@ export const ForgotPasswordModal = ({ visible, onClose, onSubmitReset, themeMode
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert('Q£—πúÅãÖºú∞Äù7ÜÍµ–Å≠£ÜÍ•‘Å„ÖåÅπ£ÜÍµ∏Å≠£—πúÅ≠£ÜÓA¿∏ÅY’§Å≥…πúÅ≠ßÜÓ¥Å—…ÑÅ≥ÜÍÖ§∏ú§Ï(ÄÄÄÄÄÅ…ï—’…∏Ï(ÄÄÄÅÙ((ÄÄÄÅΩπM’âµ•—IïÕï–°Ï(ÄÄÄÄÄÅïµÖ•∞ËÅç±ïÖπµÖ•∞∞(ÄÄÄÄÄÅπï›AÖÕÕ›Ω…ê(ÄÄÄÅÙ§Ï(ÄÅÙÏ((ÄÅçΩπÕ–Å°Öπë±ï±ΩÕîÄÙÄ†§ÄÙ¯ÅÏ(ÄÄÄÅÕï—µÖ•∞†úú§Ï(ÄÄÄÅÕï—9ï›AÖÕÕ›Ω…ê†úú§Ï(ÄÄÄÅÕï—Ωπô•…µAÖÕÕ›Ω…ê†úú§Ï(ÄÄÄÅΩπ±ΩÕî†§Ï(ÄÅÙÏ((ÄÅ…ï—’…∏Ä†(ÄÄÄÄÒ5ΩëÖ∞ÅŸ•Õ•â±îıÌŸ•Õ•â±ïÙÅÖπ•µÖ—•ΩπQÂ¡îÙâôÖëîàÅ—…ÖπÕ¡Ö…ïπ–ıÌ—…’ïÙÅΩπIï≈’ïÕ—±ΩÕîıÌ°Öπë±ï±ΩÕïÙ¯(ÄÄÄÄÄÄÒQΩ’ç°Öâ±ï]•—°Ω’—ïïëâÖç¨ÅΩπA…ïÕÃıÌ-ïÂâΩÖ…êπë•Õµ•ÕÕÙ¯(ÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îıÌÕ—Â±ïÃπΩŸï…±ÖÂÙ¯(ÄÄÄÄÄÄÄÄÄÄÒ-ïÂâΩÖ…ëŸΩ•ë•πùY•ï‹(ÄÄÄÄÄÄÄÄÄÄÄÅâï°ÖŸ•Ω»ıÌA±Ö—ôΩ…¥π=LÄÙÙÙÄù•ΩÃúÄ¸Äù¡Öëë•πúúÄËÅ’πëïô•πïëÙ(ÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îıÌÕ—Â±ïÃπ≠ïÂâΩÖ…ë]…Ö¡Ù(ÄÄÄÄÄÄÄÄÄÄ¯(ÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹(ÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îıl(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±ïÃπçÖ…ê∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅâÖç≠ù…Ω’πëΩ±Ω»ËÅ—°ïµîπ•Õ1•ù°–Ä¸ÄúçúÄËÄúåƒ‡ƒ‡≈ú∞(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅâΩ…ëï…Ω±Ω»ËÅ—°ïµîπ•Õ1•ù°–Ä¸Äù…ùâÑ†¿∞¿∞¿∞¿∏ƒ»§úÄËÄù…ùâÑ†»‘‘∞»‘‘∞»‘‘∞¿∏ƒ»§ú(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÅt(ÄÄÄÄÄÄÄÄÄÄÄÄ¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏº®Å!ïÖëï»Ä®ΩÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îıÌÕ—Â±ïÃπ°ïÖëï…IΩ›Ù¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îıÌÕ—Â±ïÃπ—•—±ï]…Ö¡Ù¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQï·–ÅÕ—Â±îımÕ—Â±ïÃπ—•—±î∞ÅÏÅçΩ±Ω»ËÅ—°ïµîπ—ï·—A…•µÖ…‰Åıt˘E◊©∏Å7ÜÍµ–Å-£ÜÍ•‘ΩQï·–¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQï·–ÅÕ—Â±îımÕ—Â±ïÃπÕ’â—•—±î∞ÅÏÅçΩ±Ω»ËÅ—°ïµîπ—ï·—MïçΩπëÖ…‰Åıt¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ9£ÜÍµ¿ÅµÖ•∞ÉGÜÓÅπ£ÜÍµ∏Å∑åÅ=Q@Å€ÄÉGÜÍ›–Å∑ÜÍµ–Å≠£ÜÍ•‘Å∑ÜÓm§(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩQï·–¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩY•ï‹¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQΩ’ç°Öâ±ï=¡Öç•—‰ÅΩπA…ïÕÃıÌ›•πëΩ‹π}}ç±ΩÕîÅÒÅ°Öπë±ï±ΩÕïÙÅÕ—Â±îıÌÕ—Â±ïÃπç±ΩÕï	—πÙ¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒ%Ωπ•çΩπÃÅπÖµîÙâç±ΩÕîàÅÕ•ÈîıÏ»…ÙÅçΩ±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩQΩ’ç°Öâ±ï=¡Öç•—‰¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩY•ï‹¯((ÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏº®Å%π¡’—ÃÄ®ΩÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îıÌÕ—Â±ïÃπâΩëÂÙ¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏº®ÅµÖ•∞Å%π¡’–Ä®ΩÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îımÕ—Â±ïÃπ•π¡’—Ωπ—Ö•πï»∞ÅÏÅâÖç≠ù…Ω’πëΩ±Ω»ËÅ—°ïµîπ•π¡’—	ú∞ÅâΩ…ëï…Ω±Ω»ËÅ—°ïµîπâΩ…ëï»Åıt¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒ%Ωπ•çΩπÃÅπÖµîÙâµÖ•∞µΩ’—±•πîàÅÕ•ÈîıÏƒ·ÙÅçΩ±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙÅÕ—Â±îıÌÕ—Â±ïÃπ•π¡’—%çΩπÙÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQï·—%π¡’–(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îımÕ—Â±ïÃπ•π¡’–∞ÅÏÅçΩ±Ω»ËÅ—°ïµîπ—ï·—A…•µÖ…‰Åıt(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡±Öçï°Ω±ëï»ÙâµÖ•∞ÅùµÖ•∞πçΩ¥à(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡±Öçï°Ω±ëï…Qï·—Ω±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ≠ïÂâΩÖ…ëQÂ¡îÙâïµÖ•∞µÖëë…ïÕÃà(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÖ’—ΩÖ¡•—Ö±•ÈîÙâπΩπîà(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅŸÖ±’îıÌïµÖ•±Ù(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπ°ÖπùïQï·–ıÌï—µÖ•±Ù(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩY•ï‹¯((ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏº®Å9ï‹ÅAÖÕÕ›Ω…êÅ%π¡’–Ä®ΩÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îımÕ—Â±ïÃπ•π¡’—Ωπ—Ö•πï»∞ÅÏÅâÖç≠ù…Ω’πëΩ±Ω»ËÅ—°ïµîπ•π¡’—	ú∞ÅâΩ…ëï…Ω±Ω»ËÅ—°ïµîπâΩ…ëï»Åıt¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒ%Ωπ•çΩπÃÅπÖµîÙâ±Ωç¨µç±ΩÕïêµΩ’—±•πîàÅÕ•ÈîıÏƒ·ÙÅçΩ±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙÅÕ—Â±îımÕ—Â±ïÃπ•π¡’—%çΩπtÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQï·—%π¡’–(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îımÕ—Â±ïÃπ•π¡’–∞ÅÏÅçΩ±Ω»ËÅ—°ïµîπ—ï·—A…•µÖ…‰Åıt(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡±Öçï°Ω±ëï»Ùâ7ÜÍµ–Å≠£ÜÍ•‘Å∑ÜÓm§Ä°”ÜÓE§Å—°ßÜÓ‘(ÄÿÅØÙÅ”ÜÓƒ§à(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡±Öçï°Ω±ëï…Qï·—Ω±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕïç’…ïQï·—π—…‰ıÏÖÕ°Ω›AÖÕÕ›Ω…ëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅŸÖ±’îıÌπï›AÖÕÕ›Ω…ëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπ°ÖπùïQï·–ıÌÕï—9ï›AÖÕÕ›Ω…ëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQΩ’ç°Öâ±ï=¡Öç•—‰(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπA…ïÕÃıÏ†§ÄÙ¯ÅÕï—M°Ω›AÖÕÕ›Ω…ê†ÖÕ°Ω›AÖÕÕ›Ω…ê•Ù(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îıÌÕ—Â±ïÃπïÂï	—πµÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ°•—M±Ω¿ıÌÏÅ—Ω¿ËÄƒ¿∞ÅâΩ——Ω¥ËÄƒ¿∞Å±ïô–ËÄƒ¿∞Å…•ù°–ËÄƒ¿ÅıÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒ%Ωπ•çΩπÃ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπÖµîıÌÕ°Ω›AÖÕÕ›Ω…êÄ¸ÄùïÂîµΩ’—±•πîúÄËÄùïÂîµΩôòµΩ’—±•πîùÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ•ÈîıÏƒ·Ù(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩ±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩQΩ’ç°Öâ±ï=¡Öç•—‰¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩY•ï‹¯((ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏº®ÅΩπô•…¥ÅAÖÕÕ›Ω…êÅ%π¡’–Ä®ΩÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒY•ï‹ÅÕ—Â±îımÕ—Â±ïÃπ•π¡’—Ωπ—Ö•πï»∞ÅÏÅâÖç≠ù…Ω’πëΩ±Ω»ËÅ—°ïµîπ•π¡’—	ú∞ÅâΩ…ëï…Ω±Ω»ËÅ—°ïµîπâΩ…ëï»Åıt¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒ%Ωπ•çΩπÃÅπÖµîÙâÕ°•ï±êµç°ïç≠µÖ…¨µΩ’—±•πîàÅÕ•ÈîıÏƒ·ÙÅçΩ±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙÅÕ—Â±îımÕ—Â±ïÃπ•π¡’—%çΩπtÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQï·—%π¡’–(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îımÕ—Â±ïÃπ•π¡’–∞ÅÏÅçΩ±Ω»ËÅ—°ïµîπ—ï·—A…•µÖ…‰Åıt(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡±Öçï°Ω±ëï»ÙâaåƒÅπ£ÜÍµ∏Å∑ÜÍµ–Å≠£ÜÍ•‘Å∑ÜÓm§à(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ¡±Öçï°Ω±ëï…Qï·—Ω±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕïç’…ïQï·—π—…‰ıÏÖÕ°Ω›Ωπô•…µAÖÕÕ›Ω…ëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅŸÖ±’îıÌçΩπô•…µAÖÕÕ›Ω…ëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπ°ÖπùïQï·–ıÌÕï—Ωπô•…µAÖÕÕ›Ω…ëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQΩ’ç°Öâ±ï=¡Öç•—‰(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅΩπA…ïÕÃıÏ†§ÄÙ¯ÅÕï—M°Ω›Ωπô•…µAÖÕÕ›Ω…ê†ÖÕ°Ω›Ωπô•…µAÖÕÕ›Ω…ê•Ù(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îımÕ—Â±ïÃπïÂï	—πt(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅ°•—M±Ω¿ıÌÏÅ—Ω¿ËÄƒ¿∞ÅâΩ——Ω¥ËÄƒ¿∞Å±ïô–ËÄƒ¿∞Å…•ù°–ËÄƒ¿ÅıÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒ%Ωπ•çΩπÃ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅπÖµîıÌÕ°Ω›Ωπô•…µAÖÕÕ›Ω…êÄ¸ÄùïÂîµΩ’—±•πîúÄËÄùïÂîµΩôòµΩ’—±•πîùÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ•ÈîıÏƒ·Ù(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅçΩ±Ω»ıÌ—°ïµîπ—ï·—5’—ïëÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄº¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩQΩ’ç°Öâ±ï=¡Öç•—‰¯(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄΩY•ï‹¯((ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÏº®Åç—•Ω∏Å	’——ΩπÃÄ®ΩÙ(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÒQΩ’ç°Öâ±ï=¡Öç•—‰(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÕ—Â±îımÕ—Â±ïÃπÕ’âµ•—	—∏∞ÅÏÅâÖç≠ù…Ω’πëΩ±Ω»ËÅÖççïπ—Ω±Ω»Åıt(ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÅÖç—•Ÿï=¡Öç•—‰ıÌ0.85}
+      Alert.alert('Th√¥ng b√°o', 'M·∫≠t kh·∫©u x√°c nh·∫≠n kh√¥ng kh·ªõp. Vui l√≤ng ki·ªÉm tra l·∫°i.');
+      return;
+    }
+
+    onSubmitReset({
+      email: cleanEmail,
+      newPassword
+    });
+  };
+
+  const handleClose = () => {
+    setEmail('');
+    setNewPassword('');
+    setConfirmPassword('');
+    onClose();
+  };
+
+  return (
+    <Modal visible={visible} animationType="fade" transparent={true} onRequestClose={handleClose}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.keyboardWrap}
+          >
+            <View
+              style={[
+                styles.card,
+                {
+                  backgroundColor: theme.isLight ? '#FFFFFF' : '#18181C',
+                  borderColor: theme.isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)'
+                }
+              ]}
+            >
+              {/* Header */}
+              <View style={styles.headerRow}>
+                <View style={styles.titleWrap}>
+                  <Text style={[styles.title, { color: theme.textPrimary }]}>Qu√™n M·∫≠t Kh·∫©u</Text>
+                  <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+                    Nh·∫≠p Gmail ƒë·ªÉ nh·∫≠n m√£ OTP v√† ƒë·∫∑t m·∫≠t kh·∫©u m·ªõi
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
+                  <Ionicons name="close" size={22} color={theme.textMuted} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Inputs */}
+              <View style={styles.body}>
+                {/* Email Input */}
+                <View style={[styles.inputContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+                  <Ionicons name="mail-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { color: theme.textPrimary }]}
+                    placeholder="Email @gmail.com"
+                    placeholderTextColor={theme.textMuted}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
+
+                {/* New Password Input */}
+                <View style={[styles.inputContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+                  <Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { color: theme.textPrimary }]}
+                    placeholder="M·∫≠t kh·∫©u m·ªõi (t·ªëi thi·ªÉu 6 k√Ω t·ª±)"
+                    placeholderTextColor={theme.textMuted}
+                    secureTextEntry={!showPassword}
+                    value={newPassword}
+                    onChangeText={setNewPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowPassword(!showPassword)}
+                    style={styles.eyeBtn}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                      size={18}
+                      color={theme.textMuted}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Confirm Password Input */}
+                <View style={[styles.inputContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+                  <Ionicons name="shield-checkmark-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
+                  <TextInput
+                    style={[styles.input, { color: theme.textPrimary }]}
+                    placeholder="X√°c nh·∫≠n m·∫≠t kh·∫©u m·ªõi"
+                    placeholderTextColor={theme.textMuted}
+                    secureTextEntry={!showConfirmPassword}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={styles.eyeBtn}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <Ionicons
+                      name={showConfirmPassword ? 'eye-outline' : 'eye-off-outline'}
+                      size={18}
+                      color={theme.textMuted}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Action Buttons */}
+                <TouchableOpacity
+                  style={[styles.submitBtn, { backgroundColor: accentColor }]}
+                  activeOpacity={0.85}
                   onPress={handleSubmit}
                 >
-                  <Text style=[styles.submitBtnText]>J·ª¨I M√Å OTP & ƒê·∫¥T L·∫†I</Text>
+                  <Text style={styles.submitBtnText}>G·ª¨I M√É OTP & ƒê·∫∂T L·∫†I</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.cancelBtn} onPress={handleClose}>
-                  <Text style=[styles.cancelBtnText, { color: theme.textSecondary }]>Wuay l·∫°i ƒêƒÉng Nh·∫≠p</Text>
+                  <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>Quay l·∫°i ƒêƒÉng nh·∫≠p</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -141,10 +255,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4
   },
-  subtitBtnText: {
+  submitBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeekht: '800',
+    fontWeight: '800',
     letterSpacing: 0.5
   },
   cancelBtn: {
