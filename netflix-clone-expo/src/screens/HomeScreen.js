@@ -6,6 +6,8 @@ import { ApiService } from '../services/apiService';
 import { HeaderBar } from '../components/HeaderBar';
 import { HeroBanner } from '../components/HeroBanner';
 import { MovieRow } from '../components/MovieRow';
+import { QuickPreviewModal } from '../components/QuickPreviewModal';
+import { TrailerModal } from '../components/TrailerModal';
 
 export const HomeScreen = ({ navigation }) => {
   const { themeMode } = useContext(AppContext);
@@ -13,6 +15,9 @@ export const HomeScreen = ({ navigation }) => {
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [previewMovie, setPreviewMovie] = useState(null);
+  const [trailerMovie, setTrailerMovie] = useState(null);
+
   const [moviesBySection, setMoviesBySection] = useState({
     trending: [],
     newReleases: [],
@@ -62,6 +67,10 @@ export const HomeScreen = ({ navigation }) => {
     ? moviesBySection.trending.slice(0, 5)
     : [];
 
+  const handleLongPressMovie = (movie) => {
+    setPreviewMovie(movie);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <HeaderBar navigation={navigation} />
@@ -79,31 +88,83 @@ export const HomeScreen = ({ navigation }) => {
         >
           {/* Multi-Hero Banner Carousel */}
           {heroMovies.length > 0 && (
-            <HeroBanner movies={heroMovies} navigation={navigation} />
+            <HeroBanner
+              movies={heroMovies}
+              navigation={navigation}
+              onInfoPress={(m) => setPreviewMovie(m)}
+            />
           )}
 
-          {/* Section Rows (Clean, Cinema-Only Categorization) */}
+          {/* Section Rows with 3D Touch Long Press Support */}
           {moviesBySection.trending.length > 0 && (
-            <MovieRow title="Phim Đang Hot 🔥" movies={moviesBySection.trending} navigation={navigation} />
+            <MovieRow
+              title="Phim Đang Hot 🔥"
+              movies={moviesBySection.trending}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+            />
           )}
           {moviesBySection.newReleases.length > 0 && (
-            <MovieRow title="Phim Mới Cập Nhật 🎬" movies={moviesBySection.newReleases} navigation={navigation} />
+            <MovieRow
+              title="Phim Mới Cập Nhật 🎬"
+              movies={moviesBySection.newReleases}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+            />
           )}
           {moviesBySection.topRated.length > 0 && (
-            <MovieRow title="Đánh Giá Cao ⭐" movies={moviesBySection.topRated} navigation={navigation} />
+            <MovieRow
+              title="Đánh Giá Cao ⭐"
+              movies={moviesBySection.topRated}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+            />
           )}
           {moviesBySection.vietnam.length > 0 && (
-            <MovieRow title="Phim Điện Ảnh Việt Nam 🇻🇳" movies={moviesBySection.vietnam} navigation={navigation} />
+            <MovieRow
+              title="Phim Điện Ảnh Việt Nam 🇻🇳"
+              movies={moviesBySection.vietnam}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+            />
           )}
           {moviesBySection.hollywood.length > 0 && (
-            <MovieRow title="Bom Tấn Hollywood 🍿" movies={moviesBySection.hollywood} navigation={navigation} />
+            <MovieRow
+              title="Bom Tấn Hollywood 🍿"
+              movies={moviesBySection.hollywood}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+            />
           )}
           {moviesBySection.comingSoon.length > 0 && (
-            <MovieRow title="Sắp Ra Mắt ⏳" movies={moviesBySection.comingSoon} navigation={navigation} />
+            <MovieRow
+              title="Sắp Ra Mắt ⏳"
+              movies={moviesBySection.comingSoon}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+            />
           )}
 
           <View style={{ height: 60 }} />
         </ScrollView>
+      )}
+
+      {/* 3D Touch Quick Preview Modal */}
+      <QuickPreviewModal
+        visible={!!previewMovie}
+        movie={previewMovie}
+        onClose={() => setPreviewMovie(null)}
+        navigation={navigation}
+        onOpenTrailer={(m) => setTrailerMovie(m)}
+      />
+
+      {/* Trailer Modal */}
+      {trailerMovie && (
+        <TrailerModal
+          visible={!!trailerMovie}
+          trailerUrl={trailerMovie.trailerUrl}
+          onClose={() => setTrailerMovie(null)}
+        />
       )}
     </View>
   );

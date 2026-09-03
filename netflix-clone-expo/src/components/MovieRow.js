@@ -4,7 +4,7 @@ import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { MovieCard } from './MovieCard';
 
-export const MovieRow = ({ title, movies, navigation }) => {
+export const MovieRow = ({ title, movies, navigation, onLongPressMovie }) => {
   const { themeMode, fontSizeScale } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
@@ -19,7 +19,11 @@ export const MovieRow = ({ title, movies, navigation }) => {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <MovieCard movie={item} navigation={navigation} />
+          <MovieCard
+            movie={item}
+            navigation={navigation}
+            onLongPress={onLongPressMovie}
+          />
         )}
         contentContainerStyle={styles.listContent}
       />
