@@ -12,6 +12,7 @@ import { getThemeColors } from './src/theme/colors';
 
 import { CustomTabBar } from './src/components/CustomTabBar';
 import { SplashScreen } from './src/components/SplashScreen';
+import { PopupNotification } from './src/components/PopupNotification';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ExploreScreen } from './src/screens/ExploreScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
@@ -131,7 +132,7 @@ function MainNavigation() {
         backgroundColor={theme.background}
       />
       
-      {/* 1. Underlying Main Navigation (always active & mounted immediately) */}
+      {/* 1. Underlying Main Navigation */}
       <NavigationContainer theme={customNavigationTheme}>
         <Tab.Navigator
           tabBar={(props) => <CustomTabBar {...props} />}
@@ -154,7 +155,10 @@ function MainNavigation() {
         />
       )}
 
-      {/* 3. Smooth Cinematic Splash Screen Overlay */}
+      {/* 3. Global Popup Notification Banner */}
+      <PopupNotification />
+
+      {/* 4. Smooth Cinematic Splash Screen Overlay */}
       {showSplash && (
         <SplashScreen onFinish={() => setShowSplash(false)} />
       )}

@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useState, useEffect } from 'react';
 import { MOCK_USER } from '../data/mockMovies';
 import { CallbackService } from '../services/callbackService';
 
@@ -23,9 +23,28 @@ export const AppProvider = ({ children }) => {
   const [fontWeightMode, setFontWeightMode] = useState('regular'); // 'light' | 'regular' | 'bold' | 'heavy'
   const [layoutDensity, setLayoutDensity] = useState('comfortable'); // 'compact' | 'comfortable'
 
+  // Notification System State
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [popupNotification, setPopupNotification] = useState(null);
+
   // Dynamic URLs
   const [apiUrl, setApiUrl] = useState('http://localhost:4000/api');
   const [callbackUrl, setCallbackUrl] = useState('http://localhost:4000/api/callback/progress');
+
+  const showNotificationPopup = (title, message, movie = null, type = 'movie') => {
+    if (!notificationsEnabled) return;
+    setPopupNotification({
+      id: Date.now(),
+      title,
+      message,
+      movie,
+      type
+    });
+  };
+
+  const hideNotificationPopup = () => {
+    setPopupNotification(null);
+  };
 
   // Auth Methods
   const login = (email, password) => {
@@ -134,6 +153,11 @@ export const AppProvider = ({ children }) => {
       setFontWeightMode,
       layoutDensity,
       setLayoutDensity,
+      notificationsEnabled,
+      setNotificationsEnabled,
+      popupNotification,
+      showNotificationPopup,
+      hideNotificationPopup,
       apiUrl,
       setApiUrl,
       callbackUrl,

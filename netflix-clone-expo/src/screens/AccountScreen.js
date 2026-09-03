@@ -1,4 +1,4 @@
-import React, { useContext, useState, useRef } from 'react';
+﻿import React, { useContext, useState, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, TextInput, Alert, ScrollView, KeyboardAvoidingView, Platform, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
@@ -17,6 +17,7 @@ export const AccountScreen = () => {
   const {
     user, setUser, login, register, logout,
     themeMode, accentColor, fontSizeScale, fontWeightMode,
+    notificationsEnabled, setNotificationsEnabled, showNotificationPopup,
     apiUrl, setApiUrl, callbackUrl, setCallbackUrl
   } = useContext(AppContext);
   
@@ -99,6 +100,36 @@ export const AccountScreen = () => {
   const handleSocialSuccess = (authedUser) => {
     setUser(authedUser);
     Alert.alert('Thành công', `Đã đồng bộ và đăng nhập thành công với ${authedUser.authProvider} (${authedUser.email})!`);
+  };
+
+  const handleNotificationToggle = (val) => {
+    setNotificationsEnabled(val);
+    if (val) {
+      showNotificationPopup(
+        '🔔 Đã Bật Thông Báo!',
+        'Bạn sẽ luôn nhận được thông báo phim 4K mới nhất & ưu đãi VIP từ rạp FIMAX.',
+        null,
+        'vip'
+      );
+    }
+  };
+
+  const handleTestNotification = () => {
+    if (!notificationsEnabled) {
+      Alert.alert('Thông báo', 'Vui lòng gạt bật Cho phép nhận thông báo ở trên trước.');
+      return;
+    }
+    showNotificationPopup(
+      '🎬 Bom Tấn Điện Ảnh Mới Cập Nhật',
+      'Đào, Phở và Piano (4K HDR) vừa cập nhật bản chiếu rạp độc quyền. Nhấn để thưởng thức ngay!',
+      {
+        id: 'mov_1',
+        title: 'Đào, Phở và Piano',
+        posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&auto=format&fit=crop&q=80',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+      },
+      'movie'
+    );
   };
 
   // Secret 5-tap gesture handler on app version to open Master Admin
@@ -201,7 +232,7 @@ export const AccountScreen = () => {
             </View>
           </View>
 
-          {/* Secret Tap Area for Admin (No obvious buttons) */}
+          {/* Secret Tap Area for Admin */}
           <TouchableOpacity activeOpacity={1} onPress={handleSecretVersionTap} style={{ marginTop: 32, alignItems: 'center' }}>
             <Text style={[styles.appVersion, { color: theme.textMuted }]}>FIMAX Cinema v2.4.0 (Build 2026)</Text>
           </TouchableOpacity>
@@ -294,7 +325,7 @@ export const AccountScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 2. Tùy Chỉnh Giao Diện & Hệ Thống */}
+        {/* 2. Tùy Chỉnh Giao Diện & Hiển Thị */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>GIAO DIỆN & HIỂN THỊ</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={styles.rowItem} onPress={() => setShowAppearanceModal(true)}>
@@ -309,7 +340,33 @@ export const AccountScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 3. An Toàn & Bảo Mật */}
+        {/* 3. Thông Báo & Popup Alert */}
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>THÔNG BÁO & TRẢI NGHIỆM</Text>
+        <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.rowItem, { borderBottomColor: theme.borderLight }]}>
+            <Ionicons name="notifications-outline" size={20} color={accentColor} />
+            <View style={styles.rowContent}>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Cho phép nhận thông báo</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Nhận thông báo popup phim mới & ưu đãi</Text>
+            </View>
+            <Switch
+              value={notificationsEnabled}
+              onValueChange={handleNotificationToggle}
+              trackColor={{ false: '#2C2C2E', true: accentColor }}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.rowItem} onPress={handleTestNotification}>
+            <Ionicons name="paper-plane-outline" size={20} color={theme.textPrimary} />
+            <View style={styles.rowContent}>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Gửi thông báo thử nghiệm</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Bấm để kiểm tra popup thông báo động từ rạp</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 4. An Toàn & Bảo Mật */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>AN TOÀN & BẢO MẬT</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => Alert.alert('Đổi mật khẩu', 'Email đổi mật khẩu đã được gửi đến ' + user.email)}>
@@ -334,7 +391,7 @@ export const AccountScreen = () => {
           </View>
         </View>
 
-        {/* 4. Bộ Nhớ & Cấu Hình */}
+        {/* 5. Bộ Nhớ & Cấu Hình */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>BỘ NHỚ & HỆ THỐNG</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={handleClearCache}>
