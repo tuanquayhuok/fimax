@@ -10,6 +10,7 @@ import { AppearanceSettingsModal } from '../components/AppearanceSettingsModal';
 import { RedeemCodeModal } from '../components/RedeemCodeModal';
 import { OtpVerificationModal } from '../components/OtpVerificationModal';
 import { SocialAuthModal } from '../components/SocialAuthModal';
+import { RealAuthService } from '../services/realAuthService';
 
 export const AccountScreen = () => {
   const {
@@ -71,14 +72,21 @@ export const AccountScreen = () => {
     }
   };
 
-  const handleOpenSocialAuth = (provider) => {
+  // Launch In-App Browser for Google / Facebook -> Then confirm
+  const handleLaunchSocialAuth = async (provider) => {
     setSocialProvider(provider);
+    if (provider === 'Google') {
+      await RealAuthService.signInWithGoogleBrowser();
+    } else {
+      await RealAuthService.signInWithFacebookBrowser();
+    }
+    // After browser interaction, open confirmation modal to finalize account login
     setShowSocialModal(true);
   };
 
   const handleSocialSuccess = (authedUser) => {
     setUser(authedUser);
-    Alert.alert('Thành công', `Đã kết nối và đăng nhập thành công với ${authedUser.authProvider} (${authedUser.email})!`);
+    Alert.alert('Thành công', `Đã đồng bộ và đăng nhập thành công với ${authedUser.authProvider} (${authedUser.email})!`);
   };
 
   const handleSaveDevConfig = () => {
@@ -149,7 +157,7 @@ export const AccountScreen = () => {
               <TouchableOpacity
                 style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 activeOpacity={0.8}
-                onPress={() => handleOpenSocialAuth('Google')}
+                onPress={() => handleLaunchSocialAuth('Google')}
               >
                 <Ionicons name="logo-google" size={18} color="#EA4335" />
                 <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Google</Text>
@@ -159,7 +167,7 @@ export const AccountScreen = () => {
               <TouchableOpacity
                 style={[styles.socialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 activeOpacity={0.8}
-                onPress={() => handleOpenSocialAuth('Facebook')}
+                onPress={() => handleLaunchSocialAuth('Facebook')}
               >
                 <Ionicons name="logo-facebook" size={20} color="#1877F2" />
                 <Text style={[styles.socialBtnText, { color: theme.textPrimary }]}>Facebook</Text>

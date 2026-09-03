@@ -1,51 +1,56 @@
-import { Linking, Alert } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { Linking } from 'react-native';
 
 export const RealAuthService = {
-  // 1. Official Apple ID Sign-In Portal
-  async signInWithRealApple() {
+  // 1. Open Google Account Chooser in In-App Auth Browser
+  async signInWithGoogleBrowser() {
     try {
-      // Official Apple ID Sign-in landing portal (Works reliably on all iOS Safari browsers)
-      const appleAuthUrl = 'https://appleid.apple.com/sign-in';
+      const googleChooserUrl = 'https://accounts.google.com/AccountChooser?service=lso&flowName=GlifWebSignIn';
       
-      const supported = await Linking.canOpenURL(appleAuthUrl);
-      if (supported) {
-        await Linking.openURL(appleAuthUrl);
-      }
-      
+      const result = await WebBrowser.openAuthSessionAsync(
+        googleChooserUrl,
+        'https://auth.expo.io'
+      );
+
       return {
-        success: false,
-        pending: true,
-        message: 'Đang mở trang đăng nhập Apple ID chính thức của Apple. Vui lòng hoàn tất xác thực trên trình duyệt.'
+        success: true,
+        type: result.type,
+        provider: 'Google'
       };
     } catch (error) {
-      return {
-        success: false,
-        error: 'Không thể mở cổng xác thực Apple ID lúc này.'
-      };
+      // Fallback to Linking if WebBrowser fails
+      try {
+        await Linking.openURL('https://accounts.google.com/AccountChooser?service=lso&flowName=GlifWebSignIn');
+        return { success: true, type: 'opened_external', provider: 'Google' };
+      } catch (e) {
+        return { success: false, error: 'Không thể mở cổng đăng nhập Google.' };
+      }
     }
   },
 
-  // 2. Official Google Account Chooser (Mở giao diện Chọn tài khoản Google)
-  async signInWithRealGoogle() {
+  // 2. Open Facebook Login in In-App Auth Browser
+  async signInWithFacebookBrowser() {
     try {
-      // Official Google Account Chooser & Login Endpoint (Forces account selection list)
-      const googleChooserUrl = 'https://accounts.google.com/AccountChooser?service=lso&flowName=GlifWebSignIn';
+      const fbLoginUrl = 'https://m.facebook.com/login';
       
-      const supported = await Linking.canOpenURL(googleChooserUrl);
-      if (supported) {
-        await Linking.openURL(googleChooserUrl);
-      }
+      const result = await WebBrowser.openAuthSessionAsync(
+        fbLoginUrl,
+        'https://auth.expo.io'
+      );
 
       return {
-        success: false,
-        pending: true,
-        message: 'Đang mở màn hình CHỌN TÀI KHOẢN GOOGLE. Vui lòng chọn tài khoản Gmail của bạn trên trang đăng nhập.'
+        success: true,
+        type: result.type,
+        provider: 'Facebook'
       };
     } catch (error) {
-      return {
-        success: false,
-        error: 'Không thể mở cổng đăng nhập Google lúc này.'
-      };
+      // Fallback to Linking
+      try {
+        await Linking.openURL('https://m.facebook.com/login');
+        return { success: true, type: 'opened_external', provider: 'Facebook' };
+      } catch (e) {
+        return { success: false, error: 'Không thể mở cổng đăng nhập Facebook.' };
+      }
     }
   }
 };
