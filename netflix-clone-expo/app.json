@@ -1,19 +1,30 @@
-{
+﻿{
   "expo": {
     "name": "FIMAX Cinema",
     "slug": "fimax-cinema-app",
     "version": "2.4.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.tuanquayhuok.fimax"
+      "bundleIdentifier": "com.tuanquayhuok.fimax",
+      "icon": "./assets/icon.png"
     },
     "android": {
       "package": "com.tuanquayhuok.fimax",
       "adaptiveIcon": {
-        "backgroundColor": "#141414"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#000000"
       }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-screen-orientation"
