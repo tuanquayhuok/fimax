@@ -25,68 +25,45 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'netflix-clone-expo/package-lock.json'
 
-      - name: 📦 Install Dependencies
+      - name: 📱 Setup Expo & EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+
+      - name: 📦 Install Project Dependencies
         working-directory: ./netflix-clone-expo
         run: |
           npm install
 
-      - name: ⚙️ Generate Native iOS Project with Expo Prebuild
+      - name: ⚙️ Generate Native iOS Project
         working-directory: ./netflix-clone-expo
         env:
           LANG: en_US.UTF-8
         run: |
           npx expo prebuild --platform ios --clean
 
-      - name: 📦 Bundle JavaScript Assets
-        working-directory: ./netflix-clone-expo
-        run: |
-          npx expo export --platform ios --output-dir ./dist
-
-      - name: 🔨 Build iOS App with Xcode
+      - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE_NAME=$(find . -name "*.xcworkspace" -maxdepth 1 | head -n 1 | sed 's|^\./||')
-          echo "Building in Workspace: $WORKSPACE_NAME"
+          # Ensure CocoaPods dependencies are updated
+          pod install
           
-          # List Xcode schemes
-          xcodebuild -list -workspace "$WORKSPACE_NAME"
+          WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
+          echo "Compiling Workspace: $WORKSPACE"
           
-          # Execute build and log full output
-          xcodebuild -workspace "$WORKSPACE_NAME" \
+          # Build target for Simulator and Sideload (Zero Signing Requirement)
+          xcodebuild -workspace "$WORKSPACE" \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
-                     -destination "generic/platform=iOS" \
+                     -sdk iphonesimulator \
                      -derivedDataPath build \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGN_IDENTITY="" \
-                     CODE_SIGN_ENTITLEMENTS="" \
-                     CODE_SIGNING_INJECT_BASE_ENTITLEMENTS=NO \
-                     COMPILER_INDEX_STORE_ENABLE=NO \
-                     clean build > xcodebuild_device.log 2>&1 || {
-            echo "Device build failed! Error summary:"
-            grep -E "(error:|fatal error:|BUILD FAILED|FAILED)" xcodebuild_device.log | head -n 40
-            echo "--- Full last 100 lines ---"
-            tail -n 100 xcodebuild_device.log
-            
-            echo "Trying simulator target build..."
-            xcodebuild -workspace "$WORKSPACE_NAME" \
-                       -scheme "FIMAXCinema" \
-                       -configuration Release \
-                       -sdk iphonesimulator \
-                       -derivedDataPath build \
-                       CODE_SIGNING_ALLOWED=NO \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGN_IDENTITY="" \
-                       clean build > xcodebuild_sim.log 2>&1 || {
-              echo "Simulator build error summary:"
-              grep -E "(error:|fatal error:|BUILD FAILED|FAILED)" xcodebuild_sim.log | head -n 40
-              tail -n 100 xcodebuild_sim.log
-              exit 1
-            }
-          }
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
