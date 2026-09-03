@@ -87,7 +87,13 @@ export const AccountScreen = () => {
         Alert.alert('Không thể đăng nhập', result.error);
         return;
       }
-      Alert.alert('Thành công', `Chào mừng bạn quay trở lại FIMAX Cinema!`);
+      showNotificationPopup(
+        'Đăng Nhập Thành Công',
+        `Chào mừng bạn quay trở lại FIMAX Cinema!`,
+        null,
+        'auth'
+      );
+      Alert.alert('Đăng nhập thành công', `Chào mừng bạn quay trở lại FIMAX Cinema!`);
     } else {
       if (!name.trim()) {
         Alert.alert('Thông báo', 'Vui lòng nhập Họ và tên.');
@@ -97,9 +103,18 @@ export const AccountScreen = () => {
         Alert.alert('Thông báo', 'Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.');
         return;
       }
-      setPendingRegistration({ name: name.trim(), email: cleanEmail, password });
-      setOtpMode('register');
-      setShowOtpModal(true);
+      const result = register(name.trim(), cleanEmail, password);
+      if (!result.success) {
+        Alert.alert('Đăng ký không thành công', result.error);
+        return;
+      }
+      showNotificationPopup(
+        'Đăng Ký Thành Công',
+        `Tài khoản ${cleanEmail} đã được kích hoạt thành công trên FIMAX Cinema!`,
+        null,
+        'auth'
+      );
+      Alert.alert('Đăng ký thành công', `Chào mừng ${name.trim()} gia nhập FIMAX Cinema!`);
     }
   };
 

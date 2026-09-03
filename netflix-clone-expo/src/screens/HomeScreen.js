@@ -219,56 +219,51 @@ export const HomeScreen = ({ navigation }) => {
                 movies={moviesBySection.trending}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
+                isComingSoon={false}
               />
             )}
-            {moviesBySection.newReleases.length > 0 && (
-              <MovieRow
-                title="Phim Chiếu Rạp Mới Nhất"
-                movies={moviesBySection.newReleases}
-                navigation={navigation}
-                onLongPressMovie={handleLongPressMovie}
-              />
-            )}
-            {moviesBySection.topRated.length > 0 && (
-              <MovieRow
-                title="Phim Đánh Giá Cao"
-                movies={moviesBySection.topRated}
-                navigation={navigation}
-                onLongPressMovie={handleLongPressMovie}
-              />
-            )}
-            {moviesBySection.vietnam.length > 0 && (
-              <MovieRow
-                title="Phim Điện Ảnh Việt Nam"
-                movies={moviesBySection.vietnam}
-                navigation={navigation}
-                onLongPressMovie={handleLongPressMovie}
-              />
-            )}
-            {moviesBySection.korean.length > 0 && (
-              <MovieRow
-                title="Phim Hàn Quốc Đặc Sắc"
-                movies={moviesBySection.korean}
-                navigation={navigation}
-                onLongPressMovie={handleLongPressMovie}
-              />
-            )}
-            {moviesBySection.hollywood.length > 0 && (
-              <MovieRow
-                title="Bom Tấn Hollywood"
-                movies={moviesBySection.hollywood}
-                navigation={navigation}
-                onLongPressMovie={handleLongPressMovie}
-              />
-            )}
-            {moviesBySection.comingSoon.length > 0 && (
-              <MovieRow
-                title="Phim Sắp Ra Mắt"
-                movies={moviesBySection.comingSoon}
-                navigation={navigation}
-                onLongPressMovie={handleLongPressMovie}
-              />
-            )}
+            <MovieRow
+              title="Phim Chiếu Rạp Mới Nhất"
+              movies={moviesBySection.newReleases}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+              isComingSoon={true}
+            />
+            <MovieRow
+              title="Phim Đánh Giá Cao"
+              movies={moviesBySection.topRated}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+              isComingSoon={true}
+            />
+            <MovieRow
+              title="Phim Điện Ảnh Việt Nam"
+              movies={moviesBySection.vietnam}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+              isComingSoon={true}
+            />
+            <MovieRow
+              title="Phim Hàn Quốc Đặc Sắc"
+              movies={moviesBySection.korean}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+              isComingSoon={true}
+            />
+            <MovieRow
+              title="Bom Tấn Hollywood"
+              movies={moviesBySection.hollywood}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+              isComingSoon={true}
+            />
+            <MovieRow
+              title="Phim Sắp Ra Mắt"
+              movies={moviesBySection.comingSoon}
+              navigation={navigation}
+              onLongPressMovie={handleLongPressMovie}
+              isComingSoon={true}
+            />
           </>
         ) : (
           /* View mode 2: Specific Category Grid */

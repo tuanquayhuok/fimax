@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { ApiService } from '../services/apiService';
+import { NotificationService } from '../services/notificationService';
 
 export const AdminManagerModal = ({ visible, onClose }) => {
   const { themeMode, accentColor, fontSizeScale } = useContext(AppContext);
@@ -162,12 +163,18 @@ export const AdminManagerModal = ({ visible, onClose }) => {
     Alert.alert('Thành công', `Đã tạo mã Giftcode "${newCodeName.trim().toUpperCase()}" (+${days} ngày VIP) thành công!`);
   };
 
-  const handleSendBroadcast = () => {
+  const handleSendBroadcast = async () => {
     if (!broadcastTitle || !broadcastContent) {
       Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ tiêu đề và nội dung thông báo.');
       return;
     }
-    Alert.alert('Đã gửi thông báo', `Đã gửi thông báo "${broadcastTitle}" đến toàn bộ ${usersList.length} người dùng ứng dụng!`);
+    // 1. Dispatch REAL Apple iOS Native Notification
+    await NotificationService.sendNativeNotification(
+      `📢 ${broadcastTitle.trim()}`,
+      broadcastContent.trim(),
+      { type: 'admin_broadcast' }
+    );
+    Alert.alert('Đã gửi thông báo', `Đã phát thông báo "${broadcastTitle}" đến toàn bộ ${usersList.length} người dùng ứng dụng!`);
     setBroadcastTitle('');
     setBroadcastContent('');
   };
