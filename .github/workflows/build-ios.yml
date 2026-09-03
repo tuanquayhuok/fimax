@@ -49,41 +49,24 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          set +e
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
           WORKSPACE="FIMAXCinema.xcworkspace"
-          echo "Compiling Workspace: $WORKSPACE"
+          echo "Compiling Workspace: $WORKSPACE with Sandbox Disabled"
           
-          # 1. Try Device Build for Sideloading (TrollStore / Sideloadly)
           xcodebuild -workspace "$WORKSPACE" \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
-                     -destination "generic/platform=iOS" \
+                     -sdk iphonesimulator \
                      -derivedDataPath build \
+                     ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_ENTITLEMENTS="" \
-                     CODE_SIGNING_INJECT_BASE_ENTITLEMENTS=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
-                     clean build
-          
-          # 2. Check if .app exists, if not build simulator fallback
-          APP_FOUND=$(find build -name "*.app" | head -n 1)
-          if [ -z "$APP_FOUND" ]; then
-            echo "Device build produced no app. Building simulator target..."
-            xcodebuild -workspace "$WORKSPACE" \
-                       -scheme "FIMAXCinema" \
-                       -configuration Release \
-                       -sdk iphonesimulator \
-                       -derivedDataPath build \
-                       CODE_SIGN_IDENTITY="" \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGNING_ALLOWED=NO \
-                       clean build
-          fi
+                     ONLY_ACTIVE_ARCH=NO \
+                     build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
