@@ -148,19 +148,73 @@ export const SettingsScreen = () => {
 
         <View style={styles.settingItem}>
           <View style={styles.settingLabelGroup}>
-            <Text style={styles.settingLabel}>Thông báo phim mới</Text>
-            <Text style={styles.settingSubLabel}>Nhận popup khi có phim bom tấn ra mắt</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={styles.settingLabel}>Thông báo phim mới</Text>
+              <View style={[
+                styles.permissionBadge,
+                { backgroundColor: notificationsEnabled ? 'rgba(76, 217, 100, 0.15)' : 'rgba(255, 59, 48, 0.15)' }
+              ]}>
+                <Text style={[
+                  styles.permissionBadgeText,
+                  { color: notificationsEnabled ? '#4CD964' : '#FF3B30' }
+                ]}>
+                  {notificationsEnabled ? 'Đã Cấp Quyền' : 'Chưa Cấp'}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.settingSubLabel}>
+              {notificationsEnabled
+                ? 'Đã cho phép nhận thông báo phim mới và ưu đãi'
+                : 'Yêu cầu cấp quyền thông báo từ thiết bị'}
+            </Text>
           </View>
           <Switch
             value={notificationsEnabled}
             onValueChange={(val) => {
-              setNotificationsEnabled(val);
               if (val) {
-                showNotificationPopup(
-                  '🔥 Bom Tấn Chiếu Rạp Mới Ra Mắt!',
-                  'Lật Mặt 7: Một Điều Ước chính thức phát hành bản 4K Ultra HD độc quyền trên FIMAX.',
-                  MOCK_MOVIES[1] || MOCK_MOVIES[0],
-                  'movie'
+                // Request System Notification Permission
+                Alert.alert(
+                  '“FIMAX Cinema” Muốn Gửi Thông Báo Cho Bạn',
+                  'Thông báo có thể bao gồm cảnh báo phim bom tấn mới ra mắt, âm thanh và biểu tượng huy hiệu. Bạn có thể định cấu hình quyền này trong Cài đặt hệ thống bất kỳ lúc nào.',
+                  [
+                    {
+                      text: 'Từ chối',
+                      style: 'cancel',
+                      onPress: () => {
+                        setNotificationsEnabled(false);
+                      }
+                    },
+                    {
+                      text: 'Cho phép',
+                      style: 'default',
+                      onPress: () => {
+                        setNotificationsEnabled(true);
+                        setTimeout(() => {
+                          showNotificationPopup(
+                            '🔥 Đã Cấp Quyền Thông Báo Thành Công!',
+                            'FIMAX Cinema sẽ gửi cho bạn thông báo sớm nhất mỗi khi có phim bom tấn chiếu rạp mới hoặc ưu đãi đặc quyền.',
+                            MOCK_MOVIES[1] || MOCK_MOVIES[0],
+                            'movie'
+                          );
+                        }, 400);
+                      }
+                    }
+                  ],
+                  { cancelable: false }
+                );
+              } else {
+                // Confirm disable
+                Alert.alert(
+                  'Tắt Nhận Thông Báo?',
+                  'Bạn sẽ không nhận được thông báo phim chiếu rạp mới ra mắt và các sự kiện phim độc quyền.',
+                  [
+                    { text: 'Hủy', style: 'cancel' },
+                    {
+                      text: 'Tắt Thông Báo',
+                      style: 'destructive',
+                      onPress: () => setNotificationsEnabled(false)
+                    }
+                  ]
                 );
               }
             }}
@@ -172,6 +226,13 @@ export const SettingsScreen = () => {
           style={[styles.settingItem, { borderBottomWidth: 0 }]}
           activeOpacity={0.7}
           onPress={() => {
+            if (!notificationsEnabled) {
+              Alert.alert(
+                'Chưa Bật Thông Báo',
+                'Vui lòng gạt bật công tắc "Thông báo phim mới" ở trên và chọn "Cho phép" để kích hoạt tính năng này.'
+              );
+              return;
+            }
             showNotificationPopup(
               '🔥 Siêu Phẩm Chiếu Rạp Độc Quyền!',
               'Phim "Mai" của Trấn Thành đã sẵn sàng phát sóng với chất lượng 4K HDR và âm thanh Dolby Atmos.',
@@ -245,5 +306,7 @@ const styles = StyleSheet.create({
   settingSubLabel: { color: '#777', fontSize: 11, marginTop: 2 },
   qualityBadge: { backgroundColor: '#333', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
   qualityBadgeText: { color: Colors.primary, fontWeight: 'bold', fontSize: 12 },
+  permissionBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  permissionBadgeText: { fontSize: 10, fontWeight: '700' },
   versionText: { textAlign: 'center', color: '#666', fontSize: 12, marginVertical: 16 }
 });
