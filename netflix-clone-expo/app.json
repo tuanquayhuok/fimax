@@ -2,13 +2,15 @@
   "expo": {
     "name": "FIMAX Cinema",
     "slug": "fimax-cinema-app",
-    "version": "1.0.0",
+    "version": "2.4.0",
     "orientation": "default",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tuanquayhuok.fimax"
     },
     "android": {
+      "package": "com.tuanquayhuok.fimax",
       "adaptiveIcon": {
         "backgroundColor": "#141414"
       }

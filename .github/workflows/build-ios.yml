@@ -44,20 +44,13 @@ jobs:
         run: |
           WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 1 | head -n 1)
           echo "Found workspace: $WORKSPACE"
-          xcodebuild -list -workspace "$WORKSPACE"
+          
+          SCHEME="FIMAXCinema"
+          echo "Compiling Scheme: $SCHEME on $WORKSPACE"
           
           xcodebuild -workspace "$WORKSPACE" \
-                     -scheme "FIMAXCinema" \
-                     -sdk iphoneos \
-                     -configuration Release \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     clean build || \
-          xcodebuild -workspace "$WORKSPACE" \
-                     -scheme "FIMAX Cinema" \
-                     -sdk iphoneos \
+                     -scheme "$SCHEME" \
+                     -destination 'generic/platform=iOS' \
                      -configuration Release \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
