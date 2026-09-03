@@ -37,36 +37,33 @@ jobs:
         run: |
           npx expo prebuild --platform ios --clean
 
-      - name: 🔨 Build iOS Project with Xcode (Unsigned / Sideload Ready)
+      - name: 🔨 Archive iOS Project with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
           WORKSPACE_FILE=$(ls -d *.xcworkspace | head -n 1)
-          echo "Discovered Workspace: $WORKSPACE_FILE"
-          
-          # Auto-detect the primary Scheme from xcodebuild list
           SCHEME_NAME=$(xcodebuild -list -workspace "$WORKSPACE_FILE" | awk '/Schemes:/{flag=1; next} /^[A-Z]/ && flag{exit} flag && NF{print $1; exit}')
-          echo "Detected Primary Scheme: $SCHEME_NAME"
+          echo "Building Workspace: $WORKSPACE_FILE | Scheme: $SCHEME_NAME"
           
-          xcodebuild -workspace "$WORKSPACE_FILE" \
+          xcodebuild archive \
+                     -workspace "$WORKSPACE_FILE" \
                      -scheme "$SCHEME_NAME" \
-                     -sdk iphoneos \
                      -configuration Release \
-                     -derivedDataPath build \
+                     -sdk iphoneos \
+                     -archivePath build/FIMAXCinema.xcarchive \
                      CODE_SIGNING_ALLOWED=NO \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGN_IDENTITY="" \
                      PROVISIONING_PROFILE="" \
-                     clean build
+                     COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: 📦 Package into .IPA File
+        working-directory: ./netflix-clone-expo/ios
         run: |
           mkdir -p Payload
-          APP_PATH=$(find netflix-clone-expo/ios/build/Build/Products/Release-iphoneos -name "*.app" | head -n 1)
-          echo "Found compiled iOS App: $APP_PATH"
-          cp -r "$APP_PATH" Payload/
-          zip -qr FIMAX-Cinema.ipa Payload
+          cp -r build/FIMAXCinema.xcarchive/Products/Applications/*.app Payload/
+          zip -qr ../../FIMAX-Cinema.ipa Payload
           rm -rf Payload
           echo "Successfully created FIMAX-Cinema.ipa!"
 
