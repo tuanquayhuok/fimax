@@ -30,6 +30,11 @@ jobs:
         run: |
           npm install
 
+      - name: 📦 Pre-bundle JavaScript & Assets
+        working-directory: ./netflix-clone-expo
+        run: |
+          npx expo export --platform ios
+
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
         env:
@@ -45,7 +50,7 @@ jobs:
           pod install || pod install --repo-update || true
 
       - name: 🔨 Compile Native iOS Release App
-        working-directory: ./netflix-clone-expo
+        working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
           CI: 1
@@ -53,8 +58,6 @@ jobs:
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
-          # Use xcodebuild targeting iphonesimulator with clean output
-          cd ios
           xcodebuild -workspace FIMAXCinema.xcworkspace \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
@@ -74,7 +77,6 @@ jobs:
           APP_PATH=$(find netflix-clone-expo/ios -name "*.app" | head -n 1)
           if [ -z "$APP_PATH" ]; then
             echo "ERROR: No .app found in netflix-clone-expo/ios!"
-            find netflix-clone-expo -name "*FIMAX*"
             exit 1
           fi
           echo "Found compiled app at: $APP_PATH"
