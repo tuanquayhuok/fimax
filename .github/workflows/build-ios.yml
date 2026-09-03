@@ -36,13 +36,22 @@ jobs:
           LANG: en_US.UTF-8
         run: |
           npx expo prebuild --platform ios --clean --no-install
+          echo "📁 Contents of ios directory:"
+          ls -la ios/
 
       - name: 🍫 Run CocoaPods Install
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          pod install || pod install --repo-update || true
+          pod install --repo-update
+
+      - name: 🔍 Inspect Xcode Schemes and Workspaces
+        working-directory: ./netflix-clone-expo/ios
+        run: |
+          echo "Available Workspaces & Projects:"
+          ls -la
+          xcodebuild -list || true
 
       - name: 🔨 Compile Native iOS Release App with Xcode
         working-directory: ./netflix-clone-expo/ios
@@ -53,24 +62,39 @@ jobs:
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
-          echo "Compiling Xcode iOS Release build..."
-          set -o pipefail
-          xcodebuild -workspace FIMAXCinema.xcworkspace \
-                     -scheme "FIMAXCinema" \
+          # Detect workspace name dynamically
+          WORKSPACE_FILE=$(find . -maxdepth 1 -name "*.xcworkspace" | head -n 1)
+          WORKSPACE_NAME=$(basename "$WORKSPACE_FILE")
+          SCHEME_NAME=$(basename "$WORKSPACE_FILE" .xcworkspace)
+          
+          echo "Using Workspace: $WORKSPACE_NAME"
+          echo "Using Scheme: $SCHEME_NAME"
+          
+          xcodebuild -workspace "$WORKSPACE_NAME" \
+                     -scheme "$SCHEME_NAME" \
                      -configuration Release \
                      -sdk iphoneos \
+                     -destination "generic/platform=iOS" \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
                      CODE_SIGNING_ALLOWED=NO \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
                      ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
                      ONLY_ACTIVE_ARCH=NO \
-                     build 2>&1 | tee xcodebuild_raw.log || {
-                       echo "❌ Xcodebuild failed! Printing last 60 lines of log:"
-                       tail -n 60 xcodebuild_raw.log
-                       exit 1
-                     }
+                     build > xcodebuild_output.log 2>&1 || BUILD_EXIT_CODE=$?
+          
+          if [ -n "$BUILD_EXIT_CODE" ] && [ "$BUILD_EXIT_CODE" -ne 0 ]; then
+            echo "❌ Xcodebuild failed with exit code $BUILD_EXIT_CODE"
+            echo "==== ERROR SNIPPET ===="
+            grep -i -C 3 "error:" xcodebuild_output.log | head -n 60 || true
+            echo "==== LAST 80 LINES OF LOG ===="
+            tail -n 80 xcodebuild_output.log
+            exit $BUILD_EXIT_CODE
+          fi
+          
+          echo "✅ Xcodebuild succeeded!"
 
       - name: 📦 Package into .IPA File
         run: |
@@ -81,7 +105,7 @@ jobs:
           fi
           
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: No .app found in build outputs!"
+            echo "ERROR: No .app found!"
             find netflix-clone-expo/ios -maxdepth 4
             exit 1
           fi
