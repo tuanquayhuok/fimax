@@ -29,61 +29,15 @@ jobs:
         working-directory: ./netflix-clone-expo
         run: |
           npm install
+          npm install -g eas-cli
 
-      - name: ⚙️ Generate Native iOS Project with Expo Prebuild
+      - name: 🔨 Build iOS IPA with EAS Local
         working-directory: ./netflix-clone-expo
         env:
+          EAS_NO_VCS: 1
           LANG: en_US.UTF-8
         run: |
-          npx expo prebuild --platform ios --clean
-
-      - name: 🔨 Build iOS App with Xcode
-        working-directory: ./netflix-clone-expo/ios
-        env:
-          LANG: en_US.UTF-8
-        run: |
-          WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 1 | head -n 1)
-          echo "Discovered Workspace: $WORKSPACE"
-          
-          # Print available schemes
-          xcodebuild -list -workspace "$WORKSPACE"
-          
-          # Detect exact scheme
-          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" | grep -A 5 "Schemes:" | tail -n +2 | head -n 1 | xargs)
-          echo "Using exact scheme: $SCHEME"
-          
-          # Compile with Manual Code Signing disabled for Sideload / TrollStore
-          xcodebuild -workspace "$WORKSPACE" \
-                     -scheme "$SCHEME" \
-                     -destination 'generic/platform=iOS' \
-                     -configuration Release \
-                     -derivedDataPath build \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_STYLE="Manual" \
-                     DEVELOPMENT_TEAM="" \
-                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
-                     COMPILER_INDEX_STORE_ENABLE=NO \
-                     clean build
-
-      - name: 📦 Package into .IPA File
-        working-directory: ./netflix-clone-expo/ios
-        run: |
-          mkdir -p Payload
-          APP_DIR=$(find build/Build/Products/Release-iphoneos -name "*.app" -maxdepth 1 | head -n 1)
-          echo "Found compiled app at: $APP_DIR"
-          
-          if [ -z "$APP_DIR" ]; then
-            echo "Searching all products directory..."
-            APP_DIR=$(find build -name "*.app" | head -n 1)
-            echo "Found alternative app at: $APP_DIR"
-          fi
-          
-          cp -r "$APP_DIR" Payload/
-          zip -qr ../../FIMAX-Cinema.ipa Payload
-          rm -rf Payload
-          echo "Successfully generated FIMAX-Cinema.ipa!"
+          npx eas-cli build --platform ios --profile preview --local --output ../FIMAX-Cinema.ipa
 
       - name: 🚀 Upload IPA to GitHub Artifacts
         uses: actions/upload-artifact@v4
