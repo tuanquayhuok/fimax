@@ -14,7 +14,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.tuanquayhuok.fimax",
-      "icon": "./assets/icon.png"
+      "icon": "./assets/icon.png",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        },
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIRequiresFullScreen": true,
+        "UIViewControllerBasedStatusBarAppearance": false
+      }
     },
     "android": {
       "package": "com.tuanquayhuok.fimax",

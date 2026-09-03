@@ -1,4 +1,4 @@
-import { MOCK_MOVIES } from '../data/mockMovies';
+﻿import { MOCK_MOVIES } from '../data/mockMovies';
 
 const DEFAULT_API_URL = 'http://127.0.0.1:4000/api';
 const WEB_SOURCE_URL = 'http://fimax.aecongnghe.online/';
@@ -174,9 +174,6 @@ async function syncWebSourceInBackground(force = false) {
 
   return { movies: memoryCache, banners: featuredBannersCache };
 }
-
-// Initial immediate sync
-syncWebSourceInBackground(true);
 
 export const ApiService = {
   async getAllMovies(apiUrl = DEFAULT_API_URL, forceRefresh = false) {

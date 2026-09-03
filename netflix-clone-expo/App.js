@@ -1,5 +1,5 @@
-﻿import React, { useContext } from 'react';
-import { View, StyleSheet, StatusBar } from 'react-native';
+﻿import React, { Component, useContext } from 'react';
+import { View, StyleSheet, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -16,6 +16,40 @@ import { DownloadScreen } from './src/screens/DownloadScreen';
 import { AccountScreen } from './src/screens/AccountScreen';
 import { DetailScreen } from './src/screens/DetailScreen';
 import { CinemaPlayer } from './src/components/CinemaPlayer';
+
+// Global Error Boundary to prevent any unhandled black-screen crash
+class GlobalErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.warn('Unhandled React Error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>FIMAX Cinema</Text>
+          <Text style={styles.errorSubtitle}>Đã khởi động lại phiên xem phim an toàn.</Text>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => this.setState({ hasError: false, error: null })}
+          >
+            <Text style={styles.retryBtnText}>Vào Trang Chủ</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -120,16 +154,48 @@ function MainNavigation() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AppProvider>
-        <MainNavigation />
-      </AppProvider>
-    </SafeAreaProvider>
+    <GlobalErrorBoundary>
+      <SafeAreaProvider>
+        <AppProvider>
+          <MainNavigation />
+        </AppProvider>
+      </SafeAreaProvider>
+    </GlobalErrorBoundary>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#0A0A0C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24
+  },
+  errorTitle: {
+    color: '#E50914',
+    fontSize: 28,
+    fontWeight: '900',
+    marginBottom: 8
+  },
+  errorSubtitle: {
+    color: '#8E8E93',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24
+  },
+  retryBtn: {
+    backgroundColor: '#E50914',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8
+  },
+  retryBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14
   }
 });
