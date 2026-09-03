@@ -28,7 +28,6 @@ export const AppProvider = ({ children }) => {
 
   // Notification System State - Default is false (OFF) as requested
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
-  const [popupNotification, setPopupNotification] = useState(null);
 
   // Dynamic URLs
   const [apiUrl, setApiUrl] = useState('http://localhost:4000/api');
@@ -83,25 +82,12 @@ export const AppProvider = ({ children }) => {
   const showNotificationPopup = async (title, message, movie = null, type = 'movie') => {
     if (!notificationsEnabled) return;
 
-    // 1. Dispatch REAL Apple iOS Native Notification into iOS Notification Center & Lockscreen
+    // Dispatch REAL Apple iOS Native Notification into iOS Notification Center, Lockscreen & Audio
     await NotificationService.sendNativeNotification(
       title,
       message,
       { movie, type }
     );
-
-    // 2. Dispatch In-App Banner for active screen
-    setPopupNotification({
-      id: Date.now(),
-      title,
-      message,
-      movie,
-      type
-    });
-  };
-
-  const hideNotificationPopup = () => {
-    setPopupNotification(null);
   };
 
   // Auth Methods with Strict Registration & Verification
@@ -281,9 +267,7 @@ export const AppProvider = ({ children }) => {
       setLayoutDensity,
       notificationsEnabled,
       setNotificationsEnabled,
-      popupNotification,
       showNotificationPopup,
-      hideNotificationPopup,
       apiUrl,
       setApiUrl,
       callbackUrl,

@@ -12,7 +12,6 @@ import { getThemeColors } from './src/theme/colors';
 
 import { CustomTabBar } from './src/components/CustomTabBar';
 import { SplashScreen } from './src/components/SplashScreen';
-import { PopupNotification } from './src/components/PopupNotification';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { RankingsScreen } from './src/screens/RankingsScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
@@ -169,10 +168,7 @@ function MainNavigation() {
         />
       )}
 
-      {/* 3. Global Popup Notification Banner */}
-      <PopupNotification />
-
-      {/* 4. Smooth Cinematic Splash Screen Overlay */}
+      {/* 3. Smooth Cinematic Splash Screen Overlay */}
       {showSplash && (
         <SplashScreen onFinish={handleSplashFinish} />
       )}
