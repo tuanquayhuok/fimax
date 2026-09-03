@@ -5,11 +5,12 @@ import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 
 const { width } = Dimensions.get('window');
-const BANNER_HEIGHT = 480;
+const CARD_WIDTH = width - 32;
+const BANNER_IMG_HEIGHT = Math.round(CARD_WIDTH * (9 / 16)); // Exact 16:9 Ratio (No Crop)
 
 export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPlayPress, onInfoPress }) => {
   const bannerList = (movies && movies.length > 0) ? movies : featuredMovies;
-  const { favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
+  const { favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor, fontSizeScale } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   
   const flatListRef = useRef(null);
@@ -59,76 +60,86 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
     const bgImage = movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
 
     return (
-      <View style={{ width, height: BANNER_HEIGHT, position: 'relative' }}>
-        <Image
-          source={{ uri: bgImage }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+      <View style={styles.slideWrap}>
+        <View style={[styles.bannerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          {/* 16:9 Full Width Backdrop Image (Uncropped) */}
+          <View style={styles.imageWrap}>
+            <Image
+              source={{ uri: bgImage }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <View style={styles.imageDarkGrad} />
 
-        {/* Deep Multi-Layered Cinematic Shadow */}
-        <View style={styles.gradientOverlay}>
-          {/* Metadata pill */}
-          <View style={styles.metaRow}>
+            {/* Quality pill top left */}
             <View style={[styles.badgeQuality, { borderColor: accentColor }]}>
-              <Text style={styles.badgeQualityText}>4K HDR</Text>
+              <Text style={styles.badgeQualityText}>4K ULTRA HD</Text>
             </View>
-            <Text style={styles.metaText}>{movie.releaseYear || movie.year || '2024'}</Text>
-            <Text style={styles.metaDot}>•</Text>
-            <Text style={styles.metaText}>{movie.duration || '2h 15m'}</Text>
-            <Text style={styles.metaDot}>•</Text>
-            <Text style={styles.metaText}>{movie.country || 'Điện ảnh'}</Text>
+
+            {/* Rating pill top right */}
+            <View style={styles.badgeRating}>
+              <Text style={styles.badgeRatingText}>⭐ {movie.rating || '8.5'}</Text>
+            </View>
           </View>
 
-          {/* Title */}
-          <Text style={styles.title} numberOfLines={2}>
-            {movie.title}
-          </Text>
+          {/* Banner Meta Content Below Image */}
+          <View style={styles.contentWrap}>
+            {/* Title */}
+            <Text style={[styles.title, { color: theme.textPrimary, fontSize: 18 * fontSizeScale }]} numberOfLines={1}>
+              {movie.title}
+            </Text>
 
-          {/* Genres Tagline */}
-          <Text style={styles.genres} numberOfLines={1}>
-            {Array.isArray(movie.genres) ? movie.genres.join(' • ') : 'Hành động • Kịch tính'}
-          </Text>
+            {/* Meta Row */}
+            <View style={styles.metaRow}>
+              <Text style={[styles.metaText, { color: theme.textMuted }]}>{movie.releaseYear || movie.year || '2025'}</Text>
+              <Text style={[styles.metaDot, { color: theme.textMuted }]}>•</Text>
+              <Text style={[styles.metaText, { color: theme.textMuted }]}>{movie.duration || '2h 15m'}</Text>
+              <Text style={[styles.metaDot, { color: theme.textMuted }]}>•</Text>
+              <Text style={[styles.genreText, { color: '#D4AF37' }]} numberOfLines={1}>
+                {Array.isArray(movie.genres) ? movie.genres.join(' • ') : 'Điện ảnh • Chiếu Rạp'}
+              </Text>
+            </View>
 
-          {/* Overview snippet */}
-          <Text style={styles.overview} numberOfLines={2}>
-            {movie.overview}
-          </Text>
+            {/* Overview snippet */}
+            <Text style={[styles.overview, { color: theme.textSecondary }]} numberOfLines={2}>
+              {movie.overview}
+            </Text>
 
-          {/* Action Buttons */}
-          <View style={styles.actionRow}>
-            {/* Primary Solid Play Button */}
-            <TouchableOpacity
-              style={[styles.playBtn, { backgroundColor: '#FFFFFF' }]}
-              activeOpacity={0.88}
-              onPress={() => handlePlay(movie)}
-            >
-              <Ionicons name="play" size={18} color="#000000" />
-              <Text style={styles.playBtnText}>Xem Phim</Text>
-            </TouchableOpacity>
+            {/* Action Buttons Row */}
+            <View style={styles.actionRow}>
+              {/* Primary Play Button */}
+              <TouchableOpacity
+                style={[styles.playBtn, { backgroundColor: accentColor }]}
+                activeOpacity={0.88}
+                onPress={() => handlePlay(movie)}
+              >
+                <Ionicons name="play" size={16} color="#FFFFFF" />
+                <Text style={styles.playBtnText}>Xem Phim</Text>
+              </TouchableOpacity>
 
-            {/* Frosted Glass Info Button */}
-            <TouchableOpacity
-              style={styles.infoBtn}
-              activeOpacity={0.8}
-              onPress={() => handleInfo(movie)}
-            >
-              <Ionicons name="information-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.infoBtnText}>Chi Tiết</Text>
-            </TouchableOpacity>
+              {/* Info Button */}
+              <TouchableOpacity
+                style={[styles.infoBtn, { backgroundColor: theme.surfaceSecondary }]}
+                activeOpacity={0.8}
+                onPress={() => handleInfo(movie)}
+              >
+                <Ionicons name="information-circle-outline" size={18} color={theme.textPrimary} />
+                <Text style={[styles.infoBtnText, { color: theme.textPrimary }]}>Chi Tiết</Text>
+              </TouchableOpacity>
 
-            {/* Favorite Round Button */}
-            <TouchableOpacity
-              style={styles.favoriteBtn}
-              activeOpacity={0.8}
-              onPress={() => toggleFavorite(movie.id)}
-            >
-              <Ionicons
-                name={isFav ? 'heart' : 'heart-outline'}
-                size={20}
-                color={isFav ? accentColor : '#FFFFFF'}
-              />
-            </TouchableOpacity>
+              {/* Favorite Button */}
+              <TouchableOpacity
+                style={[styles.favoriteBtn, { backgroundColor: theme.surfaceSecondary }]}
+                activeOpacity={0.8}
+                onPress={() => toggleFavorite(movie.id)}
+              >
+                <Ionicons
+                  name={isFav ? 'heart' : 'heart-outline'}
+                  size={18}
+                  color={isFav ? accentColor : theme.textPrimary}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>
@@ -167,88 +178,117 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: BANNER_HEIGHT,
+    paddingVertical: 10,
     position: 'relative'
+  },
+  slideWrap: {
+    width: width,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  bannerCard: {
+    width: CARD_WIDTH,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6
+  },
+  imageWrap: {
+    width: CARD_WIDTH,
+    height: BANNER_IMG_HEIGHT,
+    position: 'relative',
+    backgroundColor: '#18181A'
   },
   image: {
     width: '100%',
     height: '100%'
   },
-  gradientOverlay: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 28,
-    paddingTop: 80,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'flex-end'
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-    gap: 6
+  imageDarkGrad: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)'
   },
   badgeQuality: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     borderWidth: 1,
-    paddingHorizontal: 5,
-    paddingVertical: 1.5,
-    borderRadius: 3,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)'
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5
   },
   badgeQualityText: {
-    color: '#FFFFFF',
+    color: '#D4AF37',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.5
   },
+  badgeRating: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 5
+  },
+  badgeRatingText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  contentWrap: {
+    padding: 14
+  },
+  title: {
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    marginBottom: 4
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6
+  },
   metaText: {
-    color: '#D1D1D6',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600'
   },
   metaDot: {
-    color: '#636366',
-    fontSize: 12
+    fontSize: 10
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
-    marginBottom: 4
-  },
-  genres: {
-    fontSize: 12,
-    color: '#D4AF37',
+  genreText: {
+    fontSize: 11,
     fontWeight: '600',
-    marginBottom: 6
+    flex: 1
   },
   overview: {
-    fontSize: 12,
-    color: '#8E8E93',
-    lineHeight: 16,
-    marginBottom: 14
+    fontSize: 11,
+    lineHeight: 15,
+    marginBottom: 12
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 8
   },
   playBtn: {
     flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 8,
     gap: 6
   },
   playBtnText: {
-    color: '#000000',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '700'
   },
   infoBtn: {
@@ -256,41 +296,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderRadius: 8,
-    gap: 6
+    gap: 5
   },
   infoBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600'
   },
   favoriteBtn: {
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     alignItems: 'center',
     justifyContent: 'center'
   },
   pagination: {
-    position: 'absolute',
-    bottom: 8,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 6
+    gap: 6,
+    marginTop: 8
   },
   dot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)'
+    backgroundColor: 'rgba(255, 255, 255, 0.25)'
   },
   dotActive: {
     width: 18,
-    backgroundColor: '#E50914'
+    borderRadius: 3
   }
 });
