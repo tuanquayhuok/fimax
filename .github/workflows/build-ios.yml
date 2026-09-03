@@ -12,11 +12,20 @@ permissions:
 
 jobs:
   build-ipa:
-    runs-on: macos-14
+    runs-on: macos-15
     
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
+
+      - name: 🍎 Select Xcode 16+
+        run: |
+          XCODE_APP=$(find /Applications -maxdepth 1 -name "Xcode_16*.app" | sort -V | tail -n 1)
+          if [ -n "$XCODE_APP" ]; then
+            echo "Selecting Xcode: $XCODE_APP"
+            sudo xcode-select -s "$XCODE_APP/Contents/Developer"
+          fi
+          xcodebuild -version
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
@@ -43,9 +52,6 @@ jobs:
           echo "export PATH=\"$(dirname $NODE_PATH):$PATH\"" >> ios/.xcode.env.local
           echo "Configured .xcode.env.local with: $NODE_PATH"
           cat ios/.xcode.env.local
-          
-          echo "📁 Contents of ios directory:"
-          ls -la ios/
 
       - name: 🔨 Compile Native iOS Release App with Xcode
         working-directory: ./netflix-clone-expo/ios
@@ -56,7 +62,6 @@ jobs:
           export NODE_BINARY=$(which node)
           export PATH="$PATH:$(dirname $(which node))"
           
-          # Detect workspace or project dynamically
           WORKSPACE_PATH=$(find . -name "*.xcworkspace" -not -path "*/project.xcworkspace*" | head -n 1)
           PROJECT_PATH=$(find . -name "*.xcodeproj" | head -n 1)
           
@@ -74,7 +79,7 @@ jobs:
             exit 1
           fi
           
-          echo "🔨 Compiling Scheme: $SCHEME_NAME..."
+          echo "🔨 Compiling Scheme: $SCHEME_NAME for iOS Device..."
           
           xcodebuild $BUILD_FLAG \
                      -scheme "$SCHEME_NAME" \
