@@ -14,7 +14,7 @@ import { AdminManagerModal } from '../components/AdminManagerModal';
 
 export const AccountScreen = () => {
   const {
-    user, setUser, login, register, logout,
+    user, setUser, login, register, resetPassword, logout,
     themeMode, accentColor, fontSizeScale, fontWeightMode,
     notificationsEnabled, setNotificationsEnabled, showNotificationPopup,
     apiUrl, setApiUrl, callbackUrl, setCallbackUrl
@@ -82,7 +82,11 @@ export const AccountScreen = () => {
     }
 
     if (authMode === 'login') {
-      login(cleanEmail, password);
+      const result = login(cleanEmail, password);
+      if (!result.success) {
+        Alert.alert('Không thể đăng nhập', result.error);
+        return;
+      }
       Alert.alert('Thành công', `Chào mừng bạn quay trở lại FIMAX Cinema!`);
     } else {
       if (!name.trim()) {
@@ -109,10 +113,15 @@ export const AccountScreen = () => {
   const handleOtpSuccess = () => {
     setShowOtpModal(false);
     if (otpMode === 'register' && pendingRegistration) {
-      register(pendingRegistration.name, pendingRegistration.email, pendingRegistration.password);
+      const result = register(pendingRegistration.name, pendingRegistration.email, pendingRegistration.password);
+      if (result.success) {
+        Alert.alert('Thành công', `Kích hoạt và đăng ký tài khoản ${pendingRegistration.email} thành công!`);
+      } else {
+        Alert.alert('Thông báo', result.error);
+      }
       setPendingRegistration(null);
-      Alert.alert('Thành công', `Kích hoạt tài khoản ${pendingRegistration.email} thành công!`);
     } else if (otpMode === 'forgot_password' && pendingReset) {
+      resetPassword(pendingReset.email, pendingReset.newPassword);
       Alert.alert('Thành công', `Đặt lại mật khẩu cho tài khoản ${pendingReset.email} thành công! Vui lòng đăng nhập với mật khẩu mới.`);
       setEmail(pendingReset.email);
       setPassword('');
