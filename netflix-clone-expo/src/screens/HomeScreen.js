@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { View, ScrollView, StyleSheet, RefreshControl, Text, TouchableOpacity, AppState } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { ApiService, subscribeMovieUpdates, subscribeBannerUpdates } from '../services/apiService';
+import { MOCK_MOVIES } from '../data/mockMovies';
 import { HeaderBar } from '../components/HeaderBar';
 import { HeroBanner } from '../components/HeroBanner';
 import { MovieRow } from '../components/MovieRow';
@@ -21,17 +22,21 @@ export const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [previewMovie, setPreviewMovie] = useState(null);
   const [trailerMovie, setTrailerMovie] = useState(null);
-  const [webAdminBanners, setWebAdminBanners] = useState([]);
+  const [webAdminBanners, setWebAdminBanners] = useState(() => MOCK_MOVIES.slice(0, 3));
 
-  const [moviesBySection, setMoviesBySection] = useState({
-    all: [],
-    trending: [],
-    newReleases: [],
-    topRated: [],
-    comingSoon: [],
-    vietnam: [],
-    hollywood: [],
-    korean: []
+  // Initialize with MOCK_MOVIES immediately for 0ms instant content
+  const [moviesBySection, setMoviesBySection] = useState(() => {
+    const allList = MOCK_MOVIES;
+    return {
+      all: allList,
+      trending: allList.slice(0, 4),
+      newReleases: allList.filter(m => m.categoryTag === 'latest' || m.isNew).slice(0, 4),
+      topRated: allList.filter(m => m.categoryTag === 'cinema' || m.rating >= 8.5).slice(0, 4),
+      comingSoon: allList.slice(2, 6),
+      vietnam: allList.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam'),
+      hollywood: allList.filter(m => m.country !== 'Việt Nam' && m.categoryTag !== 'vietnam'),
+      korean: allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean')
+    };
   });
 
   const updateSectionState = (allList) => {
@@ -54,7 +59,9 @@ export const HomeScreen = ({ navigation }) => {
         ApiService.getAllMovies(undefined, forceRefresh),
         ApiService.getFeaturedBanners(forceRefresh)
       ]);
-      updateSectionState(all);
+      if (all && all.length > 0) {
+        updateSectionState(all);
+      }
       if (banners && banners.length > 0) {
         setWebAdminBanners(banners);
       }
@@ -70,7 +77,9 @@ export const HomeScreen = ({ navigation }) => {
 
     // 1. Subscribe to Real-Time Web Movie updates
     const unsubscribeMovies = subscribeMovieUpdates((updatedList) => {
-      updateSectionState(updatedList);
+      if (updatedList && updatedList.length > 0) {
+        updateSectionState(updatedList);
+      }
     });
 
     // 2. Subscribe to Exact Web Admin Banners updates
@@ -80,12 +89,12 @@ export const HomeScreen = ({ navigation }) => {
       }
     });
 
-    // 3. 10s Silent Background Poller (Tự động cập nhật tức thì nếu web đổi phim/banner)
+    // 3. 10s Silent Background Poller
     const interval = setInterval(() => {
       ApiService.getAllMovies(undefined, true);
-    }, 10000);
+    }, 15000);
 
-    // 4. Auto-sync on App Focus (Khi người dùng mở lại app)
+    // 4. Auto-sync on App Focus
     const appStateSub = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
         ApiService.getAllMovies(undefined, true);
@@ -125,7 +134,6 @@ export const HomeScreen = ({ navigation }) => {
 
   const filteredMovies = getFilteredCategoryMovies();
 
-  // Banners: When category is "Tất Cả", use the EXACT Web Admin Banners from tab=banners!
   const heroMovies = (selectedCategory === 'Tất Cả' && webAdminBanners.length > 0)
     ? webAdminBanners
     : (filteredMovies && filteredMovies.length > 0 ? filteredMovies.slice(0, 5) : webAdminBanners);
@@ -193,7 +201,7 @@ export const HomeScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E50914" />}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Multi-Hero Banner Carousel (Lấy chính xác từ Admin tab=banners) */}
+        {/* Multi-Hero Banner Carousel */}
         {heroMovies.length > 0 && (
           <HeroBanner
             movies={heroMovies}

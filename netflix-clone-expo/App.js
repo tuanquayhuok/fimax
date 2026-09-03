@@ -1,4 +1,4 @@
-﻿import React, { useState, useContext } from 'react';
+﻿import React, { useContext } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
@@ -8,9 +8,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AppProvider, AppContext } from './src/context/AppContext';
 import { getThemeColors } from './src/theme/colors';
 
-import { SplashScreen } from './src/components/SplashScreen';
 import { CustomTabBar } from './src/components/CustomTabBar';
-
 import { HomeScreen } from './src/screens/HomeScreen';
 import { ExploreScreen } from './src/screens/ExploreScreen';
 import { LibraryScreen } from './src/screens/LibraryScreen';
@@ -74,7 +72,6 @@ function DownloadStack() {
 
 function MainNavigation() {
   const { activeMovieForPlayer, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
-  const [showSplash, setShowSplash] = useState(true);
   const theme = getThemeColors(themeMode);
 
   const customNavigationTheme = {
@@ -96,32 +93,26 @@ function MainNavigation() {
         backgroundColor={theme.background}
       />
       
-      {showSplash ? (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
-      ) : (
-        <>
-          <NavigationContainer theme={customNavigationTheme}>
-            <Tab.Navigator
-              tabBar={(props) => <CustomTabBar {...props} />}
-              screenOptions={{ headerShown: false }}
-            >
-              <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Trang Chủ' }} />
-              <Tab.Screen name="ExploreTab" component={ExploreStack} options={{ title: 'Khám Phá' }} />
-              <Tab.Screen name="LibraryTab" component={LibraryStack} options={{ title: 'Thư Viện' }} />
-              <Tab.Screen name="DownloadTab" component={DownloadStack} options={{ title: 'Tải Xuống' }} />
-              <Tab.Screen name="AccountTab" component={AccountScreen} options={{ title: 'Tài Khoản' }} />
-            </Tab.Navigator>
-          </NavigationContainer>
+      <NavigationContainer theme={customNavigationTheme}>
+        <Tab.Navigator
+          tabBar={(props) => <CustomTabBar {...props} />}
+          screenOptions={{ headerShown: false }}
+        >
+          <Tab.Screen name="HomeTab" component={HomeStack} options={{ title: 'Trang Chủ' }} />
+          <Tab.Screen name="ExploreTab" component={ExploreStack} options={{ title: 'Khám Phá' }} />
+          <Tab.Screen name="LibraryTab" component={LibraryStack} options={{ title: 'Thư Viện' }} />
+          <Tab.Screen name="DownloadTab" component={DownloadStack} options={{ title: 'Tải Xuống' }} />
+          <Tab.Screen name="AccountTab" component={AccountScreen} options={{ title: 'Tài Khoản' }} />
+        </Tab.Navigator>
+      </NavigationContainer>
 
-          {/* Global Cinema Player Modal */}
-          {activeMovieForPlayer && (
-            <CinemaPlayer
-              visible={!!activeMovieForPlayer}
-              movie={activeMovieForPlayer}
-              onClose={() => setActiveMovieForPlayer(null)}
-            />
-          )}
-        </>
+      {/* Global Cinema Player Modal */}
+      {activeMovieForPlayer && (
+        <CinemaPlayer
+          visible={!!activeMovieForPlayer}
+          movie={activeMovieForPlayer}
+          onClose={() => setActiveMovieForPlayer(null)}
+        />
       )}
     </View>
   );
