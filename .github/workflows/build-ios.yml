@@ -48,30 +48,45 @@ jobs:
           LANG: en_US.UTF-8
         run: |
           WORKSPACE_NAME=$(find . -name "*.xcworkspace" -maxdepth 1 | head -n 1 | sed 's|^\./||')
-          SCHEME_NAME="FIMAXCinema"
-          echo "Building Scheme: $SCHEME_NAME in Workspace: $WORKSPACE_NAME"
+          echo "Building in Workspace: $WORKSPACE_NAME"
           
+          # List Xcode schemes
+          xcodebuild -list -workspace "$WORKSPACE_NAME"
+          
+          # Execute build and log full output
           xcodebuild -workspace "$WORKSPACE_NAME" \
-                     -scheme "$SCHEME_NAME" \
+                     -scheme "FIMAXCinema" \
                      -configuration Release \
-                     -destination 'generic/platform=iOS' \
+                     -destination "generic/platform=iOS" \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGN_IDENTITY="" \
                      CODE_SIGN_ENTITLEMENTS="" \
                      CODE_SIGNING_INJECT_BASE_ENTITLEMENTS=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
-                     clean build || \
-          xcodebuild -workspace "$WORKSPACE_NAME" \
-                     -scheme "$SCHEME_NAME" \
-                     -configuration Release \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_IDENTITY="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     clean build
+                     clean build > xcodebuild_device.log 2>&1 || {
+            echo "Device build failed! Error summary:"
+            grep -E "(error:|fatal error:|BUILD FAILED|FAILED)" xcodebuild_device.log | head -n 40
+            echo "--- Full last 100 lines ---"
+            tail -n 100 xcodebuild_device.log
+            
+            echo "Trying simulator target build..."
+            xcodebuild -workspace "$WORKSPACE_NAME" \
+                       -scheme "FIMAXCinema" \
+                       -configuration Release \
+                       -sdk iphonesimulator \
+                       -derivedDataPath build \
+                       CODE_SIGNING_ALLOWED=NO \
+                       CODE_SIGNING_REQUIRED=NO \
+                       CODE_SIGN_IDENTITY="" \
+                       clean build > xcodebuild_sim.log 2>&1 || {
+              echo "Simulator build error summary:"
+              grep -E "(error:|fatal error:|BUILD FAILED|FAILED)" xcodebuild_sim.log | head -n 40
+              tail -n 100 xcodebuild_sim.log
+              exit 1
+            }
+          }
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
