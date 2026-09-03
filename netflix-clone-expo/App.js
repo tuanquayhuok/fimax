@@ -181,24 +181,11 @@ function MainNavigation() {
 }
 
 export default function App() {
-  const [fontsLoaded, setFontsLoaded] = useState(false);
-
   useEffect(() => {
-    async function loadResourcesAndDataAsync() {
-      try {
-        await Font.loadAsync(Ionicons.font);
-      } catch (e) {
-        console.warn('Preload font error:', e);
-      } finally {
-        setFontsLoaded(true);
-      }
-    }
-    loadResourcesAndDataAsync();
+    Font.loadAsync(Ionicons.font).catch((e) => {
+      console.warn('Font load fallback warning:', e);
+    });
   }, []);
-
-  if (!fontsLoaded) {
-    return <SplashScreen onFinish={() => {}} />;
-  }
 
   return (
     <GlobalErrorBoundary>

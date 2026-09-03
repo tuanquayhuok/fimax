@@ -55,14 +55,7 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          if [ ! -d "ios" ] || [ ! -f "ios/Podfile" ]; then
-            echo "Prebuilding native iOS project from scratch..."
-            npx expo prebuild --platform ios --clean
-          else
-            echo "Updating existing native iOS project..."
-            npx expo prebuild --platform ios --no-install
-            cd ios && (pod install --prefer-local-repo || pod install) && cd ..
-          fi
+          npx expo prebuild --platform ios --clean
           
           # Setup .xcode.env.local for Xcode Node binary detection
           NODE_PATH=$(which node)
