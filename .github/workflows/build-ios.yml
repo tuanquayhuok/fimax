@@ -37,23 +37,35 @@ jobs:
       - name: 📦 Install Project Dependencies
         working-directory: ./netflix-clone-expo
         run: |
-          npm install
+          npm install --prefer-offline --no-audit
+
+      - name: ⚡ Restore CocoaPods & Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/CocoaPods
+            netflix-clone-expo/ios/Pods
+            netflix-clone-expo/ios/build
+          key: ${{ runner.os }}-xcode-cache-${{ hashFiles('netflix-clone-expo/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-cache-
 
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
         env:
           LANG: en_US.UTF-8
         run: |
-          npx expo prebuild --platform ios --clean
+          npx expo prebuild --platform ios --no-install
+          cd ios && pod install --prefer-local-repo || pod install
+          cd ..
           
           # Setup .xcode.env.local for Xcode Node binary detection
           NODE_PATH=$(which node)
           echo "export NODE_BINARY=$NODE_PATH" > ios/.xcode.env.local
           echo "export PATH=\"$(dirname $NODE_PATH):$PATH\"" >> ios/.xcode.env.local
           echo "Configured .xcode.env.local with: $NODE_PATH"
-          cat ios/.xcode.env.local
 
-      - name: 🔨 Compile Native iOS Release App with Xcode
+      - name: 🔨 Fast Multi-threaded Xcode Compilation
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
@@ -75,16 +87,17 @@ jobs:
             SCHEME_NAME=$(basename "$PROJECT_PATH" .xcodeproj)
           else
             echo "❌ ERROR: No .xcworkspace or .xcodeproj found!"
-            ls -la
             exit 1
           fi
           
-          echo "🔨 Compiling Scheme: $SCHEME_NAME for iOS Device..."
+          NCPU=$(sysctl -n hw.ncpu || echo 4)
+          echo "🔨 Supercharged Build ($NCPU Cores): $SCHEME_NAME..."
           
           xcodebuild $BUILD_FLAG \
                      -scheme "$SCHEME_NAME" \
                      -configuration Release \
                      -sdk iphoneos \
+                     -jobs "$NCPU" \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
@@ -92,21 +105,19 @@ jobs:
                      AD_HOC_CODE_SIGNING_ALLOWED=YES \
                      ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
-                     ONLY_ACTIVE_ARCH=NO \
+                     DEBUG_INFORMATION_FORMAT=dwarf \
+                     ONLY_ACTIVE_ARCH=YES \
                      build
 
       - name: 📦 Package into .IPA File
         run: |
           mkdir -p Payload
-          APP_PATH=$(find netflix-clone-expo/ios -name "*.app" -type d | head -n 1)
-          
+          APP_PATH=$(find netflix-clone-expo/ios/build/Build/Products/Release-iphoneos -name "*.app" -type d | head -n 1)
           if [ -z "$APP_PATH" ]; then
-            echo "ERROR: No .app found in netflix-clone-expo/ios!"
-            find netflix-clone-expo/ios -maxdepth 4
-            exit 1
+            APP_PATH=$(find netflix-clone-expo/ios -name "*.app" -type d | head -n 1)
           fi
           
-          echo "Found compiled app at: $APP_PATH"
+          echo "Packaging: $APP_PATH"
           cp -r "$APP_PATH" Payload/
           zip -qr FIMAX-Cinema.ipa Payload
           rm -rf Payload
@@ -117,7 +128,7 @@ jobs:
         with:
           name: FIMAX-Cinema-iOS-IPA
           path: FIMAX-Cinema.ipa
-          retention-days: 30
+          retention-days: 14
 
       - name: 🌟 Auto Publish IPA to GitHub Releases
         uses: softprops/action-gh-release@v1
