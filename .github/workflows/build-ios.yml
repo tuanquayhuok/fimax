@@ -35,7 +35,14 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          npx expo prebuild --platform ios --clean
+          npx expo prebuild --platform ios --clean --no-install
+
+      - name: 🍫 Install CocoaPods to Generate Xcode Workspace
+        working-directory: ./netflix-clone-expo/ios
+        env:
+          LANG: en_US.UTF-8
+        run: |
+          pod install || pod install --repo-update
 
       - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
@@ -43,9 +50,8 @@ jobs:
           LANG: en_US.UTF-8
         run: |
           WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
-          echo "Discovered Workspace: $WORKSPACE"
+          echo "Compiling Workspace: $WORKSPACE"
           
-          # Build target with zero code signing restrictions for sideloading & simulator
           xcodebuild -workspace "$WORKSPACE" \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
