@@ -1,43 +1,43 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet, Image, Dimensions, StatusBar } from 'react-native';
+import { View, Text, Animated, StyleSheet, Dimensions, StatusBar } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
 export const SplashScreen = ({ onFinish }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+  const scaleAnim = useRef(new Animated.Value(0.88)).current;
 
   useEffect(() => {
     // 1. Smooth Fade-in & Scale animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 400,
         useNativeDriver: true
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         friction: 6,
-        tension: 40,
+        tension: 50,
         useNativeDriver: true
       })
     ]).start();
 
-    // 2. Guaranteed Transition to Main App after 1.4s
+    // 2. Guaranteed Transition to Main App after 1.2s
     const timer = setTimeout(() => {
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 350,
+        duration: 300,
         useNativeDriver: true
       }).start(() => {
         if (onFinish) onFinish();
       });
-    }, 1400);
+    }, 1200);
 
-    // 3. Failsafe timeout to prevent any stuck state
+    // 3. Failsafe timeout
     const failsafe = setTimeout(() => {
       if (onFinish) onFinish();
-    }, 2200);
+    }, 1800);
 
     return () => {
       clearTimeout(timer);
@@ -47,7 +47,7 @@ export const SplashScreen = ({ onFinish }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <StatusBar barStyle="light-content" backgroundColor="#0A0A0C" />
       <Animated.View
         style={[
           styles.content,
@@ -57,16 +57,13 @@ export const SplashScreen = ({ onFinish }) => {
           }
         ]}
       >
-        <Image
-          source={require('../../assets/icon.png')}
-          style={styles.logoImage}
-          resizeMode="contain"
-        />
-        
         <View style={styles.textRow}>
           <Text style={styles.logoRed}>F</Text>
           <Text style={styles.logoWhite}>IMAX</Text>
-          <Text style={styles.badge}>CINEMA</Text>
+        </View>
+
+        <View style={styles.badgeWrap}>
+          <Text style={styles.badge}>CINEMA PRO</Text>
         </View>
 
         <Text style={styles.tagline}>RẠP PHIM ĐIỆN ẢNH TRỰC TUYẾN</Text>
@@ -87,46 +84,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  logoImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 28,
-    marginBottom: 16
-  },
   textRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginBottom: 4
   },
   logoRed: {
-    fontSize: 38,
+    fontSize: 54,
     fontWeight: '900',
     color: '#E50914',
     letterSpacing: 1
   },
   logoWhite: {
-    fontSize: 34,
+    fontSize: 48,
     fontWeight: '900',
     color: '#FFFFFF',
-    letterSpacing: 2
+    letterSpacing: 3
+  },
+  badgeWrap: {
+    marginTop: 4,
+    marginBottom: 14
   },
   badge: {
     backgroundColor: '#E50914',
     color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '800',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginLeft: 8,
+    fontSize: 11,
+    fontWeight: '900',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 6,
+    letterSpacing: 2,
     overflow: 'hidden'
   },
   tagline: {
     color: '#8E8E93',
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 2,
-    marginTop: 10,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 2.5,
     textTransform: 'uppercase'
   }
 });

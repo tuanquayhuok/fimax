@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Share, FlatList, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Share, FlatList, Animated, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
@@ -11,7 +11,7 @@ const { width } = Dimensions.get('window');
 
 export const DetailScreen = ({ route, navigation }) => {
   const { movie } = route.params || {};
-  const { favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
+  const { user, favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   // Transition animations
@@ -52,12 +52,57 @@ export const DetailScreen = ({ route, navigation }) => {
   const posterImage = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop;
   const displayYear = movie.releaseYear || movie.year || '2025';
 
+  const handleToggleFavorite = () => {
+    if (!user) {
+      Alert.alert(
+        'Yêu Cầu Đăng Nhập',
+        'Vui lòng đăng nhập tài khoản FIMAX để thêm phim vào danh sách Yêu Thích.',
+        [
+          { text: 'Để Sau', style: 'cancel' },
+          {
+            text: 'Đăng Nhập Ngay',
+            style: 'default',
+            onPress: () => navigation.navigate('AccountTab')
+          }
+        ]
+      );
+      return;
+    }
+    toggleFavorite(movie.id);
+  };
+
+  const handleOpenRating = () => {
+    if (!user) {
+      Alert.alert(
+        'Yêu Cầu Đăng Nhập',
+        'Vui lòng đăng nhập tài khoản FIMAX để đánh giá và bình chọn cho bộ phim này.',
+        [
+          { text: 'Để Sau', style: 'cancel' },
+          {
+            text: 'Đăng Nhập Ngay',
+            style: 'default',
+            onPress: () => navigation.navigate('AccountTab')
+          }
+        ]
+      );
+      return;
+    }
+    setShowRatingModal(true);
+  };
+
   const handleShare = async () => {
     try {
+      const shareUrl = `https://fimax.aecongnghe.online/download?movie=${encodeURIComponent(movie.id)}&title=${encodeURIComponent(movie.title)}`;
+      const message = `🎬 Phim "${movie.title}" (${displayYear}) đang cực hot trên FIMAX Cinema!\n⭐ Đánh giá: ${movie.rating || '8.5'}/10 • Chất lượng 4K Ultra HD\n\n📲 Tải ứng dụng FIMAX Cinema để xem phim miễn phí ngay tại: ${shareUrl}`;
+
       await Share.share({
-        message: `Xem phim "${movie.title}" cực nét trên ứng dụng FIMAX Cinema!`
+        title: `Xem phim ${movie.title} trên FIMAX Cinema`,
+        message: message,
+        url: shareUrl
       });
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Share error:', e);
+    }
   };
 
   return (
@@ -118,7 +163,7 @@ export const DetailScreen = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.iconActionBtn, { backgroundColor: theme.surfaceSecondary }]}
               activeOpacity={0.85}
-              onPress={() => toggleFavorite(movie.id)}
+              onPress={handleToggleFavorite}
             >
               <Ionicons name={isFav ? "heart" : "heart-outline"} size={22} color={isFav ? accentColor : theme.textPrimary} />
             </TouchableOpacity>
@@ -126,7 +171,7 @@ export const DetailScreen = ({ route, navigation }) => {
             <TouchableOpacity
               style={[styles.iconActionBtn, { backgroundColor: theme.surfaceSecondary }]}
               activeOpacity={0.85}
-              onPress={() => setShowRatingModal(true)}
+              onPress={handleOpenRating}
             >
               <Ionicons name={userRating ? "star" : "star-outline"} size={22} color={userRating ? "#D4AF37" : theme.textPrimary} />
             </TouchableOpacity>

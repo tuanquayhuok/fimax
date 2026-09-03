@@ -1,4 +1,4 @@
-﻿name: Build FIMAX Cinema iOS IPA
+name: Build FIMAX Cinema iOS IPA
 
 on:
   push:
@@ -27,15 +27,17 @@ jobs:
           fi
           xcodebuild -version
 
-      - name: 🟢 Setup Node.js
+      - name: 🟢 Setup Node.js with Cache
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
+          cache-dependency-path: ./netflix-clone-expo/package.json
 
-      - name: 📦 Install Project Dependencies
+      - name: 📦 Fast Install Project Dependencies
         working-directory: ./netflix-clone-expo
         run: |
-          npm install --legacy-peer-deps
+          npm install --legacy-peer-deps --prefer-offline --no-audit --no-fund
 
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
@@ -50,7 +52,7 @@ jobs:
           echo "export PATH=\"$(dirname $NODE_PATH):$PATH\"" >> ios/.xcode.env.local
           echo "Configured .xcode.env.local with: $NODE_PATH"
 
-      - name: 🔨 Fast Multi-threaded Xcode Compilation
+      - name: 🔨 Ultra-Fast Multi-threaded Xcode Compilation
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
@@ -76,13 +78,14 @@ jobs:
           fi
           
           NCPU=$(sysctl -n hw.ncpu || echo 4)
-          echo "🔨 Supercharged Build ($NCPU Cores): $SCHEME_NAME..."
+          echo "🔨 Supercharged Build ($NCPU Cores): $SCHEME_NAME with Turbo Flags..."
           
           xcodebuild $BUILD_FLAG \
                      -scheme "$SCHEME_NAME" \
                      -configuration Release \
                      -sdk iphoneos \
                      -jobs "$NCPU" \
+                     -parallelizeTargets \
                      -derivedDataPath build \
                      CODE_SIGN_IDENTITY="" \
                      CODE_SIGNING_REQUIRED=NO \
@@ -91,6 +94,10 @@ jobs:
                      ENABLE_USER_SCRIPT_SANDBOXING=NO \
                      COMPILER_INDEX_STORE_ENABLE=NO \
                      DEBUG_INFORMATION_FORMAT=dwarf \
+                     SWIFT_COMPILATION_MODE=singlefile \
+                     GCC_OPTIMIZATION_LEVEL=0 \
+                     ASSETCATALOG_COMPILER_OPTIMIZATION=time \
+                     DEAD_CODE_STRIPPING=NO \
                      ONLY_ACTIVE_ARCH=YES \
                      build
 
