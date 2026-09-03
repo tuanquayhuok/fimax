@@ -36,7 +36,8 @@
     },
     "plugins": [
       "expo-font",
-      "expo-screen-orientation"
+      "expo-screen-orientation",
+      "expo-notifications"
     ]
   }
 }

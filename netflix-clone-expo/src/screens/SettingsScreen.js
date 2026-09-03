@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { Colors } from '../theme/colors';
 import { MOCK_MOVIES } from '../data/mockMovies';
+import { NotificationService } from '../services/notificationService';
 
 export const SettingsScreen = () => {
   const {
@@ -170,52 +171,27 @@ export const SettingsScreen = () => {
           </View>
           <Switch
             value={notificationsEnabled}
-            onValueChange={(val) => {
+            onValueChange={async (val) => {
               if (val) {
-                // Request System Notification Permission
-                Alert.alert(
-                  '“FIMAX Cinema” Muốn Gửi Thông Báo Cho Bạn',
-                  'Thông báo có thể bao gồm cảnh báo phim bom tấn mới ra mắt, âm thanh và biểu tượng huy hiệu. Bạn có thể định cấu hình quyền này trong Cài đặt hệ thống bất kỳ lúc nào.',
-                  [
-                    {
-                      text: 'Từ chối',
-                      style: 'cancel',
-                      onPress: () => {
-                        setNotificationsEnabled(false);
-                      }
-                    },
-                    {
-                      text: 'Cho phép',
-                      style: 'default',
-                      onPress: () => {
-                        setNotificationsEnabled(true);
-                        setTimeout(() => {
-                          showNotificationPopup(
-                            '🔥 Đã Cấp Quyền Thông Báo Thành Công!',
-                            'FIMAX Cinema sẽ gửi cho bạn thông báo sớm nhất mỗi khi có phim bom tấn chiếu rạp mới hoặc ưu đãi đặc quyền.',
-                            MOCK_MOVIES[1] || MOCK_MOVIES[0],
-                            'movie'
-                          );
-                        }, 400);
-                      }
-                    }
-                  ],
-                  { cancelable: false }
-                );
+                // Request Real Native iOS / Device Notification Permission
+                const granted = await NotificationService.requestPermission();
+                if (granted) {
+                  setNotificationsEnabled(true);
+                  showNotificationPopup(
+                    '🎬 FIMAX Cinema: Đã Bật Thông Báo!',
+                    'Bạn sẽ nhận được thông báo phim chiếu rạp bom tấn mới nhất vào Trung tâm thông báo của iPhone.',
+                    MOCK_MOVIES[1] || MOCK_MOVIES[0],
+                    'movie'
+                  );
+                } else {
+                  setNotificationsEnabled(false);
+                  Alert.alert(
+                    'Chưa Cấp Quyền Thông Báo',
+                    'Bạn đã từ chối cấp quyền thông báo trên thiết bị. Vui lòng vào Cài đặt của iPhone > FIMAX Cinema > Bật Cho phép thông báo.'
+                  );
+                }
               } else {
-                // Confirm disable
-                Alert.alert(
-                  'Tắt Nhận Thông Báo?',
-                  'Bạn sẽ không nhận được thông báo phim chiếu rạp mới ra mắt và các sự kiện phim độc quyền.',
-                  [
-                    { text: 'Hủy', style: 'cancel' },
-                    {
-                      text: 'Tắt Thông Báo',
-                      style: 'destructive',
-                      onPress: () => setNotificationsEnabled(false)
-                    }
-                  ]
-                );
+                setNotificationsEnabled(false);
               }
             }}
             trackColor={{ false: '#444', true: Colors.primary }}

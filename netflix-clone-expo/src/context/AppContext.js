@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import { MOCK_USER } from '../data/mockMovies';
 import { CallbackService } from '../services/callbackService';
 import { StorageService } from '../services/storageService';
+import { NotificationService } from '../services/notificationService';
 
 export const AppContext = createContext();
 
@@ -67,8 +68,17 @@ export const AppProvider = ({ children }) => {
     StorageService.setItem('@fimax_notif_enabled', String(val));
   };
 
-  const showNotificationPopup = (title, message, movie = null, type = 'movie') => {
+  const showNotificationPopup = async (title, message, movie = null, type = 'movie') => {
     if (!notificationsEnabled) return;
+
+    // 1. Dispatch REAL Apple iOS Native Notification into iOS Notification Center & Lockscreen
+    await NotificationService.sendNativeNotification(
+      title,
+      message,
+      { movie, type }
+    );
+
+    // 2. Dispatch In-App Banner for active screen
     setPopupNotification({
       id: Date.now(),
       title,
