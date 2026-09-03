@@ -25,18 +25,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'netflix-clone-expo/package-lock.json'
 
-      - name: 📱 Setup Expo & EAS CLI
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-
       - name: 📦 Install Project Dependencies
         working-directory: ./netflix-clone-expo
         run: |
           npm install
 
-      - name: ⚙️ Generate Native iOS Project
+      - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
         env:
           LANG: en_US.UTF-8
@@ -48,13 +42,9 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          # Ensure CocoaPods dependencies are updated
-          pod install
-          
           WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
           echo "Compiling Workspace: $WORKSPACE"
           
-          # Build target for Simulator and Sideload (Zero Signing Requirement)
           xcodebuild -workspace "$WORKSPACE" \
                      -scheme "FIMAXCinema" \
                      -configuration Release \
