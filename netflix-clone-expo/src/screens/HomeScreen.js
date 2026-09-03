@@ -3,7 +3,7 @@ import { View, ScrollView, StyleSheet, RefreshControl, Text, TouchableOpacity, A
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
-import { ApiService, subscribeMovieUpdates } from '../services/apiService';
+import { ApiService, subscribeMovieUpdates, subscribeBannerUpdates } from '../services/apiService';
 import { HeaderBar } from '../components/HeaderBar';
 import { HeroBanner } from '../components/HeroBanner';
 import { MovieRow } from '../components/MovieRow';
@@ -21,6 +21,7 @@ export const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [previewMovie, setPreviewMovie] = useState(null);
   const [trailerMovie, setTrailerMovie] = useState(null);
+  const [webAdminBanners, setWebAdminBanners] = useState([]);
 
   const [moviesBySection, setMoviesBySection] = useState({
     all: [],
@@ -49,8 +50,14 @@ export const HomeScreen = ({ navigation }) => {
 
   const loadData = async (forceRefresh = false) => {
     try {
-      const all = await ApiService.getAllMovies(undefined, forceRefresh);
+      const [all, banners] = await Promise.all([
+        ApiService.getAllMovies(undefined, forceRefresh),
+        ApiService.getFeaturedBanners(forceRefresh)
+      ]);
       updateSectionState(all);
+      if (banners && banners.length > 0) {
+        setWebAdminBanners(banners);
+      }
     } catch (e) {
       console.warn('API loadData error:', e.message);
     } finally {
@@ -62,16 +69,23 @@ export const HomeScreen = ({ navigation }) => {
     loadData(false);
 
     // 1. Subscribe to Real-Time Web Movie updates
-    const unsubscribe = subscribeMovieUpdates((updatedList) => {
+    const unsubscribeMovies = subscribeMovieUpdates((updatedList) => {
       updateSectionState(updatedList);
     });
 
-    // 2. 10s Silent Background Poller (Tự động cập nhật tức thì nếu web đổi phim)
+    // 2. Subscribe to Exact Web Admin Banners updates
+    const unsubscribeBanners = subscribeBannerUpdates((updatedBanners) => {
+      if (updatedBanners && updatedBanners.length > 0) {
+        setWebAdminBanners(updatedBanners);
+      }
+    });
+
+    // 3. 10s Silent Background Poller (Tự động cập nhật tức thì nếu web đổi phim/banner)
     const interval = setInterval(() => {
       ApiService.getAllMovies(undefined, true);
     }, 10000);
 
-    // 3. Auto-sync on App Focus (Khi người dùng mở lại app)
+    // 4. Auto-sync on App Focus (Khi người dùng mở lại app)
     const appStateSub = AppState.addEventListener('change', (nextAppState) => {
       if (nextAppState === 'active') {
         ApiService.getAllMovies(undefined, true);
@@ -79,7 +93,8 @@ export const HomeScreen = ({ navigation }) => {
     });
 
     return () => {
-      unsubscribe();
+      unsubscribeMovies();
+      unsubscribeBanners();
       clearInterval(interval);
       appStateSub.remove();
     };
@@ -110,10 +125,10 @@ export const HomeScreen = ({ navigation }) => {
 
   const filteredMovies = getFilteredCategoryMovies();
 
-  // Dynamic Hero Banner selection based on category
-  const heroMovies = (filteredMovies && filteredMovies.length > 0)
-    ? filteredMovies.slice(0, 5)
-    : (moviesBySection.trending && moviesBySection.trending.length > 0 ? moviesBySection.trending.slice(0, 5) : []);
+  // Banners: When category is "Tất Cả", use the EXACT Web Admin Banners from tab=banners!
+  const heroMovies = (selectedCategory === 'Tất Cả' && webAdminBanners.length > 0)
+    ? webAdminBanners
+    : (filteredMovies && filteredMovies.length > 0 ? filteredMovies.slice(0, 5) : webAdminBanners);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -178,7 +193,7 @@ export const HomeScreen = ({ navigation }) => {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#E50914" />}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Multi-Hero Banner Carousel (16:9 Uncropped Cinema Ratio) */}
+        {/* Multi-Hero Banner Carousel (Lấy chính xác từ Admin tab=banners) */}
         {heroMovies.length > 0 && (
           <HeroBanner
             movies={heroMovies}

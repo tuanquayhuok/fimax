@@ -5,15 +5,22 @@ const WEB_SOURCE_URL = 'http://fimax.aecongnghe.online/';
 
 // Global in-memory cache for 0ms instant loading
 let memoryCache = [...MOCK_MOVIES];
+let featuredBannersCache = [];
 let isFetchingBackground = false;
 let lastFetchTimestamp = 0;
 
 // Callbacks for real-time listeners
 const listeners = new Set();
+const bannerListeners = new Set();
 
 export function subscribeMovieUpdates(callback) {
   listeners.add(callback);
   return () => listeners.delete(callback);
+}
+
+export function subscribeBannerUpdates(callback) {
+  bannerListeners.add(callback);
+  return () => bannerListeners.delete(callback);
 }
 
 function notifyListeners() {
@@ -22,13 +29,23 @@ function notifyListeners() {
       cb(memoryCache);
     } catch (e) {}
   });
+  bannerListeners.forEach(cb => {
+    try {
+      cb(featuredBannersCache);
+    } catch (e) {}
+  });
+}
+
+function formatBannerUrl(rawUrl) {
+  if (!rawUrl) return 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1200';
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+  return 'http://fimax.aecongnghe.online/' + rawUrl.replace(/^\/+/, '');
 }
 
 async function syncWebSourceInBackground(force = false) {
   const now = Date.now();
-  // If not forced, only throttle to 5 seconds
   if (isFetchingBackground || (!force && (now - lastFetchTimestamp < 5000) && memoryCache.length > 20)) {
-    return memoryCache;
+    return { movies: memoryCache, banners: featuredBannersCache };
   }
 
   isFetchingBackground = true;
@@ -36,7 +53,6 @@ async function syncWebSourceInBackground(force = false) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-    // Add cache buster query parameter to guarantee 0 delay from CDN/server cache
     const fetchUrl = `${WEB_SOURCE_URL}?_nocache=${Date.now()}`;
     const response = await fetch(fetchUrl, {
       headers: {
@@ -50,8 +66,46 @@ async function syncWebSourceInBackground(force = false) {
 
     if (response.ok) {
       const html = await response.text();
-      const match = html.match(/window\.categoryMovies\s*=\s*(\{.*?\});/s);
 
+      // 1. EXACT BANNER PARSER from http://fimax.aecongnghe.online/admin.php?tab=banners
+      const bannerMatch = html.match(/window\.featuredMovies\s*=\s*(\[.*?\]);/s);
+      if (bannerMatch && bannerMatch[1]) {
+        try {
+          const rawBanners = JSON.parse(bannerMatch[1]);
+          if (Array.isArray(rawBanners) && rawBanners.length > 0) {
+            featuredBannersCache = rawBanners.map(b => {
+              const bannerImg = formatBannerUrl(b.banner_image || b.backdrop_path || b.poster_path);
+              const backdropImg = formatBannerUrl(b.backdrop_path || b.banner_image || b.poster_path);
+              const posterImg = formatBannerUrl(b.poster_path || b.banner_image || b.backdrop_path);
+              const vUrl = b.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+
+              return {
+                id: 'banner_' + (b.banner_id || b.id || Math.random().toString(36).substr(2, 6)),
+                movieId: b.id || b.banner_id,
+                title: b.title || 'Phim Chiếu Rạp',
+                overview: b.overview || `Bộ phim bom tấn ${b.title} đang chiếu tại FIMAX.`,
+                bannerImage: bannerImg,
+                backdropUrl: bannerImg,
+                posterUrl: posterImg,
+                rating: 9.0,
+                releaseYear: 2025,
+                duration: '120 phút',
+                genres: ['Chiếu Rạp', 'Bom Tấn', 'Nổi Bật'],
+                country: 'Điện ảnh',
+                videoSources: {
+                  '1080p': vUrl,
+                  '720p': vUrl,
+                  'auto': vUrl
+                },
+                trailerUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+              };
+            });
+          }
+        } catch (e) {}
+      }
+
+      // 2. CATEGORY MOVIES PARSER
+      const match = html.match(/window\.categoryMovies\s*=\s*(\{.*?\});/s);
       if (match && match[1]) {
         const data = JSON.parse(match[1]);
         const movies = [];
@@ -61,8 +115,8 @@ async function syncWebSourceInBackground(force = false) {
 
           for (const m of list) {
             const videoUrl = m.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-            const poster = m.poster_path || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600';
-            const backdrop = m.backdrop_path || poster;
+            const poster = formatBannerUrl(m.poster_path);
+            const backdrop = formatBannerUrl(m.backdrop_path || m.poster_path);
             const country = cat === 'vietnam' ? 'Việt Nam' : (cat === 'korean' ? 'Hàn Quốc' : 'Âu Mỹ');
             const genreList = cat === 'vietnam' ? ['Điện ảnh', 'Việt Nam', 'Tâm lý'] : (cat === 'korean' ? ['Hàn Quốc', 'Tình cảm', 'Hành động'] : ['Chiếu Rạp', 'Bom tấn']);
 
@@ -118,14 +172,13 @@ async function syncWebSourceInBackground(force = false) {
     isFetchingBackground = false;
   }
 
-  return memoryCache;
+  return { movies: memoryCache, banners: featuredBannersCache };
 }
 
 // Initial immediate sync
 syncWebSourceInBackground(true);
 
 export const ApiService = {
-  // Instant retrieval + background real-time sync
   async getAllMovies(apiUrl = DEFAULT_API_URL, forceRefresh = false) {
     if (forceRefresh) {
       await syncWebSourceInBackground(true);
@@ -133,6 +186,14 @@ export const ApiService = {
       syncWebSourceInBackground(false);
     }
     return memoryCache;
+  },
+
+  // Exact Web Admin Banners from tab=banners
+  async getFeaturedBanners(forceRefresh = false) {
+    if (forceRefresh || featuredBannersCache.length === 0) {
+      await syncWebSourceInBackground(forceRefresh);
+    }
+    return featuredBannersCache.length > 0 ? featuredBannersCache : memoryCache.slice(0, 5);
   },
 
   async getTrendingMovies(apiUrl = DEFAULT_API_URL) {
