@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { MOCK_USER } from '../data/mockMovies';
 import { CallbackService } from '../services/callbackService';
+import { StorageService } from '../services/storageService';
 
 export const AppContext = createContext();
 
@@ -23,13 +24,48 @@ export const AppProvider = ({ children }) => {
   const [fontWeightMode, setFontWeightMode] = useState('regular'); // 'light' | 'regular' | 'bold' | 'heavy'
   const [layoutDensity, setLayoutDensity] = useState('comfortable'); // 'compact' | 'comfortable'
 
-  // Notification System State
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  // Notification System State - Default is false (OFF) as requested
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
   const [popupNotification, setPopupNotification] = useState(null);
 
   // Dynamic URLs
   const [apiUrl, setApiUrl] = useState('http://localhost:4000/api');
   const [callbackUrl, setCallbackUrl] = useState('http://localhost:4000/api/callback/progress');
+
+  // Load Persisted Session & Settings on startup
+  useEffect(() => {
+    async function loadPersistedState() {
+      try {
+        const savedUser = await StorageService.getItem('@fimax_auth_user');
+        if (savedUser) {
+          const parsed = JSON.parse(savedUser);
+          if (parsed && parsed.email) {
+            setUser(parsed);
+          }
+        }
+
+        const savedNotif = await StorageService.getItem('@fimax_notif_enabled');
+        if (savedNotif !== null) {
+          setNotificationsEnabledState(savedNotif === 'true');
+        } else {
+          setNotificationsEnabledState(false);
+        }
+
+        const savedFavs = await StorageService.getItem('@fimax_favorites');
+        if (savedFavs) {
+          setFavorites(JSON.parse(savedFavs));
+        }
+      } catch (e) {
+        console.warn('Load persisted state error:', e);
+      }
+    }
+    loadPersistedState();
+  }, []);
+
+  const setNotificationsEnabled = (val) => {
+    setNotificationsEnabledState(val);
+    StorageService.setItem('@fimax_notif_enabled', String(val));
+  };
 
   const showNotificationPopup = (title, message, movie = null, type = 'movie') => {
     if (!notificationsEnabled) return;
@@ -46,7 +82,7 @@ export const AppProvider = ({ children }) => {
     setPopupNotification(null);
   };
 
-  // Auth Methods
+  // Auth Methods with Session Persistence
   const login = (email, password) => {
     const loggedUser = {
       id: 'usr_' + Date.now(),
@@ -62,6 +98,7 @@ export const AppProvider = ({ children }) => {
       memberId: '#FIMAX-88921'
     };
     setUser(loggedUser);
+    StorageService.setItem('@fimax_auth_user', JSON.stringify(loggedUser));
     return true;
   };
 
@@ -80,20 +117,33 @@ export const AppProvider = ({ children }) => {
       memberId: '#FIMAX-88921'
     };
     setUser(newUser);
+    StorageService.setItem('@fimax_auth_user', JSON.stringify(newUser));
     return true;
   };
 
   const logout = () => {
     setUser(null);
+    StorageService.removeItem('@fimax_auth_user');
+  };
+
+  const updateUserProfile = (updatedFields) => {
+    setUser(prev => {
+      const next = { ...prev, ...updatedFields };
+      StorageService.setItem('@fimax_auth_user', JSON.stringify(next));
+      return next;
+    });
   };
 
   const toggleFavorite = (movieId) => {
     setFavorites(prev => {
+      let next;
       if (prev.includes(movieId)) {
-        return prev.filter(id => id !== movieId);
+        next = prev.filter(id => id !== movieId);
       } else {
-        return [...prev, movieId];
+        next = [...prev, movieId];
       }
+      StorageService.setItem('@fimax_favorites', JSON.stringify(next));
+      return next;
     });
   };
 
@@ -132,7 +182,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{
       user,
-      setUser,
+      setUser: updateUserProfile,
       login,
       register,
       logout,
