@@ -1,7 +1,8 @@
 import React, { useContext, useRef } from 'react';
-import { TouchableOpacity, Image, StyleSheet, Dimensions, Text, View, Animated } from 'react-native';
+import { TouchableOpacity, StyleSheet, Dimensions, Text, View, Animated } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
+import { CinemaImage } from './CinemaImage';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.32;
@@ -13,8 +14,9 @@ export const MovieCard = ({ movie, navigation, onLongPress }) => {
 
   if (!movie) return null;
 
-  const posterUri = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop || 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600';
-  const displayYear = movie.releaseYear || movie.year || '2024';
+  const posterUri = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop;
+  const backdropUri = movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
+  const displayYear = movie.releaseYear || movie.year || '2025';
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -45,8 +47,9 @@ export const MovieCard = ({ movie, navigation, onLongPress }) => {
         }}
         delayLongPress={350}
       >
-        <Image
-          source={{ uri: posterUri }}
+        <CinemaImage
+          uri={posterUri}
+          fallbackUri={backdropUri}
           style={styles.poster}
           resizeMode="cover"
         />

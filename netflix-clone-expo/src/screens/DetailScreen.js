@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Share, FlatList, Animated, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Share, FlatList, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { RatingModal } from '../components/RatingModal';
 import { TrailerModal } from '../components/TrailerModal';
+import { CinemaImage } from '../components/CinemaImage';
 
 const { width } = Dimensions.get('window');
 
@@ -16,7 +17,6 @@ export const DetailScreen = ({ route, navigation }) => {
   // Transition animations
   const pageFade = useRef(new Animated.Value(0)).current;
   const pageSlide = useRef(new Animated.Value(20)).current;
-  const [isReady, setIsReady] = useState(false);
 
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showTrailerModal, setShowTrailerModal] = useState(false);
@@ -37,9 +37,6 @@ export const DetailScreen = ({ route, navigation }) => {
         useNativeDriver: true
       })
     ]).start();
-
-    const timer = setTimeout(() => setIsReady(true), 150);
-    return () => clearTimeout(timer);
   }, [movie]);
 
   if (!movie) {
@@ -53,7 +50,7 @@ export const DetailScreen = ({ route, navigation }) => {
   const isFav = favorites.includes(movie.id);
   const bgImage = movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
   const posterImage = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop;
-  const displayYear = movie.releaseYear || movie.year || '2024';
+  const displayYear = movie.releaseYear || movie.year || '2025';
 
   const handleShare = async () => {
     try {
@@ -73,14 +70,16 @@ export const DetailScreen = ({ route, navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Backdrop Banner */}
         <View style={styles.backdropWrap}>
-          <Image source={{ uri: bgImage }} style={styles.backdropImg} />
+          <CinemaImage uri={bgImage} fallbackUri={posterImage} style={styles.backdropImg} resizeMode="cover" />
           <View style={styles.backdropOverlay} />
         </View>
 
         {/* Header Content */}
         <View style={styles.contentWrap}>
           <View style={styles.posterRow}>
-            <Image source={{ uri: posterImage }} style={styles.posterThumb} />
+            <View style={styles.posterThumbWrap}>
+              <CinemaImage uri={posterImage} fallbackUri={bgImage} style={styles.posterThumb} resizeMode="cover" />
+            </View>
             <View style={styles.headerInfo}>
               <Text style={[styles.title, { color: theme.textPrimary }]}>{movie.title}</Text>
               <Text style={[styles.originalTitle, { color: theme.textSecondary }]}>{movie.originalTitle || movie.title}</Text>
@@ -176,7 +175,7 @@ export const DetailScreen = ({ route, navigation }) => {
                 keyExtractor={(c, idx) => idx.toString()}
                 renderItem={({ item: castMember }) => (
                   <View style={styles.castItem}>
-                    <Image source={{ uri: castMember.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200' }} style={styles.castAvatar} />
+                    <CinemaImage uri={castMember.avatar} style={styles.castAvatar} resizeMode="cover" />
                     <Text style={[styles.castName, { color: theme.textPrimary }]} numberOfLines={1}>{castMember.name}</Text>
                     <Text style={[styles.castRole, { color: theme.textMuted }]} numberOfLines={1}>{castMember.role}</Text>
                   </View>
@@ -242,13 +241,18 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     gap: 14
   },
-  posterThumb: {
+  posterThumbWrap: {
     width: 100,
     height: 150,
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#FFFFFF',
+    overflow: 'hidden',
     backgroundColor: '#222'
+  },
+  posterThumb: {
+    width: '100%',
+    height: '100%'
   },
   headerInfo: {
     flex: 1,

@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
+import { CinemaImage } from './CinemaImage';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 32;
-const BANNER_IMG_HEIGHT = Math.round(CARD_WIDTH * (9 / 16)); // Exact 16:9 Ratio (No Crop)
+const BANNER_IMG_HEIGHT = Math.round(CARD_WIDTH * (9 / 16)); // Exact 16:9 Ratio
 
 export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPlayPress, onInfoPress }) => {
   const bannerList = (movies && movies.length > 0) ? movies : featuredMovies;
@@ -58,14 +59,16 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
   const renderBannerItem = ({ item: movie }) => {
     const isFav = favorites.includes(movie.id);
     const bgImage = movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
+    const posterImage = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop;
 
     return (
       <View style={styles.slideWrap}>
         <View style={[styles.bannerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {/* 16:9 Full Width Backdrop Image (Uncropped) */}
+          {/* 16:9 Full Width Backdrop Image with Auto Fallback */}
           <View style={styles.imageWrap}>
-            <Image
-              source={{ uri: bgImage }}
+            <CinemaImage
+              uri={bgImage}
+              fallbackUri={posterImage}
               style={styles.image}
               resizeMode="cover"
             />
