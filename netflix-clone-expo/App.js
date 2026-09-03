@@ -1,9 +1,11 @@
-﻿import React, { Component, useState, useContext } from 'react';
+﻿import React, { Component, useState, useEffect, useContext } from 'react';
 import { View, StyleSheet, StatusBar, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as Font from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
 
 import { AppProvider, AppContext } from './src/context/AppContext';
 import { getThemeColors } from './src/theme/colors';
@@ -161,6 +163,25 @@ function MainNavigation() {
 }
 
 export default function App() {
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadResourcesAndDataAsync() {
+      try {
+        await Font.loadAsync(Ionicons.font);
+      } catch (e) {
+        console.warn('Preload font error:', e);
+      } finally {
+        setFontsLoaded(true);
+      }
+    }
+    loadResourcesAndDataAsync();
+  }, []);
+
+  if (!fontsLoaded) {
+    return <SplashScreen onFinish={() => {}} />;
+  }
+
   return (
     <GlobalErrorBoundary>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>

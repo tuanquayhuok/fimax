@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "netflix-cinema-expo",
   "version": "1.0.0",
   "main": "index.js",
@@ -15,6 +15,7 @@
     "@react-navigation/native-stack": "^6.9.26",
     "expo": "^54.0.0",
     "expo-av": "~16.0.8",
+    "expo-font": "~13.0.4",
     "expo-screen-orientation": "~9.0.9",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",
