@@ -42,46 +42,27 @@ jobs:
         env:
           LANG: en_US.UTF-8
         run: |
-          echo "Ruby version:"
-          ruby -v
-          echo "CocoaPods version:"
-          pod --version
-          
-          # Try pod install and capture exact output
-          pod install --verbose || {
-            echo "--- POD INSTALL FAILED ---"
-            pod install --repo-update || true
-          }
+          pod install || pod install --repo-update
 
       - name: 🔨 Compile iOS Release Build with Xcode
         working-directory: ./netflix-clone-expo/ios
         env:
           LANG: en_US.UTF-8
         run: |
-          WORKSPACE=$(ls -d *.xcworkspace 2>/dev/null | head -n 1 || ls -d *.xcodeproj | head -n 1)
-          echo "Found workspace or project: $WORKSPACE"
+          WORKSPACE=$(ls -d *.xcworkspace | head -n 1)
+          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" -json | jq -r '.workspace.schemes[]' | grep -v "^Pods-" | head -n 1)
+          echo "Building Workspace: $WORKSPACE with Scheme: $SCHEME"
           
-          if [[ "$WORKSPACE" == *.xcworkspace ]]; then
-            xcodebuild -workspace "$WORKSPACE" \
-                       -scheme "FIMAXCinema" \
-                       -configuration Release \
-                       -sdk iphonesimulator \
-                       -derivedDataPath build \
-                       CODE_SIGN_IDENTITY="" \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGNING_ALLOWED=NO \
-                       build
-          else
-            xcodebuild -project "$WORKSPACE" \
-                       -scheme "FIMAXCinema" \
-                       -configuration Release \
-                       -sdk iphonesimulator \
-                       -derivedDataPath build \
-                       CODE_SIGN_IDENTITY="" \
-                       CODE_SIGNING_REQUIRED=NO \
-                       CODE_SIGNING_ALLOWED=NO \
-                       build
-          fi
+          xcodebuild -workspace "$WORKSPACE" \
+                     -scheme "$SCHEME" \
+                     -configuration Release \
+                     -sdk iphonesimulator \
+                     -derivedDataPath build \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     ONLY_ACTIVE_ARCH=NO \
+                     clean build
 
       - name: 📦 Package into .IPA File
         working-directory: ./netflix-clone-expo/ios
