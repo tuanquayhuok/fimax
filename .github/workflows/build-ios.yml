@@ -28,22 +28,21 @@ jobs:
       - name: 📦 Install Dependencies
         working-directory: ./netflix-clone-expo
         run: |
-          npm ci || npm install
+          npm install
 
       - name: ⚙️ Generate Native iOS Project with Expo Prebuild
         working-directory: ./netflix-clone-expo
+        env:
+          LANG: en_US.UTF-8
         run: |
-          npx expo prebuild --platform ios --clean --no-install
-
-      - name: 🍫 Install CocoaPods
-        working-directory: ./netflix-clone-expo/ios
-        run: |
-          pod install --repo-update || npx pod-install
+          npx expo prebuild --platform ios --clean
 
       - name: 🔨 Build iOS Project with Xcode (Unsigned / Sideload Ready)
         working-directory: ./netflix-clone-expo/ios
+        env:
+          LANG: en_US.UTF-8
         run: |
-          WORKSPACE_NAME=$(find . -maxdepth 1 -name "*.xcworkspace" | head -n 1 | sed 's|^\./||')
+          WORKSPACE_NAME=$(ls -d *.xcworkspace | head -n 1)
           SCHEME_NAME=$(basename "$WORKSPACE_NAME" .xcworkspace)
           echo "Discovered Workspace: $WORKSPACE_NAME | Scheme: $SCHEME_NAME"
           
