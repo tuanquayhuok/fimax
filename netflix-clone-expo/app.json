@@ -20,8 +20,11 @@
           "NSAllowsArbitraryLoads": true
         },
         "ITSAppUsesNonExemptEncryption": false,
-        "UIRequiresFullScreen": true,
-        "UIViewControllerBasedStatusBarAppearance": false
+        "UIRequiresFullScreen": false,
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "UIBackgroundModes": [
+          "audio"
+        ]
       }
     },
     "android": {

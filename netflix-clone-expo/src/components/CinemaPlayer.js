@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, StatusBar, Platform, Dimensions } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { AppContext } from '../context/AppContext';
@@ -24,6 +24,17 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
   const [selectedSubtitle, setSelectedSubtitle] = useState('Tiếng Việt');
   const [selectedAudio, setSelectedAudio] = useState('Gốc');
   const [activeSheet, setActiveSheet] = useState(null);
+
+  // Configure Audio for Background Mode & Native iOS Picture-in-Picture (PiP)
+  useEffect(() => {
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: true,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false
+    }).catch(() => {});
+  }, []);
 
   // Auto-listen to screen dimension / orientation changes
   useEffect(() => {
@@ -87,6 +98,20 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
     if (!isMiniPlayer && isLandscape) {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
     }
+    // If on web, invoke browser native Picture-in-Picture
+    if (Platform.OS === 'web') {
+      try {
+        const videoElements = document.querySelectorAll('video');
+        if (videoElements && videoElements.length > 0) {
+          const activeVid = videoElements[videoElements.length - 1];
+          if (document.pictureInPictureElement) {
+            document.exitPictureInPicture().catch(() => {});
+          } else if (activeVid && activeVid.requestPictureInPicture) {
+            activeVid.requestPictureInPicture().catch(() => {});
+          }
+        }
+      } catch (e) {}
+    }
     setIsMiniPlayer(prev => !prev);
   };
 
@@ -142,6 +167,10 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
               volume={1.0}
               resizeMode={ResizeMode.COVER}
               shouldPlay={isPlaying}
+              allowsPictureInPicturePlayback={true}
+              pictureInPicture={true}
+              playsInSilentModeIOS={true}
+              staysActiveInBackground={true}
               onPlaybackStatusUpdate={onPlaybackStatusUpdate}
               style={styles.miniVideo}
             />
@@ -187,6 +216,10 @@ export const CinemaPlayer = ({ visible, movie, onClose }) => {
           volume={1.0}
           resizeMode={isLandscape ? ResizeMode.COVER : ResizeMode.CONTAIN}
           shouldPlay={true}
+          allowsPictureInPicturePlayback={true}
+          pictureInPicture={true}
+          playsInSilentModeIOS={true}
+          staysActiveInBackground={true}
           onPlaybackStatusUpdate={onPlaybackStatusUpdate}
           style={styles.video}
         />

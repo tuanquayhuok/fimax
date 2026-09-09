@@ -8,7 +8,6 @@ import { SubscriptionManagerModal } from '../components/SubscriptionManagerModal
 import { EditProfileModal } from '../components/EditProfileModal';
 import { AppearanceSettingsModal } from '../components/AppearanceSettingsModal';
 import { RedeemCodeModal } from '../components/RedeemCodeModal';
-import { OtpVerificationModal } from '../components/OtpVerificationModal';
 import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 import { AdminManagerModal } from '../components/AdminManagerModal';
 
@@ -39,11 +38,7 @@ export const AccountScreen = () => {
   const [showVipModal, setShowVipModal] = useState(false);
   const [showSubManagerModal, setShowSubManagerModal] = useState(false);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpMode, setOtpMode] = useState('register'); // 'register' | 'forgot_password'
   const [showAdminModal, setShowAdminModal] = useState(false);
-  const [pendingRegistration, setPendingRegistration] = useState(null);
-  const [pendingReset, setPendingReset] = useState(null);
   
   // Secret 5-tap gesture counter for Owner Admin
   const [tapCount, setTapCount] = useState(0);
@@ -119,30 +114,18 @@ export const AccountScreen = () => {
   };
 
   const handleForgotPasswordSubmit = ({ email: resetEmail, newPassword }) => {
-    setPendingReset({ email: resetEmail, newPassword });
     setShowForgotModal(false);
-    setOtpMode('forgot_password');
-    setShowOtpModal(true);
-  };
-
-  const handleOtpSuccess = () => {
-    setShowOtpModal(false);
-    if (otpMode === 'register' && pendingRegistration) {
-      const result = register(pendingRegistration.name, pendingRegistration.email, pendingRegistration.password);
-      if (result.success) {
-        Alert.alert('Thành công', `Kích hoạt và đăng ký tài khoản ${pendingRegistration.email} thành công!`);
-      } else {
-        Alert.alert('Thông báo', result.error);
-      }
-      setPendingRegistration(null);
-    } else if (otpMode === 'forgot_password' && pendingReset) {
-      resetPassword(pendingReset.email, pendingReset.newPassword);
-      Alert.alert('Thành công', `Đặt lại mật khẩu cho tài khoản ${pendingReset.email} thành công! Vui lòng đăng nhập với mật khẩu mới.`);
-      setEmail(pendingReset.email);
-      setPassword('');
-      setPendingReset(null);
-      setAuthMode('login');
-    }
+    resetPassword(resetEmail, newPassword);
+    showNotificationPopup(
+      'Đặt Lại Mật Khẩu Thành Công',
+      `Mật khẩu cho tài khoản ${resetEmail} đã được cập nhật thành công.`,
+      null,
+      'auth'
+    );
+    Alert.alert('Thành công', `Đặt lại mật khẩu cho tài khoản ${resetEmail} thành công! Vui lòng đăng nhập với mật khẩu mới.`);
+    setEmail(resetEmail);
+    setPassword('');
+    setAuthMode('login');
   };
 
   const handleNotificationToggle = (val) => {
@@ -355,13 +338,6 @@ export const AccountScreen = () => {
         <AdminManagerModal
           visible={showAdminModal}
           onClose={() => setShowAdminModal(false)}
-        />
-
-        <OtpVerificationModal
-          visible={showOtpModal}
-          destination={otpMode === 'register' ? pendingRegistration?.email : pendingReset?.email}
-          onVerifySuccess={handleOtpSuccess}
-          onCancel={() => setShowOtpModal(false)}
         />
       </KeyboardAvoidingView>
     );
