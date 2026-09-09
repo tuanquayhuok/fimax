@@ -1,4 +1,5 @@
 import { MOCK_MOVIES } from '../data/mockMovies';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DEFAULT_API_URL = 'http://localhost:4000/api';
 const WEB_SOURCE_URL = 'http://fimax.aecongnghe.online/';
@@ -129,7 +130,14 @@ async function syncWebSourceInBackground(force = false) {
           if (!Array.isArray(list)) continue;
 
           for (const m of list) {
-            const videoUrl = m.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+            const sampleStreams = [
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+            ];
+            const fallbackStream = sampleStreams[Math.abs((m.id || 1) % sampleStreams.length)];
+            const videoUrl = (m.video_url && typeof m.video_url === 'string' && m.video_url.startsWith('http')) ? m.video_url : fallbackStream;
             const poster = formatBannerUrl(m.poster_path);
             const backdrop = formatBannerUrl(m.backdrop_path || m.poster_path);
             const country = cat === 'vietnam' ? 'Việt Nam' : (cat === 'korean' ? 'Hàn Quốc' : 'Âu Mỹ');
@@ -253,5 +261,56 @@ export const ApiService = {
       (m.originalTitle && m.originalTitle.toLowerCase().includes(q)) ||
       (Array.isArray(m.genres) && m.genres.some(g => g.toLowerCase().includes(q)))
     );
+  },
+
+  // Real View Count Management
+  async incrementViewCount(movieId, apiUrl = DEFAULT_API_URL) {
+    if (!movieId) return 1;
+    let newCount = null;
+
+    // 1. Local storage immediate increment
+    try {
+      const key = `fimax_view_count_${movieId}`;
+      const saved = await AsyncStorage.getItem(key);
+      const parsed = saved ? parseInt(saved, 10) : 0;
+      newCount = parsed + 1;
+      await AsyncStorage.setItem(key, newCount.toString());
+    } catch (e) {}
+
+    // 2. Call backend server
+    try {
+      const res = await fetch(`http://localhost:4000/api/movies/${encodeURIComponent(movieId)}/view`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data.viewCount === 'number') {
+          newCount = data.viewCount;
+          await AsyncStorage.setItem(`fimax_view_count_${movieId}`, newCount.toString());
+        }
+      }
+    } catch (e) {}
+
+    // 3. Update memoryCache
+    const target = memoryCache.find(m => m.id === movieId);
+    if (target && newCount !== null) {
+      target.viewCount = newCount;
+      notifyListeners();
+    }
+
+    return newCount || 1;
+  },
+
+  async getViewCount(movieId) {
+    if (!movieId) return 0;
+    try {
+      const key = `fimax_view_count_${movieId}`;
+      const saved = await AsyncStorage.getItem(key);
+      if (saved) return parseInt(saved, 10);
+    } catch (e) {}
+
+    const target = memoryCache.find(m => m.id === movieId);
+    return target?.viewCount || 0;
   }
 };

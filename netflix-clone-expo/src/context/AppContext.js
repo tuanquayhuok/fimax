@@ -25,9 +25,29 @@ export const AppProvider = ({ children }) => {
   const [fontSizeScale, setFontSizeScale] = useState(1.0);
   const [fontWeightMode, setFontWeightMode] = useState('regular');
   const [layoutDensity, setLayoutDensity] = useState('comfortable');
+  const [appIcon, setAppIcon] = useState('classic_red');
+  const [ambientLighting, setAmbientLighting] = useState(true);
+  const [frameRate, setFrameRateState] = useState(60); // 30, 45, 60, 90, 120 FPS
 
   // Notification System State - Default is false (OFF) as requested
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+
+  // 1. Daily Check-in & Rewards Points Wallet
+  const [fimaxPoints, setFimaxPointsState] = useState(650);
+  const [checkInStreak, setCheckInStreakState] = useState(3);
+  const [lastCheckInDate, setLastCheckInDate] = useState(null);
+  const [redeemedRewards, setRedeemedRewards] = useState([]);
+
+  // 2. Movie Requests
+  const [movieRequests, setMovieRequestsState] = useState([
+    { id: 'req_1', title: 'Spider-Man: Beyond the Spider-Verse', year: '2025', genre: 'Hoạt hình / Sci-Fi', upvotes: 142, status: 'Đang tìm bản 4K HDR', requester: 'Hoàng Long' },
+    { id: 'req_2', title: 'Oppenheimer (Bản IMAX Enhanced)', year: '2023', genre: 'Lịch sử / Kịch tính', upvotes: 98, status: 'Đã có tại Rạp FIMAX', requester: 'Minh Tuấn' },
+    { id: 'req_3', title: 'Dune: Part Two (Dolby Vision)', year: '2024', genre: 'Khoa học viễn tưởng', upvotes: 215, status: 'Đã có tại Rạp FIMAX', requester: 'Thu Trang' },
+    { id: 'req_4', title: 'Lật Mặt 8: Vòng Tay Mẹ', year: '2025', genre: 'Hành động / Gia đình', upvotes: 310, status: 'Đang xếp lịch chiếu rạp', requester: 'Lý Hải Fan' }
+  ]);
+
+  // 3. Watch Party Active Room State
+  const [activeWatchParty, setActiveWatchParty] = useState(null);
 
   // Dynamic URLs
   const [apiUrl, setApiUrl] = useState('http://localhost:4000/api');
@@ -67,12 +87,177 @@ export const AppProvider = ({ children }) => {
             setFavorites(JSON.parse(savedFavs));
           } catch (e) {}
         }
+
+        const savedIcon = await StorageService.getItem('@fimax_app_icon');
+        if (savedIcon) setAppIcon(savedIcon);
+
+        const savedAccent = await StorageService.getItem('@fimax_accent_color');
+        if (savedAccent) setAccentColor(savedAccent);
+
+        const savedTheme = await StorageService.getItem('@fimax_theme_mode');
+        if (savedTheme) setThemeMode(savedTheme);
+
+        const savedFps = await StorageService.getItem('@fimax_frame_rate');
+        if (savedFps) setFrameRateState(Number(savedFps));
+
+        const savedPts = await StorageService.getItem('@fimax_points');
+        if (savedPts) setFimaxPointsState(Number(savedPts));
+
+        const savedStreak = await StorageService.getItem('@fimax_checkin_streak');
+        if (savedStreak) setCheckInStreakState(Number(savedStreak));
+
+        const savedLastCheckIn = await StorageService.getItem('@fimax_last_checkin');
+        if (savedLastCheckIn) setLastCheckInDate(savedLastCheckIn);
+
+        const savedReqs = await StorageService.getItem('@fimax_movie_requests');
+        if (savedReqs) {
+          try {
+            setMovieRequestsState(JSON.parse(savedReqs));
+          } catch (e) {}
+        }
       } catch (e) {
         console.warn('Load persisted state error:', e);
       }
     }
     loadPersistedState();
   }, []);
+
+  const setFimaxPoints = (pts) => {
+    setFimaxPointsState(pts);
+    StorageService.setItem('@fimax_points', String(pts));
+  };
+
+  const checkInToday = () => {
+    const todayStr = new Date().toDateString();
+    if (lastCheckInDate === todayStr) {
+      return { success: false, message: 'Hôm nay bạn đã điểm danh rồi! Hãy quay lại vào ngày mai nhé.' };
+    }
+
+    const newStreak = (checkInStreak % 7) + 1;
+    // Points per streak day: Day 1=50, Day 2=100, Day 3=150, Day 4=200, Day 5=250, Day 6=300, Day 7=500
+    const pointsGained = newStreak === 7 ? 500 : newStreak * 50;
+    const newTotal = fimaxPoints + pointsGained;
+
+    setFimaxPointsState(newTotal);
+    setCheckInStreakState(newStreak);
+    setLastCheckInDate(todayStr);
+
+    StorageService.setItem('@fimax_points', String(newTotal));
+    StorageService.setItem('@fimax_checkin_streak', String(newStreak));
+    StorageService.setItem('@fimax_last_checkin', todayStr);
+
+    return {
+      success: true,
+      pointsGained,
+      newTotal,
+      newStreak,
+      message: `Điểm danh Ngày ${newStreak} thành công! Bạn nhận được +${pointsGained} F-Points.`
+    };
+  };
+
+  const redeemReward = (rewardItem) => {
+    if (fimaxPoints < rewardItem.cost) {
+      return { success: false, message: `Bạn cần ${rewardItem.cost} điểm để đổi "${rewardItem.title}". Hiện tại bạn có ${fimaxPoints} điểm.` };
+    }
+
+    const nextPoints = fimaxPoints - rewardItem.cost;
+    setFimaxPointsState(nextPoints);
+    StorageService.setItem('@fimax_points', String(nextPoints));
+
+    const newRedeemed = [...redeemedRewards, { ...rewardItem, redeemedAt: new Date().toISOString(), code: 'FMX-' + Math.floor(100000 + Math.random() * 900000) }];
+    setRedeemedRewards(newRedeemed);
+
+    // If VIP reward, grant VIP to user
+    if (rewardItem.isVip && user) {
+      updateUserProfile({ isVip: true, plan: rewardItem.title });
+    }
+
+    return {
+      success: true,
+      remainingPoints: nextPoints,
+      code: newRedeemed[newRedeemed.length - 1].code,
+      message: `Đổi quà thành công! Đã nhận "${rewardItem.title}".`
+    };
+  };
+
+  const submitMovieRequest = (title, year, genre, note = '') => {
+    if (!title.trim()) return { success: false, message: 'Vui lòng nhập tên bộ phim.' };
+
+    const newReq = {
+      id: 'req_' + Date.now(),
+      title: title.trim(),
+      year: year || '2026',
+      genre: genre || 'Điện Ảnh',
+      note: note.trim(),
+      upvotes: 1,
+      status: 'Đang tiếp nhận & kiểm duyệt',
+      requester: user ? user.name : 'Khán giả FIMAX',
+      createdAt: 'Vừa xong'
+    };
+
+    const nextReqs = [newReq, ...movieRequests];
+    setMovieRequestsState(nextReqs);
+    StorageService.setItem('@fimax_movie_requests', JSON.stringify(nextReqs));
+
+    return { success: true, request: newReq, message: `Yêu cầu phim "${title}" đã được gửi lên ban biên tập rạp FIMAX!` };
+  };
+
+  const upvoteMovieRequest = (reqId) => {
+    const nextReqs = movieRequests.map(r => {
+      if (r.id === reqId) {
+        return { ...r, upvotes: (r.upvotes || 0) + 1 };
+      }
+      return r;
+    });
+    setMovieRequestsState(nextReqs);
+    StorageService.setItem('@fimax_movie_requests', JSON.stringify(nextReqs));
+  };
+
+  const createWatchParty = (movie, roomName = null) => {
+    const roomCode = 'FMX-' + Math.floor(1000 + Math.random() * 9000);
+    const room = {
+      id: 'room_' + Date.now(),
+      roomCode,
+      name: roomName || `Phòng xem phim của ${user ? user.name : 'Bạn'}`,
+      movie,
+      host: user ? { id: user.id, name: user.name, avatar: user.avatar } : { id: 'host', name: 'Chủ Phòng', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200' },
+      members: [
+        user ? { id: user.id, name: user.name, avatar: user.avatar, isHost: true } : { id: 'host', name: 'Chủ Phòng', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200', isHost: true }
+      ],
+      createdAt: new Date().toISOString()
+    };
+    setActiveWatchParty(room);
+    return room;
+  };
+
+  const joinWatchParty = (roomCode, movie = null) => {
+    const cleanCode = roomCode.trim().toUpperCase();
+    const room = {
+      id: 'room_' + Date.now(),
+      roomCode: cleanCode,
+      name: `Phòng Xem Chung ${cleanCode}`,
+      movie: movie || { id: 'mov_1', title: 'Đào, Phở và Piano', posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
+      host: { id: 'host_1', name: 'Minh Trí (Host)', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200' },
+      members: [
+        { id: 'host_1', name: 'Minh Trí', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200', isHost: true },
+        { id: 'm_2', name: 'Phương Thảo', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200', isHost: false },
+        { id: 'm_3', name: 'Hoàng Long', avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=200', isHost: false },
+        user ? { id: user.id, name: user.name, avatar: user.avatar, isHost: false } : { id: 'guest_' + Date.now(), name: 'Khách Xem', avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200', isHost: false }
+      ],
+      createdAt: new Date().toISOString()
+    };
+    setActiveWatchParty(room);
+    return room;
+  };
+
+  const leaveWatchParty = () => {
+    setActiveWatchParty(null);
+  };
+
+  const setFrameRate = (fps) => {
+    setFrameRateState(fps);
+    StorageService.setItem('@fimax_frame_rate', String(fps));
+  };
 
   const setNotificationsEnabled = (val) => {
     setNotificationsEnabledState(val);
@@ -256,18 +441,47 @@ export const AppProvider = ({ children }) => {
       activeMovieForPlayer,
       setActiveMovieForPlayer,
       themeMode,
-      setThemeMode,
+      setThemeMode: (mode) => {
+        setThemeMode(mode);
+        StorageService.setItem('@fimax_theme_mode', mode);
+      },
       accentColor,
-      setAccentColor,
+      setAccentColor: (color) => {
+        setAccentColor(color);
+        StorageService.setItem('@fimax_accent_color', color);
+      },
       fontSizeScale,
       setFontSizeScale,
       fontWeightMode,
       setFontWeightMode,
       layoutDensity,
       setLayoutDensity,
+      appIcon,
+      setAppIcon: (iconId) => {
+        setAppIcon(iconId);
+        StorageService.setItem('@fimax_app_icon', iconId);
+      },
+      ambientLighting,
+      setAmbientLighting,
+      frameRate,
+      setFrameRate,
       notificationsEnabled,
       setNotificationsEnabled,
       showNotificationPopup,
+      fimaxPoints,
+      setFimaxPoints,
+      checkInStreak,
+      lastCheckInDate,
+      checkInToday,
+      redeemReward,
+      redeemedRewards,
+      movieRequests,
+      submitMovieRequest,
+      upvoteMovieRequest,
+      activeWatchParty,
+      createWatchParty,
+      joinWatchParty,
+      leaveWatchParty,
       apiUrl,
       setApiUrl,
       callbackUrl,

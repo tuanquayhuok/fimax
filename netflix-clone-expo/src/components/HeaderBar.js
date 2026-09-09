@@ -5,6 +5,7 @@ import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { SearchModal } from './SearchModal';
 import { NotificationModal } from './NotificationModal';
+import { HamburgerMenuModal } from './HamburgerMenuModal';
 
 export const HeaderBar = ({ navigation }) => {
   const { user, themeMode, accentColor } = useContext(AppContext);
@@ -12,6 +13,7 @@ export const HeaderBar = ({ navigation }) => {
   
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
 
   return (
     <View style={[styles.headerContainer, { backgroundColor: theme.headerBg, borderBottomColor: theme.border }]}>
@@ -57,6 +59,15 @@ export const HeaderBar = ({ navigation }) => {
             style={[styles.avatarImg, { borderColor: accentColor }]}
           />
         </TouchableOpacity>
+
+        {/* Hamburger Menu Icon beside User Avatar */}
+        <TouchableOpacity
+          style={[styles.hamburgerBtn, { backgroundColor: theme.surfaceSecondary }]}
+          activeOpacity={0.7}
+          onPress={() => setShowHamburgerMenu(true)}
+        >
+          <Ionicons name="menu" size={20} color={theme.textPrimary} />
+        </TouchableOpacity>
       </View>
 
       {/* Global Search Modal */}
@@ -70,6 +81,13 @@ export const HeaderBar = ({ navigation }) => {
       <NotificationModal
         visible={showNotificationModal}
         onClose={() => setShowNotificationModal(false)}
+      />
+
+      {/* Global Hamburger Drawer Menu */}
+      <HamburgerMenuModal
+        visible={showHamburgerMenu}
+        onClose={() => setShowHamburgerMenu(false)}
+        navigation={navigation}
       />
     </View>
   );
@@ -129,5 +147,13 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: 17,
     borderWidth: 1.5
+  },
+  hamburgerBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 2
   }
 });

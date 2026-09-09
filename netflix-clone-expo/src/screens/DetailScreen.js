@@ -98,6 +98,7 @@ export const DetailScreen = ({ route, navigation }) => {
   const [showTrailerModal, setShowTrailerModal] = useState(false);
   const [userRating, setUserRating] = useState(null);
   const [similarMovies, setSimilarMovies] = useState([]);
+  const [realViews, setRealViews] = useState(movie?.viewCount || 0);
 
   const castMembers = getMovieCast(movie);
 
@@ -116,18 +117,22 @@ export const DetailScreen = ({ route, navigation }) => {
       })
     ]).start();
 
-    async function loadSimilar() {
+    async function loadMovieData() {
       try {
+        if (movie?.id) {
+          const v = await ApiService.getViewCount(movie.id);
+          if (v) setRealViews(v);
+        }
         const all = await ApiService.getAllMovies();
         if (all && all.length > 0) {
           const filtered = all.filter(m => m.id !== movie?.id).slice(0, 6);
           setSimilarMovies(filtered);
         }
       } catch (e) {
-        console.warn('Load similar movies error:', e);
+        console.warn('Load movie data error:', e);
       }
     }
-    loadSimilar();
+    loadMovieData();
   }, [movie]);
 
   if (!movie) {
@@ -263,6 +268,14 @@ export const DetailScreen = ({ route, navigation }) => {
             <Text style={[styles.metaText, { color: theme.textMuted }]}>{displayYear}</Text>
             <Text style={[styles.metaDotText, { color: theme.textMuted }]}>•</Text>
             <Text style={[styles.metaText, { color: theme.textMuted }]}>{movie.duration || '115 phút'}</Text>
+            <Text style={[styles.metaDotText, { color: theme.textMuted }]}>•</Text>
+            <Text style={[styles.metaText, { color: theme.textMuted }]}>
+              {realViews >= 1000000
+                ? `${(realViews / 1000000).toFixed(1).replace('.0', '')}M lượt xem`
+                : realViews >= 1000
+                  ? `${(realViews / 1000).toFixed(1).replace('.0', '')}K lượt xem`
+                  : `${realViews} lượt xem`}
+            </Text>
           </View>
 
           {/* Genre Tags */}

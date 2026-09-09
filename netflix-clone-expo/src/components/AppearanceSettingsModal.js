@@ -1,15 +1,99 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  Switch
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
-import { Colors } from '../theme/colors';
+import { NotificationService } from '../services/notificationService';
+
+const APP_ICONS = [
+  {
+    id: 'classic_red',
+    name: 'FIMAX Classic',
+    subtitle: 'Đỏ Rạp Phim Gốc',
+    bg: '#E50914',
+    iconColor: '#FFFFFF',
+    badge: 'Original',
+    iconName: 'film'
+  },
+  {
+    id: 'gold_vip',
+    name: 'FIMAX Royal Gold',
+    subtitle: 'Vàng Hoàng Gia 24K',
+    bg: '#1A1810',
+    borderColor: '#D4AF37',
+    iconColor: '#D4AF37',
+    badge: 'VIP',
+    iconName: 'sparkles'
+  },
+  {
+    id: 'cyberpunk',
+    name: 'Cyberpunk Neon',
+    subtitle: 'Xanh Điện Quang',
+    bg: '#0A1A2F',
+    borderColor: '#00D2FF',
+    iconColor: '#00D2FF',
+    badge: 'Sci-Fi',
+    iconName: 'flash'
+  },
+  {
+    id: 'velvet_purple',
+    name: 'Velvet Midnight',
+    subtitle: 'Tím Màn Nhung Rạp',
+    bg: '#1F102B',
+    borderColor: '#AF52DE',
+    iconColor: '#AF52DE',
+    badge: 'Cinema',
+    iconName: 'moon'
+  },
+  {
+    id: 'emerald_diamond',
+    name: 'Emerald Diamond',
+    subtitle: 'Xanh Ngọc Lục Bảo',
+    bg: '#0D2418',
+    borderColor: '#30D158',
+    iconColor: '#30D158',
+    badge: 'Luxury',
+    iconName: 'diamond'
+  },
+  {
+    id: 'sunset_flame',
+    name: 'Sunset Flame',
+    subtitle: 'Cam Lửa Rực Rỡ',
+    bg: '#2B1405',
+    borderColor: '#FF9500',
+    iconColor: '#FF9500',
+    badge: 'Hot',
+    iconName: 'flame'
+  },
+  {
+    id: 'stealth_black',
+    name: 'Stealth Titanium',
+    subtitle: 'Titanium Đen Mờ',
+    bg: '#161618',
+    borderColor: '#8E8E93',
+    iconColor: '#E5E5EA',
+    badge: 'Stealth',
+    iconName: 'shield-checkmark'
+  }
+];
 
 const ACCENT_COLORS = [
   { id: '#E50914', name: 'Đỏ Crimson (Mặc định)', color: '#E50914' },
-  { id: '#D4AF37', name: 'Vàng Champagne VIP', color: '#D4AF37' },
-  { id: '#0A84FF', name: 'Xanh Cyberpunk', color: '#0A84FF' },
+  { id: '#D4AF37', name: 'Vàng Hoàng Gia VIP', color: '#D4AF37' },
+  { id: '#00D2FF', name: 'Xanh Cyberpunk', color: '#00D2FF' },
   { id: '#AF52DE', name: 'Tím Velvet Cinema', color: '#AF52DE' },
-  { id: '#30D158', name: 'Xanh Emerald', color: '#30D158' }
+  { id: '#30D158', name: 'Xanh Emerald', color: '#30D158' },
+  { id: '#FF9500', name: 'Cam Hoàng Hôn', color: '#FF9500' },
+  { id: '#FF2D55', name: 'Hồng Sakura Neon', color: '#FF2D55' },
+  { id: '#5AC8FA', name: 'Xanh Băng Tuyết', color: '#5AC8FA' }
 ];
 
 const FONT_SIZES = [
@@ -26,13 +110,24 @@ const FONT_WEIGHTS = [
   { id: 'heavy', name: 'Siêu Đậm', weight: '900' }
 ];
 
+const FRAME_RATES = [
+  { id: 30, name: '30 FPS', sub: 'Tiết kiệm pin' },
+  { id: 45, name: '45 FPS', sub: 'Cân bằng' },
+  { id: 60, name: '60 FPS', sub: 'Chuẩn điện ảnh' },
+  { id: 90, name: '90 FPS', sub: 'ProMotion' },
+  { id: 120, name: '120 FPS', sub: 'Ultra Extreme' }
+];
+
 export const AppearanceSettingsModal = ({ visible, onClose }) => {
   const {
     themeMode, setThemeMode,
     accentColor, setAccentColor,
     fontSizeScale, setFontSizeScale,
     fontWeightMode, setFontWeightMode,
-    layoutDensity, setLayoutDensity
+    layoutDensity, setLayoutDensity,
+    appIcon, setAppIcon,
+    ambientLighting, setAmbientLighting,
+    frameRate, setFrameRate
   } = useContext(AppContext);
 
   // Local state for interactive editing before save
@@ -41,14 +136,31 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
   const [tempSize, setTempSize] = useState(fontSizeScale);
   const [tempWeight, setTempWeight] = useState(fontWeightMode);
   const [tempDensity, setTempDensity] = useState(layoutDensity);
+  const [tempAppIcon, setTempAppIcon] = useState(appIcon || 'classic_red');
+  const [tempAmbient, setTempAmbient] = useState(ambientLighting !== false);
+  const [tempFps, setTempFps] = useState(frameRate || 60);
 
-  const handleSave = () => {
+  const activeIconObj = APP_ICONS.find(i => i.id === tempAppIcon) || APP_ICONS[0];
+
+  const handleSave = async () => {
     setThemeMode(tempTheme);
     setAccentColor(tempColor);
     setFontSizeScale(tempSize);
     setFontWeightMode(tempWeight);
     setLayoutDensity(tempDensity);
-    Alert.alert('Thành công', 'Đã lưu cấu hình giao diện & cỡ chữ mới!');
+    setAppIcon(tempAppIcon);
+    setAmbientLighting(tempAmbient);
+    if (setFrameRate) setFrameRate(tempFps);
+
+    try {
+      await NotificationService.sendNativeNotification(
+        'Đã Đổi Giao Diện & Icon 🎉',
+        `Giao diện FIMAX đã được cập nhật theo phong cách "${activeIconObj.name}".`,
+        { type: 'appearance' }
+      );
+    } catch (e) {}
+
+    Alert.alert('Thành công', 'Đã lưu cấu hình Giao diện & Icon ứng dụng mới!');
     onClose();
   };
 
@@ -58,6 +170,9 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
     setTempSize(1.0);
     setTempWeight('regular');
     setTempDensity('comfortable');
+    setTempAppIcon('classic_red');
+    setTempAmbient(true);
+    setTempFps(60);
   };
 
   const selectedWeightValue = FONT_WEIGHTS.find(w => w.id === tempWeight)?.weight || '500';
@@ -68,7 +183,10 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
         <View style={styles.sheet}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Tùy Chỉnh Giao Diện & Cỡ Chữ</Text>
+            <View style={styles.headerTitleRow}>
+              <Ionicons name="color-palette" size={22} color={tempColor} />
+              <Text style={styles.headerTitle}>Studio Giao Diện & Icon App</Text>
+            </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Ionicons name="close" size={22} color="#8E8E93" />
             </TouchableOpacity>
@@ -79,31 +197,51 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
             <Text style={styles.sectionHeading}>XEM TRƯỚC THỜI GIAN THỰC (LIVE PREVIEW)</Text>
             <View style={[
               styles.previewBox,
-              { backgroundColor: tempTheme === 'light' ? '#FFFFFF' : '#141416' }
+              {
+                backgroundColor: tempTheme === 'light' ? '#FFFFFF' : (tempTheme === 'midnight' ? '#0D1117' : '#121214'),
+                borderColor: tempAmbient ? `${tempColor}50` : 'rgba(255, 255, 255, 0.1)'
+              }
             ]}>
-              <View style={[styles.previewBadge, { backgroundColor: tempColor }]}>
-                <Text style={styles.previewBadgeText}>4K ULTRA HD</Text>
-              </View>
+              <View style={styles.previewTopRow}>
+                {/* Simulated App Icon Mini Card */}
+                <View style={[
+                  styles.previewMiniIcon,
+                  {
+                    backgroundColor: activeIconObj.bg,
+                    borderColor: activeIconObj.borderColor || `${tempColor}80`,
+                    borderWidth: 1.5
+                  }
+                ]}>
+                  <Ionicons name={activeIconObj.iconName || 'film'} size={20} color={activeIconObj.iconColor} />
+                  <Text style={[styles.previewIconMiniText, { color: activeIconObj.iconColor }]}>F</Text>
+                </View>
 
-              <Text style={[
-                styles.previewTitle,
-                {
-                  color: tempTheme === 'light' ? '#000000' : '#FFFFFF',
-                  fontSize: 20 * tempSize,
-                  fontWeight: selectedWeightValue
-                }
-              ]}>
-                FIMAX Cinema Original
-              </Text>
+                <View style={{ flex: 1 }}>
+                  <View style={[styles.previewBadge, { backgroundColor: tempColor }]}>
+                    <Text style={styles.previewBadgeText}>4K ULTRA HD • HDR • {tempFps} FPS</Text>
+                  </View>
+                  <Text style={[
+                    styles.previewTitle,
+                    {
+                      color: tempTheme === 'light' ? '#000000' : '#FFFFFF',
+                      fontSize: 18 * tempSize,
+                      fontWeight: selectedWeightValue,
+                      marginTop: 4
+                    }
+                  ]}>
+                    FIMAX Cinema Studio
+                  </Text>
+                </View>
+              </View>
 
               <Text style={[
                 styles.previewSubtitle,
                 {
                   color: tempTheme === 'light' ? '#636366' : '#8E8E93',
-                  fontSize: 12 * tempSize
+                  fontSize: 11.5 * tempSize
                 }
               ]}>
-                Trải nghiệm phim điện ảnh với màu sắc và cỡ chữ tùy chỉnh theo sở thích của bạn.
+                Icon: <Text style={{ color: activeIconObj.iconColor, fontWeight: '700' }}>{activeIconObj.name}</Text> • Tần số quét: <Text style={{ color: tempColor, fontWeight: '700' }}>{tempFps} FPS</Text>
               </Text>
 
               <TouchableOpacity
@@ -112,48 +250,132 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
               >
                 <Ionicons name="play" size={16} color="#FFFFFF" />
                 <Text style={[styles.previewBtnText, { fontSize: 13 * tempSize, fontWeight: selectedWeightValue }]}>
-                  Xem Phim Ngay
+                  Trải Nghiệm Rạp Phim ({tempFps} FPS)
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* 2. Theme Mode (Sáng / Tối) */}
-            <Text style={styles.sectionHeading}>CHẾ ĐỘ NỀN GIAO DIỆN</Text>
+            {/* 2. Custom App Icons Selection */}
+            <Text style={styles.sectionHeading}>BIỂU TƯỢNG ỨNG DỤNG (CUSTOM APP ICONS)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.appIconsScroll}>
+              {APP_ICONS.map((icon) => {
+                const isSelected = tempAppIcon === icon.id;
+                return (
+                  <TouchableOpacity
+                    key={icon.id}
+                    style={[
+                      styles.appIconCard,
+                      isSelected && { borderColor: icon.iconColor, borderWidth: 2, transform: [{ scale: 1.04 }] }
+                    ]}
+                    activeOpacity={0.85}
+                    onPress={() => {
+                      setTempAppIcon(icon.id);
+                      if (icon.borderColor) setTempColor(icon.borderColor);
+                      else if (icon.bg && icon.bg.startsWith('#') && icon.bg !== '#1A1810') setTempColor(icon.bg);
+                    }}
+                  >
+                    <View style={[
+                      styles.appIconSquircle,
+                      {
+                        backgroundColor: icon.bg,
+                        borderColor: icon.borderColor || 'rgba(255, 255, 255, 0.15)'
+                      }
+                    ]}>
+                      <Ionicons name={icon.iconName || 'film'} size={26} color={icon.iconColor} />
+                      <Text style={[styles.appIconLetter, { color: icon.iconColor }]}>F</Text>
+                      {isSelected && (
+                        <View style={[styles.appIconCheckBadge, { backgroundColor: icon.iconColor }]}>
+                          <Ionicons name="checkmark" size={10} color="#000000" />
+                        </View>
+                      )}
+                    </View>
+                    <Text style={[styles.appIconName, isSelected && { color: '#FFFFFF', fontWeight: '700' }]} numberOfLines={1}>
+                      {icon.name}
+                    </Text>
+                    <Text style={styles.appIconSub} numberOfLines={1}>
+                      {icon.badge}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* 3. Tốc độ khung hình (Frame Rate / FPS) */}
+            <Text style={styles.sectionHeading}>TỐC ĐỘ KHUNG HÌNH & TẦN SỐ QUÉT (FPS)</Text>
+            <View style={styles.pillGrid}>
+              {FRAME_RATES.map((fps) => {
+                const active = tempFps === fps.id;
+                return (
+                  <TouchableOpacity
+                    key={fps.id}
+                    style={[styles.pillBtn, active && { backgroundColor: tempColor, borderColor: tempColor }]}
+                    onPress={() => setTempFps(fps.id)}
+                  >
+                    <Text style={[styles.pillText, active && styles.pillTextActive, { fontWeight: '800' }]}>
+                      {fps.name}
+                    </Text>
+                    <Text style={[{ fontSize: 9, marginTop: 1 }, active ? { color: 'rgba(255,255,255,0.85)' } : { color: '#8E8E93' }]}>
+                      {fps.sub}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* 4. Theme Mode (Sáng / Tối / Midnight) */}
+            <Text style={styles.sectionHeading}>CHẾ ĐỘ NỀN RẠP PHIM</Text>
             <View style={styles.segmentRow}>
               {[
                 { id: 'dark', name: 'Tối OLED', icon: 'moon' },
-                { id: 'light', name: 'Sáng', icon: 'sunny' },
-                { id: 'system', name: 'Hệ Thống', icon: 'phone-portrait-outline' }
+                { id: 'midnight', name: 'Midnight', icon: 'planet' },
+                { id: 'light', name: 'Sáng', icon: 'sunny' }
               ].map((t) => {
                 const active = tempTheme === t.id;
                 return (
                   <TouchableOpacity
                     key={t.id}
-                    style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                    style={[styles.segmentBtn, active && { backgroundColor: tempColor }]}
                     onPress={() => setTempTheme(t.id)}
                   >
-                    <Ionicons name={t.icon} size={18} color={active ? '#FFFFFF' : '#8E8E93'} />
+                    <Ionicons name={t.icon} size={17} color={active ? '#FFFFFF' : '#8E8E93'} />
                     <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t.name}</Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            {/* 3. Accent Color (Màu Chủ Đạo) */}
+            {/* 4. Ambient Cinema Lighting Switch */}
+            <View style={styles.switchRowCard}>
+              <View style={styles.switchInfo}>
+                <Ionicons name="bulb-outline" size={20} color={tempColor} />
+                <View>
+                  <Text style={styles.switchLabel}>Ánh Sáng Rạp Phim (Ambient Glow)</Text>
+                  <Text style={styles.switchSubLabel}>Hiệu ứng hào quang mờ ảo theo màu chủ đạo</Text>
+                </View>
+              </View>
+              <Switch
+                value={tempAmbient}
+                onValueChange={setTempAmbient}
+                trackColor={{ false: '#3A3A3C', true: tempColor }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+
+            {/* 5. Accent Color (8 Luxury Colors) */}
             <Text style={styles.sectionHeading}>MÀU SẮC CHỦ ĐẠO HỆ THỐNG</Text>
-            <View style={styles.colorWrap}>
+            <View style={styles.colorGrid}>
               {ACCENT_COLORS.map((c) => {
                 const isSelected = tempColor === c.id;
                 return (
                   <TouchableOpacity
                     key={c.id}
-                    style={[styles.colorItem, isSelected && { borderColor: c.color, borderWidth: 2 }]}
+                    style={[styles.colorGridItem, isSelected && { borderColor: c.color, borderWidth: 2 }]}
                     onPress={() => setTempColor(c.id)}
                   >
                     <View style={[styles.colorCircle, { backgroundColor: c.color }]}>
-                      {isSelected && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+                      {isSelected && <Ionicons name="checkmark" size={14} color="#FFFFFF" />}
                     </View>
-                    <Text style={[styles.colorName, isSelected && { color: '#FFFFFF', fontWeight: '700' }]}>
+                    <Text style={[styles.colorGridName, isSelected && { color: '#FFFFFF', fontWeight: '700' }]} numberOfLines={1}>
                       {c.name}
                     </Text>
                   </TouchableOpacity>
@@ -161,7 +383,7 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
               })}
             </View>
 
-            {/* 4. Font Size Scale (Kích Thước Cỡ Chữ) */}
+            {/* 6. Font Size Scale */}
             <Text style={styles.sectionHeading}>KÍCH THƯỚC CỠ CHỮ HỆ THỐNG</Text>
             <View style={styles.pillGrid}>
               {FONT_SIZES.map((f) => {
@@ -178,7 +400,7 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
               })}
             </View>
 
-            {/* 5. Font Weight (Độ Đậm Nhạt) */}
+            {/* 7. Font Weight */}
             <Text style={styles.sectionHeading}>ĐỘ ĐẬM NHẠT CHỮ (FONT WEIGHT)</Text>
             <View style={styles.pillGrid}>
               {FONT_WEIGHTS.map((w) => {
@@ -197,18 +419,18 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
               })}
             </View>
 
-            {/* 6. Layout Density (Mật Độ Hiển Thị) */}
+            {/* 8. Layout Density */}
             <Text style={styles.sectionHeading}>MẬT ĐỘ BỐ CỤC (LAYOUT DENSITY)</Text>
             <View style={styles.segmentRow}>
               {[
-                { id: 'compact', name: 'Gọn Gàng (Nhiều phim hơn)' },
+                { id: 'compact', name: 'Gọn Gàng (Hiển thị nhiều phim)' },
                 { id: 'comfortable', name: 'Rộng Rãi (Tiêu chuẩn rạp)' }
               ].map((d) => {
                 const active = tempDensity === d.id;
                 return (
                   <TouchableOpacity
                     key={d.id}
-                    style={[styles.segmentBtn, active && styles.segmentBtnActive]}
+                    style={[styles.segmentBtn, active && { backgroundColor: tempColor }]}
                     onPress={() => setTempDensity(d.id)}
                   >
                     <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{d.name}</Text>
@@ -224,11 +446,12 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
               </TouchableOpacity>
 
               <TouchableOpacity style={[styles.saveBtn, { backgroundColor: tempColor }]} onPress={handleSave}>
+                <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
                 <Text style={styles.saveBtnText}>LƯU CÀI ĐẶT</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={{ height: 30 }} />
+            <View style={{ height: 40 }} />
           </ScrollView>
         </View>
       </View>
@@ -239,17 +462,17 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'flex-end'
   },
   sheet: {
-    backgroundColor: '#101012',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '92%',
+    backgroundColor: '#0F0F12',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    maxHeight: '94%',
     paddingBottom: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
+    borderColor: 'rgba(255, 255, 255, 0.1)'
   },
   header: {
     flexDirection: 'row',
@@ -260,33 +483,57 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.08)'
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700'
+    fontSize: 17,
+    fontWeight: '800'
   },
   closeBtn: {
     padding: 4
   },
   body: {
-    padding: 20
+    padding: 18
   },
   sectionHeading: {
     color: '#8E8E93',
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
     marginBottom: 10,
-    marginTop: 8,
+    marginTop: 10,
     marginLeft: 2
   },
   previewBox: {
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 18,
+    borderWidth: 1.5,
     gap: 8
+  },
+  previewTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  previewMiniIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative'
+  },
+  previewIconMiniText: {
+    position: 'absolute',
+    bottom: 2,
+    right: 4,
+    fontSize: 9,
+    fontWeight: '900'
   },
   previewBadge: {
     paddingHorizontal: 6,
@@ -296,7 +543,7 @@ const styles = StyleSheet.create({
   },
   previewBadgeText: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '800'
   },
   previewTitle: {
@@ -310,19 +557,78 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 10,
     marginTop: 4,
     gap: 6
   },
   previewBtnText: {
     color: '#FFFFFF'
   },
+
+  // App Icons Scroll
+  appIconsScroll: {
+    gap: 10,
+    paddingBottom: 12
+  },
+  appIconCard: {
+    width: 96,
+    backgroundColor: '#18181C',
+    borderRadius: 14,
+    padding: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  appIconSquircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
+    borderWidth: 1,
+    position: 'relative',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5
+  },
+  appIconLetter: {
+    position: 'absolute',
+    bottom: 2,
+    right: 4,
+    fontSize: 10,
+    fontWeight: '900'
+  },
+  appIconCheckBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  appIconName: {
+    color: '#8E8E93',
+    fontSize: 10.5,
+    fontWeight: '600',
+    textAlign: 'center'
+  },
+  appIconSub: {
+    color: '#636366',
+    fontSize: 9,
+    marginTop: 1
+  },
+
+  // Segment Row
   segmentRow: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#18181C',
     borderRadius: 12,
     padding: 4,
-    marginBottom: 18,
+    marginBottom: 16,
     gap: 4
   },
   segmentBtn: {
@@ -331,59 +637,92 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: 9,
     gap: 6
-  },
-  segmentBtnActive: {
-    backgroundColor: '#2C2C2E'
   },
   segmentText: {
     color: '#8E8E93',
-    fontSize: 12,
-    fontWeight: '500'
+    fontSize: 11.5,
+    fontWeight: '600'
   },
   segmentTextActive: {
     color: '#FFFFFF',
+    fontWeight: '800'
+  },
+
+  // Switch card
+  switchRowCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#18181C',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  switchInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1
+  },
+  switchLabel: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700'
   },
-  colorWrap: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 14,
-    padding: 12,
-    gap: 10,
-    marginBottom: 18
+  switchSubLabel: {
+    color: '#8E8E93',
+    fontSize: 10.5,
+    marginTop: 1
   },
-  colorItem: {
+
+  // Color Grid
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16
+  },
+  colorGridItem: {
+    width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
     borderRadius: 10,
-    backgroundColor: '#121214',
-    gap: 12
+    backgroundColor: '#18181C',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 10
   },
   colorCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  colorName: {
+  colorGridName: {
     color: '#8E8E93',
-    fontSize: 13,
-    fontWeight: '500'
+    fontSize: 11,
+    fontWeight: '600',
+    flex: 1
   },
+
+  // Pill grid
   pillGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 18
+    marginBottom: 16
   },
   pillBtn: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#1C1C1E',
-    paddingVertical: 12,
+    backgroundColor: '#18181C',
+    paddingVertical: 11,
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
@@ -391,41 +730,46 @@ const styles = StyleSheet.create({
   },
   pillText: {
     color: '#8E8E93',
-    fontSize: 12
+    fontSize: 11.5
   },
   pillTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700'
+    fontWeight: '800'
   },
+
+  // Bottom Buttons
   btnRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 10
+    gap: 10,
+    marginTop: 8
   },
   resetBtn: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#18181C',
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.08)'
   },
   resetBtnText: {
     color: '#8E8E93',
-    fontSize: 14,
-    fontWeight: '600'
+    fontSize: 13,
+    fontWeight: '700'
   },
   saveBtn: {
     flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center'
+    borderRadius: 12,
+    gap: 6
   },
   saveBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
     letterSpacing: 0.5
   }
 });

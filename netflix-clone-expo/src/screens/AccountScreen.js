@@ -10,11 +10,15 @@ import { AppearanceSettingsModal } from '../components/AppearanceSettingsModal';
 import { RedeemCodeModal } from '../components/RedeemCodeModal';
 import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 import { AdminManagerModal } from '../components/AdminManagerModal';
+import { WatchPartyModal } from '../components/WatchPartyModal';
+import { DailyCheckInRewardsModal } from '../components/DailyCheckInRewardsModal';
+import { MovieRequestModal } from '../components/MovieRequestModal';
 
 export const AccountScreen = () => {
   const {
     user, setUser, login, register, resetPassword, logout,
     themeMode, accentColor, fontSizeScale, fontWeightMode,
+    appIcon, fimaxPoints,
     notificationsEnabled, setNotificationsEnabled, showNotificationPopup,
     apiUrl, setApiUrl, callbackUrl, setCallbackUrl
   } = useContext(AppContext);
@@ -39,6 +43,9 @@ export const AccountScreen = () => {
   const [showSubManagerModal, setShowSubManagerModal] = useState(false);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
+  const [showWatchPartyModal, setShowWatchPartyModal] = useState(false);
+  const [showCheckInModal, setShowCheckInModal] = useState(false);
+  const [showMovieRequestModal, setShowMovieRequestModal] = useState(false);
   
   // Secret 5-tap gesture counter for Owner Admin
   const [tapCount, setTapCount] = useState(0);
@@ -413,15 +420,73 @@ export const AccountScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 2. Tùy Chỉnh Giao Diện & Hiển Thị */}
-        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>GIAO DIỆN & HIỂN THỊ</Text>
+        {/* XEM CHUNG & TÍCH ĐIỂM ĐỔI QUÀ */}
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>XEM CHUNG & TÍCH ĐIỂM THƯỞNG</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={styles.rowItem} onPress={() => setShowAppearanceModal(true)}>
-            <Ionicons name="color-palette-outline" size={20} color={accentColor} />
+          <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => setShowWatchPartyModal(true)} activeOpacity={0.8}>
+            <View style={[styles.iconBoxMini, { backgroundColor: theme.isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.07)', borderColor: theme.borderLight }]}>
+              <Ionicons name="people-outline" size={18} color={theme.textPrimary} />
+            </View>
             <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Tùy chỉnh giao diện & cỡ chữ</Text>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale, fontWeight: '700' }]}>
+                Phòng Xem Chung (Watch Party)
+              </Text>
               <Text style={[styles.rowSub, { color: theme.textSecondary }]}>
-                {themeMode === 'light' ? 'Chế độ Sáng' : 'Chế độ Tối OLED'} • Cỡ chữ {Math.round(fontSizeScale * 100)}%
+                Tạo room xem phim cùng bạn bè & live chat đồng bộ
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => setShowCheckInModal(true)} activeOpacity={0.8}>
+            <View style={[styles.iconBoxMini, { backgroundColor: theme.isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.07)', borderColor: theme.borderLight }]}>
+              <Ionicons name="gift-outline" size={18} color={theme.textPrimary} />
+            </View>
+            <View style={styles.rowContent}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale, fontWeight: '700' }]}>
+                  Điểm Danh & Đổi Quà F-Points
+                </Text>
+                <View style={{ backgroundColor: 'rgba(212, 175, 55, 0.15)', paddingHorizontal: 6, paddingVertical: 1.5, borderRadius: 4, borderWidth: 0.5, borderColor: 'rgba(212, 175, 55, 0.3)' }}>
+                  <Text style={{ color: '#D4AF37', fontSize: 9, fontWeight: '900' }}>{fimaxPoints || 0} PTS</Text>
+                </View>
+              </View>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>
+                Tích lũy chuỗi 7 ngày đổi vé rạp, bắp nước & VIP
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.rowItem} onPress={() => setShowMovieRequestModal(true)} activeOpacity={0.8}>
+            <View style={[styles.iconBoxMini, { backgroundColor: theme.isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.07)', borderColor: theme.borderLight }]}>
+              <Ionicons name="film-outline" size={18} color={theme.textPrimary} />
+            </View>
+            <View style={styles.rowContent}>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale, fontWeight: '700' }]}>
+                Yêu Cầu Thêm Phim Mới
+              </Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>
+                Gửi tên phim bạn muốn rạp cập nhật
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 2. Tùy Chỉnh Giao Diện & Icon App */}
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>GIAO DIỆN & ICON ỨNG DỤNG</Text>
+        <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <TouchableOpacity style={styles.rowItem} onPress={() => setShowAppearanceModal(true)} activeOpacity={0.8}>
+            <View style={[styles.iconBoxMini, { backgroundColor: theme.isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.07)', borderColor: theme.borderLight }]}>
+              <Ionicons name="color-palette-outline" size={18} color={theme.textPrimary} />
+            </View>
+            <View style={styles.rowContent}>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale, fontWeight: '700' }]}>
+                Studio Giao Diện & Icon App
+              </Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>
+                {themeMode === 'light' ? 'Chế độ Sáng' : (themeMode === 'midnight' ? 'Midnight Deep' : 'Tối OLED')} • Đổi App Icon & 8 Màu Rạp Phim
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
@@ -556,6 +621,9 @@ export const AccountScreen = () => {
       />
       <VipSubscriptionModal visible={showVipModal} onClose={() => setShowVipModal(false)} />
       <RedeemCodeModal visible={showRedeemModal} onClose={() => setShowRedeemModal(false)} />
+      <WatchPartyModal visible={showWatchPartyModal} onClose={() => setShowWatchPartyModal(false)} />
+      <DailyCheckInRewardsModal visible={showCheckInModal} onClose={() => setShowCheckInModal(false)} />
+      <MovieRequestModal visible={showMovieRequestModal} onClose={() => setShowMovieRequestModal(false)} />
     </View>
   );
 };
@@ -808,6 +876,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     gap: 12
+  },
+  iconBoxMini: {
+    width: 34,
+    height: 34,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1
+  },
+  iconCircleMini: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   rowContent: {
     flex: 1
