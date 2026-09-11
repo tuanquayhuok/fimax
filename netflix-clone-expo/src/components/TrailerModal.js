@@ -23,6 +23,31 @@ function getYouTubeId(url) {
   return fallback ? fallback[1] : null;
 }
 
+function getOfficialTrailerUrl(movie, trailerUrl) {
+  if (trailerUrl && typeof trailerUrl === 'string' && trailerUrl.trim()) return trailerUrl;
+  if (movie?.trailerUrl && typeof movie.trailerUrl === 'string' && movie.trailerUrl.trim()) return movie.trailerUrl;
+  if (movie?.trailer_url && typeof movie.trailer_url === 'string' && movie.trailer_url.trim()) return movie.trailer_url;
+  if (movie?.trailer && typeof movie.trailer === 'string' && movie.trailer.trim()) return movie.trailer;
+
+  const t = (movie?.title || '').toLowerCase();
+  if (t.includes('nhện') || t.includes('spider')) return 'https://www.youtube.com/watch?v=JfVOs4VSpmA';
+  if (t.includes('quỷ nhập tràng')) return 'https://www.youtube.com/watch?v=8qB8t5w1w0A';
+  if (t.includes('anh hùng') || t.includes('hero')) return 'https://www.youtube.com/watch?v=sr2yeB104-Y';
+  if (t.includes('con ké') || t.includes('ba nghe')) return 'https://www.youtube.com/watch?v=yF2pXRJictA';
+  if (t.includes('tài')) return 'https://www.youtube.com/watch?v=d9MyW72ELq0';
+  if (t.includes('kẻ ăn hồn') || t.includes('tết ở làng')) return 'https://www.youtube.com/watch?v=sr2yeB104-Y';
+  if (t.includes('đào') || t.includes('phở')) return 'https://www.youtube.com/watch?v=b4b2L-e-lXQ';
+  if (t.includes('lật mặt')) return 'https://www.youtube.com/watch?v=yF2pXRJictA';
+  if (t.includes('mai')) return 'https://www.youtube.com/watch?v=7hRdVb7c19Q';
+  if (t.includes('dune')) return 'https://www.youtube.com/watch?v=Way9Dexny3w';
+  if (t.includes('oppenheimer')) return 'https://www.youtube.com/watch?v=uYPbbksJxIg';
+  if (t.includes('avengers') || t.includes('marvel')) return 'https://www.youtube.com/watch?v=TcMBFSGVi1c';
+  if (t.includes('cám')) return 'https://www.youtube.com/watch?v=BwPL0Md_QFQ';
+  if (t.includes('ma da')) return 'https://www.youtube.com/watch?v=d9MyW72ELq0';
+
+  return 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4';
+}
+
 export const TrailerModal = ({
   visible,
   movie,
@@ -34,18 +59,9 @@ export const TrailerModal = ({
   const [isBuffering, setIsBuffering] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  const rawTrailerUrl =
-    trailerUrl ||
-    movie?.trailerUrl ||
-    movie?.trailer_url ||
-    movie?.trailer ||
-    movie?.videoSources?.['1080p'] ||
-    movie?.videoSources?.['720p'] ||
-    movie?.video_url ||
-    'https://www.youtube.com/watch?v=yF2pXRJictA';
-
+  const rawTrailerUrl = getOfficialTrailerUrl(movie, trailerUrl);
   const youtubeId = getYouTubeId(rawTrailerUrl);
-  const movieTitle = movie?.title || 'Phim Chiếu Rạp';
+  const movieTitle = movie?.title || 'Trailer Phim Chiếu Rạp';
 
   if (!visible) return null;
 
@@ -100,14 +116,7 @@ export const TrailerModal = ({
               /* 2. DIRECT MEDIA STREAM (MP4 / M3U8) */
               <Video
                 ref={videoRef}
-                source={{
-                  uri:
-                    !youtubeId
-                      ? rawTrailerUrl
-                      : movie?.videoSources?.['1080p'] ||
-                        movie?.videoSources?.['720p'] ||
-                        'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
-                }}
+                source={{ uri: rawTrailerUrl }}
                 rate={1.0}
                 volume={1.0}
                 isMuted={false}

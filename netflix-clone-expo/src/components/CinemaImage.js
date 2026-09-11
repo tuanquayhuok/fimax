@@ -8,7 +8,7 @@ const FALLBACK_POSTERS = [
   'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=600&auto=format&fit=crop&q=80'
 ];
 
-export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover' }) => {
+export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover', blurRadius }) => {
   const [currentUri, setCurrentUri] = useState(uri || fallbackUri);
   const [hasError, setHasError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,6 +47,7 @@ export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover' }) =
         source={imageSource}
         style={[StyleSheet.absoluteFill, style]}
         resizeMode={resizeMode}
+        blurRadius={blurRadius}
         onLoadStart={() => setLoading(true)}
         onLoadEnd={() => setLoading(false)}
         onError={handleError}

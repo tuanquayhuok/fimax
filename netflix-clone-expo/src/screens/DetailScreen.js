@@ -21,7 +21,7 @@ import { CinemaImage } from '../components/CinemaImage';
 import { ApiService } from '../services/apiService';
 
 const { width } = Dimensions.get('window');
-const HERO_HEIGHT = Math.round(width * 0.82);
+const HERO_HEIGHT = Math.min(Math.max(Math.round(width * (9 / 16)), 240), 480);
 const SIMILAR_CARD_WIDTH = (width - 48) / 3;
 
 const getMovieCast = (movie) => {
@@ -148,7 +148,7 @@ export const DetailScreen = ({ route, navigation }) => {
   }
 
   const isFav = favorites.includes(movie.id);
-  const bgImage = movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
+  const bgImage = movie.bannerImage || movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
   const posterImage = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop;
   const displayYear = movie.releaseYear || movie.year || '2025';
   const ratingScore = movie.rating || '8.8';
@@ -221,7 +221,8 @@ export const DetailScreen = ({ route, navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Hero Backdrop with Ambient Gradient */}
         <View style={styles.heroWrap}>
-          <CinemaImage uri={bgImage} fallbackUri={posterImage} style={styles.heroImg} resizeMode="cover" />
+          <CinemaImage uri={bgImage} fallbackUri={posterImage} style={[styles.heroImg, styles.heroBlurBg]} resizeMode="cover" blurRadius={25} />
+          <CinemaImage uri={bgImage} fallbackUri={posterImage} style={styles.heroImg} resizeMode="contain" />
           <View style={styles.heroFadeGrad} />
 
           {/* Quick Play Trailer Overlay Button */}
@@ -233,7 +234,7 @@ export const DetailScreen = ({ route, navigation }) => {
             <View style={styles.heroTrailerIconWrap}>
               <Ionicons name="play" size={20} color="#FFFFFF" style={{ marginLeft: 2 }} />
             </View>
-            <Text style={styles.heroTrailerText}>Xem Trailer</Text>
+            <Text style={styles.heroTrailerText}>{t ? t('watchTrailer') || 'Xem Trailer' : 'Xem Trailer'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -540,15 +541,27 @@ const styles = StyleSheet.create({
     width: '100%',
     height: HERO_HEIGHT,
     position: 'relative',
-    backgroundColor: '#141416'
+    backgroundColor: '#0a0a0c',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   heroImg: {
     width: '100%',
     height: '100%'
   },
+  heroBlurBg: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.6,
+    transform: [{ scale: 1.25 }]
+  },
   heroFadeGrad: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)'
+    backgroundColor: 'rgba(0,0,0,0.2)'
   },
   heroTrailerBtn: {
     position: 'absolute',
