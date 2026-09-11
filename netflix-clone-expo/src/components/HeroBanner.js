@@ -58,8 +58,8 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
 
   const renderBannerItem = ({ item: movie }) => {
     const isFav = favorites.includes(movie.id);
-    const bgImage = movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
-    const posterImage = movie.posterUrl || movie.poster || movie.backdropUrl || movie.backdrop;
+    const bgImage = movie.bannerImage || movie.backdropUrl || movie.backdrop || movie.posterUrl || movie.poster;
+    const posterImage = movie.posterUrl || movie.poster || movie.bannerImage || movie.backdropUrl;
 
     return (
       <View style={styles.slideWrap}>

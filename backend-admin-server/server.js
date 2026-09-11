@@ -30,8 +30,9 @@ function saveViewsStore() {
 }
 
 let moviesDatabase = [];
+let bannersDatabase = [];
 
-// Fetch live movies from fimax.aecongnghe.online
+// Fetch live movies & banners from fimax.aecongnghe.online
 async function syncFromWebSource() {
   try {
     const res = await fetch('http://fimax.aecongnghe.online/', {
@@ -39,6 +40,60 @@ async function syncFromWebSource() {
     });
     if (!res.ok) return;
     const html = await res.text();
+
+    // 1. SYNC FEATURED BANNERS from window.featuredMovies (Quản lý Banner trang chủ)
+    const bannerMatch = html.match(/window\.featuredMovies\s*=\s*(\[.*?\]);/s);
+    if (bannerMatch && bannerMatch[1]) {
+      try {
+        const rawBanners = JSON.parse(bannerMatch[1]);
+        if (Array.isArray(rawBanners) && rawBanners.length > 0) {
+          bannersDatabase = rawBanners.map(b => {
+            const sampleStreams = [
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+              'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+            ];
+            const fallbackStream = sampleStreams[Math.abs((parseInt(b.banner_id) || 1) % sampleStreams.length)];
+            const validVideoUrl = (b.video_url && typeof b.video_url === 'string' && b.video_url.startsWith('http'))
+              ? b.video_url.trim()
+              : fallbackStream;
+
+            const bannerImg = b.banner_image || b.backdrop_path || b.poster_path;
+            const posterImg = b.poster_path || b.banner_image || b.backdrop_path;
+
+            return {
+              id: 'banner_' + (b.banner_id || b.id || Math.random().toString(36).substr(2, 6)),
+              movieId: 'web_' + (b.id || b.banner_id),
+              bannerId: b.banner_id,
+              title: b.title || 'Phim Chiếu Rạp',
+              overview: b.overview || `Bộ phim bom tấn ${b.title} đang chiếu tại FIMAX.`,
+              bannerImage: bannerImg,
+              backdropUrl: bannerImg,
+              posterUrl: posterImg,
+              rating: parseFloat(b.vote_average) || 8.8,
+              releaseYear: b.release_date ? parseInt(b.release_date.substring(0, 4)) : 2025,
+              duration: '120 phút',
+              genres: b.genre ? b.genre.split(',').map(g => g.trim()) : ['Chiếu Rạp', 'Bom Tấn', 'Nổi Bật'],
+              country: 'Điện ảnh',
+              videoSources: {
+                '1080p': validVideoUrl,
+                '720p': validVideoUrl,
+                'auto': validVideoUrl
+              },
+              trailerUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+              orderPosition: parseInt(b.order_position) || 1
+            };
+          });
+          bannersDatabase.sort((a, b) => a.orderPosition - b.orderPosition);
+          console.log(`[FIMAX Sync] Synchronized ${bannersDatabase.length} Admin Banners from fimax.aecongnghe.online!`);
+        }
+      } catch (e) {
+        console.log('[FIMAX Sync Banners Error]:', e.message);
+      }
+    }
+
+    // 2. SYNC CATEGORY MOVIES from window.categoryMovies
     const match = html.match(/window\.categoryMovies\s*=\s*(\{.*?\});/s);
     if (match && match[1]) {
       const data = JSON.parse(match[1]);
@@ -96,10 +151,14 @@ async function syncFromWebSource() {
 
 // Initial sync
 syncFromWebSource();
-// Periodic sync every 30 minutes
-setInterval(syncFromWebSource, 30 * 60 * 1000);
+// Periodic sync every 5 minutes
+setInterval(syncFromWebSource, 5 * 60 * 1000);
 
 // API Endpoints
+app.get('/api/banners', (req, res) => {
+  res.json(bannersDatabase);
+});
+
 app.get('/api/movies', (req, res) => {
   // Always attach fresh viewCount
   const withViews = moviesDatabase.map(m => ({

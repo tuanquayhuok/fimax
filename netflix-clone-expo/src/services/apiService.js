@@ -51,17 +51,30 @@ async function syncWebSourceInBackground(force = false) {
 
   isFetchingBackground = true;
   try {
-    // 1. Try fetching from Local / Cloud Backend Server first (CORS friendly)
+    // 1. Fetch Movies & Admin Banners from Backend Server (CORS friendly)
     try {
-      const backendRes = await fetch('http://localhost:4000/api/movies');
-      if (backendRes.ok) {
-        const backendMovies = await backendRes.json();
+      const [moviesRes, bannersRes] = await Promise.all([
+        fetch('http://localhost:4000/api/movies'),
+        fetch('http://localhost:4000/api/banners')
+      ]);
+
+      if (moviesRes.ok) {
+        const backendMovies = await moviesRes.json();
         if (Array.isArray(backendMovies) && backendMovies.length > 0) {
           memoryCache = backendMovies;
-          featuredBannersCache = backendMovies.slice(0, 5);
-          lastFetchTimestamp = Date.now();
-          notifyListeners();
         }
+      }
+
+      if (bannersRes.ok) {
+        const backendBanners = await bannersRes.json();
+        if (Array.isArray(backendBanners) && backendBanners.length > 0) {
+          featuredBannersCache = backendBanners;
+        }
+      }
+
+      if (memoryCache.length > 0 || featuredBannersCache.length > 0) {
+        lastFetchTimestamp = Date.now();
+        notifyListeners();
       }
     } catch (err) {}
 
@@ -91,31 +104,43 @@ async function syncWebSourceInBackground(force = false) {
           if (Array.isArray(rawBanners) && rawBanners.length > 0) {
             featuredBannersCache = rawBanners.map(b => {
               const bannerImg = formatBannerUrl(b.banner_image || b.backdrop_path || b.poster_path);
-              const backdropImg = formatBannerUrl(b.backdrop_path || b.banner_image || b.poster_path);
               const posterImg = formatBannerUrl(b.poster_path || b.banner_image || b.backdrop_path);
-              const vUrl = b.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+              const sampleStreams = [
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+              ];
+              const fallbackStream = sampleStreams[Math.abs((parseInt(b.banner_id) || 1) % sampleStreams.length)];
+              const vUrl = (b.video_url && typeof b.video_url === 'string' && b.video_url.startsWith('http'))
+                ? b.video_url.trim()
+                : fallbackStream;
 
               return {
                 id: 'banner_' + (b.banner_id || b.id || Math.random().toString(36).substr(2, 6)),
-                movieId: b.id || b.banner_id,
+                movieId: 'web_' + (b.id || b.banner_id),
+                bannerId: b.banner_id,
                 title: b.title || 'Phim Chiếu Rạp',
                 overview: b.overview || `Bộ phim bom tấn ${b.title} đang chiếu tại FIMAX.`,
                 bannerImage: bannerImg,
                 backdropUrl: bannerImg,
                 posterUrl: posterImg,
-                rating: 9.0,
-                releaseYear: 2025,
+                rating: parseFloat(b.vote_average) || 8.8,
+                releaseYear: b.release_date ? parseInt(b.release_date.substring(0, 4)) : 2025,
                 duration: '120 phút',
-                genres: ['Chiếu Rạp', 'Bom Tấn', 'Nổi Bật'],
+                genres: b.genre ? b.genre.split(',').map(g => g.trim()) : ['Chiếu Rạp', 'Bom Tấn', 'Nổi Bật'],
                 country: 'Điện ảnh',
                 videoSources: {
                   '1080p': vUrl,
                   '720p': vUrl,
                   'auto': vUrl
                 },
-                trailerUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+                trailerUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+                orderPosition: parseInt(b.order_position) || 1
               };
             });
+            featuredBannersCache.sort((a, b) => a.orderPosition - b.orderPosition);
+            notifyListeners();
           }
         } catch (e) {}
       }
