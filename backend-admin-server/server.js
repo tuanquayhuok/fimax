@@ -32,6 +32,32 @@ function saveViewsStore() {
 let moviesDatabase = [];
 let bannersDatabase = [];
 
+function resolveBannerTitle(b) {
+  if (b.banner_title && typeof b.banner_title === 'string' && b.banner_title.trim()) {
+    return b.banner_title.trim();
+  }
+  const bid = String(b.banner_id || b.id);
+  const bImg = (b.banner_image || '').toLowerCase();
+  const bDesc = (b.overview || '').toLowerCase();
+
+  if (bid === '1' || bImg.includes('spider-man') || bImg.includes('spider')) {
+    return 'Người Nhện: Khởi đầu mới';
+  }
+  if (bid === '2' || bImg.includes('qnt') || bDesc.includes('quỷ') || bDesc.includes('nhập tràng')) {
+    return 'Quỷ Nhập Tràng 2';
+  }
+  if (bid === '3' || bImg.includes('anhhung') || bDesc.includes('tử chiến trên không')) {
+    return 'Anh Hùng';
+  }
+  if (bid === '5' || bImg.includes('wbozixweah8') || bDesc.includes('ariel') || bDesc.includes('tiên cá')) {
+    return 'CON KÉ BA NGHE';
+  }
+  if (bid === '4' || bImg.includes('z8h4miehi-4') || bDesc.includes('vệ binh') || bDesc.includes('rocket')) {
+    return 'Tài';
+  }
+  return b.title || 'Phim Chiếu Rạp';
+}
+
 // Fetch live movies & banners from fimax.aecongnghe.online
 async function syncFromWebSource() {
   try {
@@ -61,13 +87,15 @@ async function syncFromWebSource() {
 
             const bannerImg = b.banner_image || b.backdrop_path || b.poster_path;
             const posterImg = b.poster_path || b.banner_image || b.backdrop_path;
+            const displayTitle = resolveBannerTitle(b);
 
             return {
               id: 'banner_' + (b.banner_id || b.id || Math.random().toString(36).substr(2, 6)),
               movieId: 'web_' + (b.id || b.banner_id),
               bannerId: b.banner_id,
-              title: b.title || 'Phim Chiếu Rạp',
-              overview: b.overview || `Bộ phim bom tấn ${b.title} đang chiếu tại FIMAX.`,
+              title: displayTitle,
+              linkedMovieTitle: b.title || displayTitle,
+              overview: b.overview || `Bộ phim bom tấn ${displayTitle} đang chiếu tại FIMAX.`,
               bannerImage: bannerImg,
               backdropUrl: bannerImg,
               posterUrl: posterImg,
