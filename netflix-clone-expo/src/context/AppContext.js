@@ -3,6 +3,7 @@ import { MOCK_USER } from '../data/mockMovies';
 import { CallbackService } from '../services/callbackService';
 import { StorageService } from '../services/storageService';
 import { NotificationService } from '../services/notificationService';
+import { TRANSLATIONS, LANGUAGES } from '../locales/translations';
 
 export const AppContext = createContext();
 
@@ -28,6 +29,9 @@ export const AppProvider = ({ children }) => {
   const [appIcon, setAppIcon] = useState('classic_red');
   const [ambientLighting, setAmbientLighting] = useState(true);
   const [frameRate, setFrameRateState] = useState(60); // 30, 45, 60, 90, 120 FPS
+
+  // Multi-Language Support State - Default is 'vi' (Tiếng Việt)
+  const [currentLanguage, setCurrentLanguageState] = useState('vi');
 
   // Notification System State - Default is false (OFF) as requested
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
@@ -115,12 +119,26 @@ export const AppProvider = ({ children }) => {
             setMovieRequestsState(JSON.parse(savedReqs));
           } catch (e) {}
         }
+
+        const savedLang = await StorageService.getItem('@fimax_language');
+        if (savedLang) {
+          setCurrentLanguageState(savedLang);
+        }
       } catch (e) {
         console.warn('Load persisted state error:', e);
       }
     }
     loadPersistedState();
   }, []);
+
+  const setLanguage = (langCode) => {
+    setCurrentLanguageState(langCode);
+    StorageService.setItem('@fimax_language', langCode);
+  };
+
+  const t = (key) => {
+    return TRANSLATIONS[currentLanguage]?.[key] || TRANSLATIONS['vi']?.[key] || key;
+  };
 
   const setFimaxPoints = (pts) => {
     setFimaxPointsState(pts);
@@ -465,6 +483,10 @@ export const AppProvider = ({ children }) => {
       setAmbientLighting,
       frameRate,
       setFrameRate,
+      currentLanguage,
+      setLanguage,
+      t,
+      LANGUAGES,
       notificationsEnabled,
       setNotificationsEnabled,
       showNotificationPopup,

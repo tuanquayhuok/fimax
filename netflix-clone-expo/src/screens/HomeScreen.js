@@ -14,7 +14,7 @@ import { TrailerModal } from '../components/TrailerModal';
 import { NetflixGenreModal } from '../components/NetflixGenreModal';
 
 export const HomeScreen = ({ navigation }) => {
-  const { themeMode, accentColor } = useContext(AppContext);
+  const { themeMode, accentColor, t } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   const [selectedCategory, setSelectedCategory] = useState('Tất Cả');
@@ -215,7 +215,7 @@ export const HomeScreen = ({ navigation }) => {
           <>
             {moviesBySection.trending.length > 0 && (
               <MovieRow
-                title="Phim Mới Cập Nhật"
+                title={t('trending_now')}
                 movies={moviesBySection.trending}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
@@ -223,42 +223,42 @@ export const HomeScreen = ({ navigation }) => {
               />
             )}
             <MovieRow
-              title="Phim Chiếu Rạp Mới Nhất"
+              title={t('popular_movies')}
               movies={moviesBySection.newReleases}
               navigation={navigation}
               onLongPressMovie={handleLongPressMovie}
               isComingSoon={true}
             />
             <MovieRow
-              title="Phim Đánh Giá Cao"
+              title={t('top_10_today')}
               movies={moviesBySection.topRated}
               navigation={navigation}
               onLongPressMovie={handleLongPressMovie}
               isComingSoon={true}
             />
             <MovieRow
-              title="Phim Điện Ảnh Việt Nam"
+              title={t('fimax_exclusives')}
               movies={moviesBySection.vietnam}
               navigation={navigation}
               onLongPressMovie={handleLongPressMovie}
               isComingSoon={true}
             />
             <MovieRow
-              title="Phim Hàn Quốc Đặc Sắc"
+              title={t('korean_drama')}
               movies={moviesBySection.korean}
               navigation={navigation}
               onLongPressMovie={handleLongPressMovie}
               isComingSoon={true}
             />
             <MovieRow
-              title="Bom Tấn Hollywood"
+              title={t('action_packed')}
               movies={moviesBySection.hollywood}
               navigation={navigation}
               onLongPressMovie={handleLongPressMovie}
               isComingSoon={true}
             />
             <MovieRow
-              title="Phim Sắp Ra Mắt"
+              title={t('popular_series')}
               movies={moviesBySection.comingSoon}
               navigation={navigation}
               onLongPressMovie={handleLongPressMovie}

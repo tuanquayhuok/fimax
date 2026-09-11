@@ -9,7 +9,7 @@ const TAB_COUNT = 5;
 const TAB_WIDTH = width / TAB_COUNT;
 
 export const CustomTabBar = ({ state, descriptors, navigation }) => {
-  const { themeMode, accentColor } = useContext(AppContext);
+  const { themeMode, accentColor, t } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   // Animated sliding pill position
@@ -78,17 +78,17 @@ export const CustomTabBar = ({ state, descriptors, navigation }) => {
   const getTabMeta = (routeName) => {
     switch (routeName) {
       case 'HomeTab':
-        return { label: 'Trang Chủ', icon: 'home', iconOutline: 'home-outline' };
+        return { label: t('tab_home'), icon: 'home', iconOutline: 'home-outline' };
       case 'ExploreTab':
       case 'RankingsTab':
-        return { label: 'Xếp Hạng', icon: 'trophy', iconOutline: 'trophy-outline' };
+        return { label: t('tab_rankings'), icon: 'trophy', iconOutline: 'trophy-outline' };
       case 'LibraryTab':
-        return { label: 'Thư Viện', icon: 'file-tray-full', iconOutline: 'file-tray-full-outline' };
+        return { label: t('my_list'), icon: 'file-tray-full', iconOutline: 'file-tray-full-outline' };
       case 'DownloadTab':
       case 'ComingSoonTab':
-        return { label: 'Sắp Chiếu', icon: 'calendar', iconOutline: 'calendar-outline' };
+        return { label: t('tab_downloads'), icon: 'download', iconOutline: 'download-outline' };
       case 'AccountTab':
-        return { label: 'Tài Khoản', icon: 'person', iconOutline: 'person-outline' };
+        return { label: t('tab_account'), icon: 'person', iconOutline: 'person-outline' };
       default:
         return { label: 'Menu', icon: 'apps', iconOutline: 'apps-outline' };
     }

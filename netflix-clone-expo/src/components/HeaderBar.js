@@ -4,16 +4,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { SearchModal } from './SearchModal';
-import { NotificationModal } from './NotificationModal';
+import { LanguageModal } from './LanguageModal';
 import { HamburgerMenuModal } from './HamburgerMenuModal';
 
 export const HeaderBar = ({ navigation }) => {
-  const { user, themeMode, accentColor } = useContext(AppContext);
+  const { user, themeMode, accentColor, currentLanguage, LANGUAGES } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
+
+  const currentLangObj = LANGUAGES?.find((l) => l.code === currentLanguage) || { flag: '🇻🇳', name: 'Tiếng Việt' };
 
   return (
     <View style={[styles.headerContainer, { backgroundColor: theme.headerBg, borderBottomColor: theme.border }]}>
@@ -38,14 +40,13 @@ export const HeaderBar = ({ navigation }) => {
           <Ionicons name="search" size={18} color={theme.textPrimary} />
         </TouchableOpacity>
 
-        {/* Floating Notification Popover */}
+        {/* Multi-Language Switch Button */}
         <TouchableOpacity
-          style={[styles.iconBtn, { backgroundColor: theme.surfaceSecondary }]}
+          style={[styles.flagBtn, { backgroundColor: theme.surfaceSecondary, borderColor: `${accentColor}30` }]}
           activeOpacity={0.7}
-          onPress={() => setShowNotificationModal(true)}
+          onPress={() => setShowLanguageModal(true)}
         >
-          <Ionicons name="notifications-outline" size={18} color={theme.textPrimary} />
-          <View style={[styles.notifDot, { backgroundColor: accentColor }]} />
+          <Text style={styles.flagEmoji}>{currentLangObj.flag}</Text>
         </TouchableOpacity>
 
         {/* User Profile Avatar */}
@@ -77,10 +78,10 @@ export const HeaderBar = ({ navigation }) => {
         navigation={navigation}
       />
 
-      {/* Global Compact Notification Popover */}
-      <NotificationModal
-        visible={showNotificationModal}
-        onClose={() => setShowNotificationModal(false)}
+      {/* Global Multi-Language Selector Modal */}
+      <LanguageModal
+        visible={showLanguageModal}
+        onClose={() => setShowLanguageModal(false)}
       />
 
       {/* Global Hamburger Drawer Menu */}
@@ -131,13 +132,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative'
   },
-  notifDot: {
-    position: 'absolute',
-    top: 7,
-    right: 7,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5
+  flagBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  flagEmoji: {
+    fontSize: 18,
+    textAlign: 'center'
   },
   avatarBtn: {
     marginLeft: 2

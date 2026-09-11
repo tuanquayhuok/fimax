@@ -11,7 +11,7 @@ const BANNER_IMG_HEIGHT = Math.round(CARD_WIDTH * (9 / 16)); // Exact 16:9 Ratio
 
 export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPlayPress, onInfoPress }) => {
   const bannerList = (movies && movies.length > 0) ? movies : featuredMovies;
-  const { favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor, fontSizeScale } = useContext(AppContext);
+  const { favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor, fontSizeScale, t } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
   
   const flatListRef = useRef(null);
@@ -117,7 +117,7 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
                 onPress={() => handlePlay(movie)}
               >
                 <Ionicons name="play" size={16} color="#FFFFFF" />
-                <Text style={styles.playBtnText}>Xem Phim</Text>
+                <Text style={styles.playBtnText}>{t('play')}</Text>
               </TouchableOpacity>
 
               {/* Info Button */}
@@ -127,7 +127,7 @@ export const HeroBanner = ({ movies = [], featuredMovies = [], navigation, onPla
                 onPress={() => handleInfo(movie)}
               >
                 <Ionicons name="information-circle-outline" size={18} color={theme.textPrimary} />
-                <Text style={[styles.infoBtnText, { color: theme.textPrimary }]}>Chi Tiết</Text>
+                <Text style={[styles.infoBtnText, { color: theme.textPrimary }]}>{t('info')}</Text>
               </TouchableOpacity>
 
               {/* Favorite Button */}

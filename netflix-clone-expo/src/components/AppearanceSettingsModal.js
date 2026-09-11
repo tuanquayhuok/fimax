@@ -115,7 +115,6 @@ const FRAME_RATES = [
   { id: 45, name: '45 FPS', sub: 'Cân bằng' },
   { id: 60, name: '60 FPS', sub: 'Chuẩn điện ảnh' },
   { id: 90, name: '90 FPS', sub: 'ProMotion' },
-  { id: 120, name: '120 FPS', sub: 'Ultra Extreme' }
 ];
 
 export const AppearanceSettingsModal = ({ visible, onClose }) => {
@@ -127,7 +126,8 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
     layoutDensity, setLayoutDensity,
     appIcon, setAppIcon,
     ambientLighting, setAmbientLighting,
-    frameRate, setFrameRate
+    frameRate, setFrameRate,
+    currentLanguage, setLanguage, LANGUAGES, t
   } = useContext(AppContext);
 
   // Local state for interactive editing before save
@@ -139,6 +139,7 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
   const [tempAppIcon, setTempAppIcon] = useState(appIcon || 'classic_red');
   const [tempAmbient, setTempAmbient] = useState(ambientLighting !== false);
   const [tempFps, setTempFps] = useState(frameRate || 60);
+  const [tempLang, setTempLang] = useState(currentLanguage || 'vi');
 
   const activeIconObj = APP_ICONS.find(i => i.id === tempAppIcon) || APP_ICONS[0];
 
@@ -151,6 +152,7 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
     setAppIcon(tempAppIcon);
     setAmbientLighting(tempAmbient);
     if (setFrameRate) setFrameRate(tempFps);
+    if (setLanguage && tempLang) setLanguage(tempLang);
 
     try {
       await NotificationService.sendNativeNotification(
@@ -173,6 +175,7 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
     setTempAppIcon('classic_red');
     setTempAmbient(true);
     setTempFps(60);
+    setTempLang('vi');
   };
 
   const selectedWeightValue = FONT_WEIGHTS.find(w => w.id === tempWeight)?.weight || '500';
@@ -316,6 +319,26 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
                     </Text>
                     <Text style={[{ fontSize: 9, marginTop: 1 }, active ? { color: 'rgba(255,255,255,0.85)' } : { color: '#8E8E93' }]}>
                       {fps.sub}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Ngôn ngữ hiển thị (Language) */}
+            <Text style={styles.sectionHeading}>NGÔN NGỮ HIỂN THỊ (LANGUAGE)</Text>
+            <View style={styles.pillGrid}>
+              {LANGUAGES?.map((lang) => {
+                const active = tempLang === lang.code;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[styles.pillBtn, active && { backgroundColor: tempColor, borderColor: tempColor }]}
+                    onPress={() => setTempLang(lang.code)}
+                  >
+                    <Text style={{ fontSize: 16 }}>{lang.flag}</Text>
+                    <Text style={[styles.pillText, active && styles.pillTextActive, { fontWeight: '700', marginTop: 2 }]}>
+                      {lang.name}
                     </Text>
                   </TouchableOpacity>
                 );

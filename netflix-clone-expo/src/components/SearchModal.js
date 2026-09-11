@@ -8,7 +8,7 @@ import { ApiService } from '../services/apiService';
 const GENRES = ['Tất cả', 'Chiếu Rạp', 'Việt Nam', 'Hàn Quốc', 'Hành Động', 'Tâm Lý', 'Kinh Dị', 'Hoạt Hình'];
 
 export const SearchModal = ({ visible, onClose, navigation, onSelectMovie }) => {
-  const { themeMode, accentColor, fontSizeScale } = useContext(AppContext);
+  const { themeMode, accentColor, fontSizeScale, t } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   const [query, setQuery] = useState('');
@@ -85,7 +85,7 @@ export const SearchModal = ({ visible, onClose, navigation, onSelectMovie }) => 
               <Ionicons name="search" size={18} color="#8E8E93" style={{ marginRight: 8 }} />
               <TextInput
                 style={styles.input}
-                placeholder="Tìm phim, đạo diễn, diễn viên, quốc gia..."
+                placeholder={t('search_placeholder')}
                 placeholderTextColor="#636366"
                 value={query}
                 onChangeText={setQuery}
@@ -100,7 +100,7 @@ export const SearchModal = ({ visible, onClose, navigation, onSelectMovie }) => 
             </View>
 
             <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-              <Text style={styles.cancelText}>Hủy</Text>
+              <Text style={styles.cancelText}>{t('info') === 'Info' ? 'Cancel' : 'Đóng'}</Text>
             </TouchableOpacity>
           </View>
 
