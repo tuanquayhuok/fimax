@@ -13,6 +13,7 @@ import { QuickPreviewModal } from '../components/QuickPreviewModal';
 import { TrailerModal } from '../components/TrailerModal';
 import { NetflixGenreModal } from '../components/NetflixGenreModal';
 import { Footer } from '../components/Footer';
+import { NetworkStatusBanner } from '../components/NetworkStatusBanner';
 
 export const HomeScreen = ({ navigation }) => {
   const { themeMode, accentColor, t } = useContext(AppContext);
@@ -151,6 +152,9 @@ export const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Offline / Weak Network Shimmer Indicator Banner */}
+      <NetworkStatusBanner />
+
       {/* Top Header Bar */}
       <HeaderBar navigation={navigation} />
 

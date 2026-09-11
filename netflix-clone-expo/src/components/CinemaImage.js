@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Image, View, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { Image, View, StyleSheet, Animated } from 'react-native';
+import { ShimmerSkeleton } from './ShimmerSkeleton';
 
 const FALLBACK_POSTERS = [
   'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=600&auto=format&fit=crop&q=80',
@@ -11,11 +12,14 @@ const FALLBACK_POSTERS = [
 export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover', blurRadius }) => {
   const [currentUri, setCurrentUri] = useState(uri || fallbackUri);
   const [hasError, setHasError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     setCurrentUri(uri || fallbackUri);
     setHasError(false);
+    setIsLoaded(false);
+    fadeAnim.setValue(0);
   }, [uri, fallbackUri]);
 
   const handleError = () => {
@@ -24,11 +28,19 @@ export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover', blu
       if (fallbackUri && fallbackUri !== currentUri) {
         setCurrentUri(fallbackUri);
       } else {
-        // Pick high-def cinema unsplash image
         const randomFallback = FALLBACK_POSTERS[Math.floor(Math.random() * FALLBACK_POSTERS.length)];
         setCurrentUri(randomFallback);
       }
     }
+  };
+
+  const handleLoadSuccess = () => {
+    setIsLoaded(true);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 350,
+      useNativeDriver: true
+    }).start();
   };
 
   const imageSource = currentUri
@@ -43,13 +55,18 @@ export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover', blu
 
   return (
     <View style={[styles.container, style]}>
-      <Image
+      {/* Facebook-style Shimmer Skeleton Frame */}
+      {!isLoaded && (
+        <ShimmerSkeleton style={StyleSheet.absoluteFillObject} />
+      )}
+
+      {/* Actual Image with smooth fade-in */}
+      <Animated.Image
         source={imageSource}
-        style={[StyleSheet.absoluteFill, style]}
+        style={[StyleSheet.absoluteFill, style, { opacity: fadeAnim }]}
         resizeMode={resizeMode}
         blurRadius={blurRadius}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
+        onLoad={handleLoadSuccess}
         onError={handleError}
       />
     </View>
@@ -59,7 +76,7 @@ export const CinemaImage = ({ uri, fallbackUri, style, resizeMode = 'cover', blu
 const styles = StyleSheet.create({
   container: {
     overflow: 'hidden',
-    backgroundColor: '#18181A',
+    backgroundColor: '#16171B',
     position: 'relative'
   }
 });

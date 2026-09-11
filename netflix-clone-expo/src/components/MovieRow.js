@@ -1,24 +1,19 @@
 import React, { useContext } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Dimensions, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import { AppContext } from '../context/AppContext';
 import { getThemeColors } from '../theme/colors';
 import { MovieCard } from './MovieCard';
+import { MovieCardSkeleton } from './MovieCardSkeleton';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.32;
 
-export const MovieRow = ({ title, movies, navigation, onLongPressMovie, isComingSoon = false }) => {
+export const MovieRow = ({ title, movies, navigation, onLongPressMovie, isComingSoon = false, isLoading = false }) => {
   const { themeMode, fontSizeScale, accentColor } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
-  const handleComingSoonPress = () => {
-    Alert.alert(
-      'Sắp Ra Mắt (Coming Soon)',
-      'Danh mục này đang được cập nhật thêm phim bản quyền 4K Ultra HD. Vui lòng đón xem tại mục "Phim Mới Cập Nhật"!',
-      [{ text: 'Đã Hiểu' }]
-    );
-  };
+  const showSkeletons = isLoading || (!movies || movies.length === 0);
 
   return (
     <View style={styles.container}>
@@ -26,33 +21,19 @@ export const MovieRow = ({ title, movies, navigation, onLongPressMovie, isComing
         <Text style={[styles.title, { color: theme.textPrimary, fontSize: 16 * fontSizeScale }]}>{title}</Text>
         {isComingSoon && (
           <View style={[styles.comingSoonBadge, { backgroundColor: `${accentColor}1A`, borderColor: accentColor }]}>
-            <Text style={[styles.comingSoonBadgeText, { color: accentColor }]}>Sắp Ra Mắt</Text>
+            <Text style={[styles.comingSoonBadgeText, { color: accentColor }]}>Sắp Chiếu</Text>
           </View>
         )}
       </View>
 
-      {isComingSoon ? (
+      {showSkeletons ? (
         <FlatList
-          data={[1, 2, 3, 4]}
+          data={[1, 2, 3, 4, 5]}
           horizontal
           showsHorizontalScrollIndicator={false}
           keyExtractor={(item) => item.toString()}
           contentContainerStyle={styles.listContent}
-          renderItem={() => (
-            <TouchableOpacity
-              style={styles.comingSoonCard}
-              activeOpacity={0.8}
-              onPress={handleComingSoonPress}
-            >
-              <View style={[styles.comingSoonBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <ActivityIndicator size="small" color={accentColor} />
-                <Text style={[styles.comingSoonText, { color: theme.textSecondary }]}>Coming Soon</Text>
-                <Ionicons name="time-outline" size={14} color={theme.textMuted} style={{ marginTop: 2 }} />
-              </View>
-              <View style={[styles.skeletonTitle, { backgroundColor: theme.surfaceSecondary }]} />
-              <View style={[styles.skeletonSub, { backgroundColor: theme.surfaceSecondary }]} />
-            </TouchableOpacity>
-          )}
+          renderItem={() => <MovieCardSkeleton />}
         />
       ) : (
         <FlatList
