@@ -1,4 +1,4 @@
-﻿import React, { useContext } from 'react';
+import React, { useContext } from 'react';
 import {
   Modal,
   View,
@@ -22,7 +22,7 @@ export const LanguageModal = ({ visible, onClose }) => {
     <Modal
       visible={visible}
       transparent
-      animationType=fade
+      animationType="fade"
       onRequestClose={onClose}
     >
       <TouchableWithoutFeedback onPress={onClose}>
@@ -32,8 +32,8 @@ export const LanguageModal = ({ visible, onClose }) => {
               {/* Header */}
               <View style={[styles.header, { borderBottomColor: theme.border }]}>
                 <View style={styles.titleWrap}>
-                  <View style={[styles.titleIconBadge, { backgroundColor: ${accentColor}20 }]}>
-                    <Ionicons name=globe-outline size={20} color={accentColor} />
+                  <View style={[styles.titleIconBadge, { backgroundColor: `${accentColor}20` }]}>
+                    <Ionicons name="globe-outline" size={20} color={accentColor} />
                   </View>
                   <View>
                     <Text style={[styles.titleText, { color: theme.textPrimary }]}>
@@ -49,7 +49,7 @@ export const LanguageModal = ({ visible, onClose }) => {
                   onPress={onClose}
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                  <Ionicons name=close size={18} color={theme.textPrimary} />
+                  <Ionicons name="close" size={18} color={theme.textPrimary} />
                 </TouchableOpacity>
               </View>
 
@@ -59,7 +59,7 @@ export const LanguageModal = ({ visible, onClose }) => {
                 contentContainerStyle={styles.langListContent}
                 showsVerticalScrollIndicator={false}
               >
-                {LANGUAGES.map((lang) => {
+                {LANGUAGES?.map((lang) => {
                   const isSelected = currentLanguage === lang.code;
                   return (
                     <TouchableOpacity
@@ -68,7 +68,7 @@ export const LanguageModal = ({ visible, onClose }) => {
                         styles.langItem,
                         {
                           backgroundColor: isSelected
-                            ? ${accentColor}15
+                            ? `${accentColor}15`
                             : theme.surfaceSecondary,
                           borderColor: isSelected ? accentColor : 'transparent'
                         }
@@ -103,7 +103,7 @@ export const LanguageModal = ({ visible, onClose }) => {
 
                       {isSelected ? (
                         <View style={[styles.checkBadge, { backgroundColor: accentColor }]}>
-                          <Ionicons name=checkmark size={15} color=#FFFFFF />
+                          <Ionicons name="checkmark" size={15} color="#FFFFFF" />
                         </View>
                       ) : (
                         <View style={[styles.radioCircle, { borderColor: theme.border }]} />
