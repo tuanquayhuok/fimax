@@ -4,6 +4,7 @@ import { CallbackService } from '../services/callbackService';
 import { StorageService } from '../services/storageService';
 import { NotificationService } from '../services/notificationService';
 import { TRANSLATIONS, LANGUAGES } from '../locales/translations';
+import { updateDynamicAppIcon } from '../services/appIconService';
 
 export const AppContext = createContext();
 
@@ -96,7 +97,12 @@ export const AppProvider = ({ children }) => {
         }
 
         const savedIcon = await StorageService.getItem('@fimax_app_icon');
-        if (savedIcon) setAppIcon(savedIcon);
+        if (savedIcon) {
+          setAppIcon(savedIcon);
+          updateDynamicAppIcon(savedIcon);
+        } else {
+          updateDynamicAppIcon('classic_red');
+        }
 
         const savedAccent = await StorageService.getItem('@fimax_accent_color');
         if (savedAccent) setAccentColor(savedAccent);
@@ -543,6 +549,7 @@ export const AppProvider = ({ children }) => {
       setAppIcon: (iconId) => {
         setAppIcon(iconId);
         StorageService.setItem('@fimax_app_icon', iconId);
+        updateDynamicAppIcon(iconId);
       },
       ambientLighting,
       setAmbientLighting,

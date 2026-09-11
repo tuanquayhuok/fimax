@@ -14,6 +14,7 @@ import { WatchPartyModal } from '../components/WatchPartyModal';
 import { DailyCheckInRewardsModal } from '../components/DailyCheckInRewardsModal';
 import { MovieRequestModal } from '../components/MovieRequestModal';
 import { ChangePasswordModal } from '../components/ChangePasswordModal';
+import { getAppIconById } from '../services/appIconService';
 
 export const AccountScreen = () => {
   const {
@@ -146,24 +147,6 @@ export const AccountScreen = () => {
         'vip'
       );
     }
-  };
-
-  const handleTestNotification = () => {
-    if (!notificationsEnabled) {
-      Alert.alert('Thông báo', 'Vui lòng gạt bật Cho phép nhận thông báo ở trên trước.');
-      return;
-    }
-    showNotificationPopup(
-      '🎬 Bom Tấn Điện Ảnh Mới Cập Nhật',
-      'Đào, Phở và Piano (4K HDR) vừa cập nhật bản chiếu rạp độc quyền. Nhấn để thưởng thức ngay!',
-      {
-        id: 'mov_1',
-        title: 'Đào, Phở và Piano',
-        posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&auto=format&fit=crop&q=80',
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
-      },
-      'movie'
-    );
   };
 
   // Secret 5-tap gesture handler on app version to open Master Admin
@@ -499,19 +482,19 @@ export const AccountScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 2. Tùy Chỉnh Giao Diện & Icon App */}
-        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>GIAO DIỆN & ICON ỨNG DỤNG</Text>
+        {/* 2. Tùy Chỉnh Biểu Tượng Icon App (Locket Style) */}
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>BIỂU TƯỢNG ỨNG DỤNG (APP ICON)</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={styles.rowItem} onPress={() => setShowAppearanceModal(true)} activeOpacity={0.8}>
             <View style={[styles.iconBoxMini, { backgroundColor: theme.isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.07)', borderColor: theme.borderLight }]}>
-              <Ionicons name="color-palette-outline" size={18} color={theme.textPrimary} />
+              <Ionicons name="apps-outline" size={18} color={theme.textPrimary} />
             </View>
             <View style={styles.rowContent}>
               <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale, fontWeight: '700' }]}>
-                Studio Giao Diện & Icon App
+                Đổi Avatar & Icon App (Locket Style)
               </Text>
               <Text style={[styles.rowSub, { color: theme.textSecondary }]}>
-                {themeMode === 'light' ? 'Chế độ Sáng' : (themeMode === 'midnight' ? 'Midnight Deep' : 'Tối OLED')} • Đổi App Icon & 8 Màu Rạp Phim
+                {getAppIconById(appIcon)?.name || 'FIMAX Classic'} • Đổi icon màn hình chính & trình duyệt
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
@@ -521,7 +504,7 @@ export const AccountScreen = () => {
         {/* 3. Thông Báo & Popup Alert */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>THÔNG BÁO & TRẢI NGHIỆM</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.rowItem, { borderBottomColor: theme.borderLight }]}>
+          <View style={styles.rowItem}>
             <Ionicons name="notifications-outline" size={20} color={accentColor} />
             <View style={styles.rowContent}>
               <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Cho phép nhận thông báo</Text>
@@ -533,15 +516,6 @@ export const AccountScreen = () => {
               trackColor={{ false: '#2C2C2E', true: accentColor }}
             />
           </View>
-
-          <TouchableOpacity style={styles.rowItem} onPress={handleTestNotification}>
-            <Ionicons name="paper-plane-outline" size={20} color={theme.textPrimary} />
-            <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Gửi thông báo thử nghiệm</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Bấm để kiểm tra popup thông báo động từ rạp</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
-          </TouchableOpacity>
         </View>
 
         {/* 4. An Toàn & Bảo Mật */}
