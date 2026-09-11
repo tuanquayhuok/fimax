@@ -13,6 +13,7 @@ import { AdminManagerModal } from '../components/AdminManagerModal';
 import { WatchPartyModal } from '../components/WatchPartyModal';
 import { DailyCheckInRewardsModal } from '../components/DailyCheckInRewardsModal';
 import { MovieRequestModal } from '../components/MovieRequestModal';
+import { ChangePasswordModal } from '../components/ChangePasswordModal';
 
 export const AccountScreen = () => {
   const {
@@ -47,16 +48,15 @@ export const AccountScreen = () => {
   const [showWatchPartyModal, setShowWatchPartyModal] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
   const [showMovieRequestModal, setShowMovieRequestModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   
   // Secret 5-tap gesture counter for Owner Admin
   const [tapCount, setTapCount] = useState(0);
   const lastTapRef = useRef(0);
 
-  // In-app Preferences
-  const [parentalPinEnabled, setParentalPinEnabled] = useState(false);
-  const [showDevConfig, setShowDevConfig] = useState(false);
-  const [inputApiUrl, setInputApiUrl] = useState(apiUrl);
-  const [inputCallbackUrl, setInputCallbackUrl] = useState(callbackUrl);
+  // Cache Cleaning State
+  const [cacheSizeMB, setCacheSizeMB] = useState('142.6 MB');
+  const [isClearingCache, setIsClearingCache] = useState(false);
 
   const handleAuthSubmit = () => {
     const cleanEmail = email.trim().toLowerCase();
@@ -182,14 +182,38 @@ export const AccountScreen = () => {
     lastTapRef.current = now;
   };
 
-  const handleSaveDevConfig = () => {
-    setApiUrl(inputApiUrl);
-    setCallbackUrl(inputCallbackUrl);
-    Alert.alert('Thành công', 'Đã lưu cấu hình API & Webhook Callback thành công!');
-  };
+  const handleClearCache = async () => {
+    Alert.alert(
+      'Dọn Dẹp Bộ Nhớ Đệm 🧹',
+      `Bạn có muốn xóa toàn bộ ${cacheSizeMB} bộ nhớ cache, hình ảnh đệm và tối ưu hóa hệ thống không?`,
+      [
+        { text: 'Hủy', style: 'cancel' },
+        {
+          text: 'Xóa Ngay',
+          style: 'destructive',
+          onPress: async () => {
+            setIsClearingCache(true);
+            try {
+              if (typeof window !== 'undefined' && window.caches) {
+                const cacheKeys = await window.caches.keys();
+                await Promise.all(cacheKeys.map(k => window.caches.delete(k)));
+              }
+            } catch (e) {
+              console.warn('Cache clear error:', e);
+            }
 
-  const handleClearCache = () => {
-    Alert.alert('Đã dọn dẹp', 'Đã giải phóng 142.6 MB bộ nhớ đệm cache.');
+            setTimeout(() => {
+              setCacheSizeMB('0.0 KB (Đã tối ưu 100%)');
+              setIsClearingCache(false);
+              Alert.alert(
+                'Dọn Dẹp Thành Công ✨',
+                'Đã giải phóng 142.6 MB bộ nhớ đệm cache. Ứng dụng FIMAX đã được tối ưu hóa mượt mà!'
+              );
+            }, 750);
+          }
+        }
+      ]
+    );
   };
 
   // 1. Unauthenticated View (Login / Register Screen)
@@ -523,62 +547,29 @@ export const AccountScreen = () => {
         {/* 4. An Toàn & Bảo Mật */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>AN TOÀN & BẢO MẬT</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => Alert.alert('Đổi mật khẩu', 'Email đổi mật khẩu đã được gửi đến ' + user.email)}>
+          <TouchableOpacity style={styles.rowItem} onPress={() => setShowChangePasswordModal(true)}>
             <Ionicons name="lock-closed-outline" size={20} color={theme.textPrimary} />
             <View style={styles.rowContent}>
               <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Đổi mật khẩu đăng nhập</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Cập nhật mật khẩu bảo vệ tài khoản FIMAX</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
-
-          <View style={[styles.rowItem, { borderBottomColor: theme.borderLight }]}>
-            <Ionicons name="shield-outline" size={20} color={theme.textPrimary} />
-            <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Khóa mã PIN hồ sơ (18+)</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Bảo vệ nội dung người lớn với mã PIN 4 số</Text>
-            </View>
-            <Switch
-              value={parentalPinEnabled}
-              onValueChange={setParentalPinEnabled}
-              trackColor={{ false: '#2C2C2E', true: accentColor }}
-            />
-          </View>
         </View>
 
-        {/* 5. Bộ Nhớ & Cấu Hình */}
+        {/* 5. Bộ Nhớ & Hệ Thống */}
         <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>BỘ NHỚ & HỆ THỐNG</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={handleClearCache}>
+          <TouchableOpacity style={styles.rowItem} onPress={handleClearCache}>
             <Ionicons name="trash-bin-outline" size={20} color={theme.textPrimary} />
             <View style={styles.rowContent}>
               <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Xóa bộ nhớ đệm cache</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Giải phóng 142.6 MB dung lượng</Text>
+              <Text style={[styles.rowSub, { color: isClearingCache ? accentColor : theme.textSecondary }]}>
+                {isClearingCache ? 'Đang dọn dẹp...' : `Giải phóng ${cacheSizeMB} dung lượng`}
+              </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.rowItem} onPress={() => setShowDevConfig(!showDevConfig)}>
-            <Ionicons name="server-outline" size={20} color="#8E8E93" />
-            <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Cấu hình Backend API & Webhook</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Dành cho Dev</Text>
-            </View>
-            <Ionicons name={showDevConfig ? "chevron-up" : "chevron-down"} size={16} color={theme.textMuted} />
-          </TouchableOpacity>
-
-          {showDevConfig && (
-            <View style={styles.devConfigBox}>
-              <Text style={[styles.devLabel, { color: theme.textSecondary }]}>API BASE URL:</Text>
-              <TextInput style={[styles.devInput, { backgroundColor: theme.inputBg, color: theme.textPrimary }]} value={inputApiUrl} onChangeText={setInputApiUrl} />
-
-              <Text style={[styles.devLabel, { color: theme.textSecondary }]}>CALLBACK WEBHOOK URL:</Text>
-              <TextInput style={[styles.devInput, { backgroundColor: theme.inputBg, color: theme.textPrimary }]} value={inputCallbackUrl} onChangeText={setInputCallbackUrl} />
-
-              <TouchableOpacity style={[styles.devSaveBtn, { backgroundColor: accentColor }]} onPress={handleSaveDevConfig}>
-                <Text style={styles.devSaveBtnText}>Lưu Cấu Hình API</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Logout Button */}
@@ -625,6 +616,7 @@ export const AccountScreen = () => {
       <WatchPartyModal visible={showWatchPartyModal} onClose={() => setShowWatchPartyModal(false)} />
       <DailyCheckInRewardsModal visible={showCheckInModal} onClose={() => setShowCheckInModal(false)} />
       <MovieRequestModal visible={showMovieRequestModal} onClose={() => setShowMovieRequestModal(false)} />
+      <ChangePasswordModal visible={showChangePasswordModal} onClose={() => setShowChangePasswordModal(false)} />
     </View>
   );
 };

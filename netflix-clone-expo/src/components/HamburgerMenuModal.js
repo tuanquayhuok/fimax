@@ -30,6 +30,9 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
     accentColor,
     frameRate,
     setFrameRate,
+    sleepTimer,
+    sleepTimerRemaining,
+    setSleepTimer,
     fimaxPoints,
     t
   } = useContext(AppContext);
@@ -40,7 +43,6 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
   const [showWatchParty, setShowWatchParty] = useState(false);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showMovieRequest, setShowMovieRequest] = useState(false);
-  const [sleepTimer, setSleepTimer] = useState(null); // in minutes: 15, 30, 45, 60
 
   if (!visible) return null;
 
@@ -342,7 +344,11 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                   </View>
                   {sleepTimer && (
                     <View style={[styles.sleepActivePill, { backgroundColor: accentColor }]}>
-                      <Text style={styles.sleepActivePillText}>{sleepTimer}p</Text>
+                      <Text style={styles.sleepActivePillText}>
+                        {sleepTimerRemaining
+                          ? `${Math.floor(sleepTimerRemaining / 60)}:${String(sleepTimerRemaining % 60).padStart(2, '0')}`
+                          : `${sleepTimer}p`}
+                      </Text>
                     </View>
                   )}
                 </View>

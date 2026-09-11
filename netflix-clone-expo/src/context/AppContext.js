@@ -29,6 +29,9 @@ export const AppProvider = ({ children }) => {
   const [appIcon, setAppIcon] = useState('classic_red');
   const [ambientLighting, setAmbientLighting] = useState(true);
   const [frameRate, setFrameRateState] = useState(60); // 30, 45, 60, 90, 120 FPS
+  const [sleepTimer, setSleepTimerState] = useState(null); // in minutes: 15, 30, 45, 60
+  const [sleepTimerEndTime, setSleepTimerEndTime] = useState(null);
+  const [sleepTimerRemaining, setSleepTimerRemaining] = useState(null); // in seconds
 
   // Multi-Language Support State - Default is 'vi' (Tiếng Việt)
   const [currentLanguage, setCurrentLanguageState] = useState('vi');
@@ -277,6 +280,68 @@ export const AppProvider = ({ children }) => {
     StorageService.setItem('@fimax_frame_rate', String(fps));
   };
 
+  const setSleepTimer = (minutes) => {
+    if (!minutes) {
+      setSleepTimerState(null);
+      setSleepTimerEndTime(null);
+      setSleepTimerRemaining(null);
+      return;
+    }
+    setSleepTimerState(minutes);
+    const targetEnd = Date.now() + minutes * 60 * 1000;
+    setSleepTimerEndTime(targetEnd);
+    setSleepTimerRemaining(minutes * 60);
+  };
+
+  // Real Sleep Timer countdown interval
+  useEffect(() => {
+    if (!sleepTimerEndTime) return;
+
+    const timerInterval = setInterval(() => {
+      const remainingMs = sleepTimerEndTime - Date.now();
+      if (remainingMs <= 0) {
+        clearInterval(timerInterval);
+        setSleepTimerState(null);
+        setSleepTimerEndTime(null);
+        setSleepTimerRemaining(null);
+        // Automatically stop playing movie and close player
+        setActiveMovieForPlayer(null);
+        Alert.alert(
+          'Hẹn Giờ Tắt Phim 💤',
+          'Đã hết thời gian hẹn giờ xem phim. FIMAX đã tự động dừng phát video để bạn nghỉ ngơi.'
+        );
+      } else {
+        setSleepTimerRemaining(Math.ceil(remainingMs / 1000));
+      }
+    }, 1000);
+
+    return () => clearInterval(timerInterval);
+  }, [sleepTimerEndTime]);
+
+  const changePassword = (oldPassword, newPassword) => {
+    if (!user) {
+      return { success: false, error: 'Vui lòng đăng nhập tài khoản để đổi mật khẩu.' };
+    }
+    if (user.password && user.password !== oldPassword) {
+      return { success: false, error: 'Mật khẩu hiện tại không chính xác. Vui lòng kiểm tra lại!' };
+    }
+    if (!newPassword || newPassword.length < 6) {
+      return { success: false, error: 'Mật khẩu mới phải có ít nhất 6 ký tự.' };
+    }
+
+    const updatedUser = { ...user, password: newPassword };
+    setUser(updatedUser);
+    StorageService.setItem('@fimax_auth_user', JSON.stringify(updatedUser));
+
+    setRegisteredUsers(currentUsers => {
+      const updated = currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u);
+      StorageService.setItem('@fimax_registered_users', JSON.stringify(updated));
+      return updated;
+    });
+
+    return { success: true };
+  };
+
   const setNotificationsEnabled = (val) => {
     setNotificationsEnabledState(val);
     StorageService.setItem('@fimax_notif_enabled', String(val));
@@ -483,6 +548,10 @@ export const AppProvider = ({ children }) => {
       setAmbientLighting,
       frameRate,
       setFrameRate,
+      sleepTimer,
+      sleepTimerRemaining,
+      setSleepTimer,
+      changePassword,
       currentLanguage,
       setLanguage,
       t,
