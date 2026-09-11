@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
+  Image,
   Modal,
   TouchableOpacity,
   ScrollView,
@@ -336,7 +337,15 @@ export const AppearanceSettingsModal = ({ visible, onClose }) => {
                     style={[styles.pillBtn, active && { backgroundColor: tempColor, borderColor: tempColor }]}
                     onPress={() => setTempLang(lang.code)}
                   >
-                    <Text style={{ fontSize: 16 }}>{lang.flag}</Text>
+                    {lang.flagImg ? (
+                      <Image
+                        source={{ uri: lang.flagImg }}
+                        style={{ width: 22, height: 15, borderRadius: 2, marginBottom: 2 }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Text style={{ fontSize: 16 }}>{lang.flag}</Text>
+                    )}
                     <Text style={[styles.pillText, active && styles.pillTextActive, { fontWeight: '700', marginTop: 2 }]}>
                       {lang.name}
                     </Text>

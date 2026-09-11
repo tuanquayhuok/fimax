@@ -1,38 +1,43 @@
-﻿export const LANGUAGES = [
+export const LANGUAGES = [
   {
     code: 'vi',
     name: 'Tiếng Việt',
     nativeName: 'Việt Nam',
     flag: '🇻🇳',
-    iconName: 'flag'
+    flagImg: 'https://flagcdn.com/w80/vn.png',
+    countryCode: 'VN'
   },
   {
     code: 'en',
     name: 'English',
     nativeName: 'United States',
     flag: '🇺🇸',
-    iconName: 'flag'
+    flagImg: 'https://flagcdn.com/w80/us.png',
+    countryCode: 'US'
   },
   {
     code: 'kr',
     name: '한국어',
     nativeName: '대한민국',
     flag: '🇰🇷',
-    iconName: 'flag'
+    flagImg: 'https://flagcdn.com/w80/kr.png',
+    countryCode: 'KR'
   },
   {
     code: 'jp',
     name: '日本語',
     nativeName: '日本',
     flag: '🇯🇵',
-    iconName: 'flag'
+    flagImg: 'https://flagcdn.com/w80/jp.png',
+    countryCode: 'JP'
   },
   {
     code: 'cn',
     name: '简体中文',
     nativeName: '中国',
     flag: '🇨🇳',
-    iconName: 'flag'
+    flagImg: 'https://flagcdn.com/w80/cn.png',
+    countryCode: 'CN'
   }
 ];
 

@@ -3,6 +3,7 @@ import {
   Modal,
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -80,8 +81,16 @@ export const LanguageModal = ({ visible, onClose }) => {
                       }}
                     >
                       <View style={styles.langLeft}>
-                        <View style={[styles.flagBadge, { backgroundColor: theme.surface }]}>
-                          <Text style={styles.flagText}>{lang.flag}</Text>
+                        <View style={[styles.flagBadge, { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1 }]}>
+                          {lang.flagImg ? (
+                            <Image
+                              source={{ uri: lang.flagImg }}
+                              style={styles.modalFlagImg}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <Text style={styles.flagText}>{lang.flag}</Text>
+                          )}
                         </View>
                         <View style={styles.langInfo}>
                           <Text
@@ -203,11 +212,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2
+  },
+  modalFlagImg: {
+    width: 26,
+    height: 18,
+    borderRadius: 3
   },
   flagText: {
     fontSize: 22

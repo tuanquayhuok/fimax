@@ -42,11 +42,19 @@ export const HeaderBar = ({ navigation }) => {
 
         {/* Multi-Language Switch Button */}
         <TouchableOpacity
-          style={[styles.flagBtn, { backgroundColor: theme.surfaceSecondary, borderColor: `${accentColor}30` }]}
+          style={[styles.flagBtn, { backgroundColor: theme.surfaceSecondary, borderColor: `${accentColor}40` }]}
           activeOpacity={0.7}
           onPress={() => setShowLanguageModal(true)}
         >
-          <Text style={styles.flagEmoji}>{currentLangObj.flag}</Text>
+          {currentLangObj.flagImg ? (
+            <Image
+              source={{ uri: currentLangObj.flagImg }}
+              style={styles.flagIconImg}
+              resizeMode="cover"
+            />
+          ) : (
+            <Text style={styles.flagEmoji}>{currentLangObj.flag}</Text>
+          )}
         </TouchableOpacity>
 
         {/* User Profile Avatar */}
@@ -136,9 +144,15 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    borderWidth: 1,
+    borderWidth: 1.5,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
+  flagIconImg: {
+    width: 22,
+    height: 16,
+    borderRadius: 3
   },
   flagEmoji: {
     fontSize: 18,
