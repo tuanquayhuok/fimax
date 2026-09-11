@@ -12,6 +12,7 @@ import { MovieCard } from '../components/MovieCard';
 import { QuickPreviewModal } from '../components/QuickPreviewModal';
 import { TrailerModal } from '../components/TrailerModal';
 import { NetflixGenreModal } from '../components/NetflixGenreModal';
+import { Footer } from '../components/Footer';
 
 export const HomeScreen = ({ navigation }) => {
   const { themeMode, accentColor, t } = useContext(AppContext);
@@ -33,7 +34,8 @@ export const HomeScreen = ({ navigation }) => {
       cinema: allList.filter(m => m.categoryTag === 'cinema' || m.categoryTag === 'latest' || m.genres?.some(g => g.toLowerCase().includes('chiếu rạp'))),
       animation: allList.filter(m => m.categoryTag === 'animation' || m.genres?.some(g => g.toLowerCase().includes('hoạt hình') || g.toLowerCase().includes('anime')) || m.title?.toLowerCase().includes('suzume')),
       korean: allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean'),
-      hollywood: allList.filter(m => m.country === 'Mỹ' || m.country === 'Âu Mỹ' || m.categoryTag === 'hollywood')
+      hollywood: allList.filter(m => m.country === 'Mỹ' || m.country === 'Âu Mỹ' || m.categoryTag === 'hollywood'),
+      upcoming: allList.filter(m => m.isUpcoming || m.categoryTag === 'upcoming')
     };
   });
 
@@ -47,6 +49,7 @@ export const HomeScreen = ({ navigation }) => {
     );
     const koreanList = allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean');
     const hollywoodList = allList.filter(m => m.country === 'Mỹ' || m.country === 'Âu Mỹ' || (m.country !== 'Việt Nam' && m.country !== 'Hàn Quốc'));
+    const upcomingList = allList.filter(m => m.isUpcoming || m.categoryTag === 'upcoming');
 
     setMoviesBySection({
       all: allList,
@@ -54,7 +57,8 @@ export const HomeScreen = ({ navigation }) => {
       cinema: cinemaList.length > 0 ? cinemaList : allList.slice(0, 8),
       animation: animationList.length > 0 ? animationList : allList.filter(m => m.genres?.includes('Hoạt hình')),
       korean: koreanList.length > 0 ? koreanList : allList.filter(m => m.country === 'Hàn Quốc'),
-      hollywood: hollywoodList.length > 0 ? hollywoodList : allList.slice(4, 10)
+      hollywood: hollywoodList.length > 0 ? hollywoodList : allList.slice(4, 10),
+      upcoming: upcomingList.length > 0 ? upcomingList : MOCK_MOVIES.filter(m => m.isUpcoming || m.categoryTag === 'upcoming')
     });
   };
 
@@ -129,6 +133,7 @@ export const HomeScreen = ({ navigation }) => {
     if (selectedCategory.includes('Chiếu Rạp')) return moviesBySection.cinema;
     if (selectedCategory.includes('Hoạt Hình') || selectedCategory.includes('Anime')) return moviesBySection.animation;
     if (selectedCategory.includes('Hàn Quốc')) return moviesBySection.korean;
+    if (selectedCategory.includes('Sắp Chiếu') || selectedCategory.includes('Coming Soon')) return moviesBySection.upcoming;
     if (selectedCategory.includes('Việt Nam')) return moviesBySection.all.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam');
     if (selectedCategory.includes('Hollywood') || selectedCategory.includes('Âu Mỹ')) return moviesBySection.hollywood;
 
@@ -272,6 +277,15 @@ export const HomeScreen = ({ navigation }) => {
                 isComingSoon={false}
               />
             )}
+            {moviesBySection.upcoming.length > 0 && (
+              <MovieRow
+                title={t('upcoming_movies') || 'Phim Sắp Chiếu (Coming Soon)'}
+                movies={moviesBySection.upcoming}
+                navigation={navigation}
+                onLongPressMovie={handleLongPressMovie}
+                isComingSoon={false}
+              />
+            )}
           </>
         ) : (
           /* View mode 2: Specific Category Grid */
@@ -297,6 +311,12 @@ export const HomeScreen = ({ navigation }) => {
             </View>
           </View>
         )}
+
+        {/* Professional Cinema Footer */}
+        <Footer
+          navigation={navigation}
+          onSelectCategory={(cat) => setSelectedCategory(cat)}
+        />
 
         <View style={{ height: 60 }} />
       </ScrollView>
