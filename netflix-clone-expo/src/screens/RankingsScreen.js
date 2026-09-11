@@ -16,7 +16,7 @@ import { CinemaImage } from '../components/CinemaImage';
 
 const { width } = Dimensions.get('window');
 
-const CATEGORIES = ['Tất Cả', 'Việt Nam', 'Chiếu Rạp', 'Hàn Quốc'];
+const CATEGORIES = ['Tất Cả', 'Chiếu Rạp', 'Hoạt Hình', 'Hàn Quốc', 'Việt Nam'];
 
 export const RankingsScreen = ({ navigation }) => {
   const { themeMode, accentColor, fontSizeScale, setActiveMovieForPlayer, t } = useContext(AppContext);
@@ -44,12 +44,14 @@ export const RankingsScreen = ({ navigation }) => {
 
   // Sort and filter top 10 movies
   let filtered = allMovies;
-  if (selectedCat === 'Việt Nam') {
-    filtered = allMovies.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam');
-  } else if (selectedCat === 'Chiếu Rạp') {
-    filtered = allMovies.filter(m => m.categoryTag === 'cinema' || (m.rating && m.rating >= 8.5));
+  if (selectedCat === 'Chiếu Rạp') {
+    filtered = allMovies.filter(m => m.categoryTag === 'cinema' || (m.rating && m.rating >= 8.5) || (m.genres && m.genres.some(g => g.toLowerCase().includes('chiếu rạp'))));
+  } else if (selectedCat === 'Hoạt Hình') {
+    filtered = allMovies.filter(m => m.categoryTag === 'animation' || (m.genres && m.genres.some(g => g.toLowerCase().includes('hoạt hình') || g.toLowerCase().includes('anime'))));
   } else if (selectedCat === 'Hàn Quốc') {
     filtered = allMovies.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean');
+  } else if (selectedCat === 'Việt Nam') {
+    filtered = allMovies.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam');
   }
 
   const top10Movies = [...filtered]

@@ -236,6 +236,68 @@ export const MOCK_MOVIES = [
       { language: 'Gốc (Nhật Bản)', code: 'ja_orig', label: 'Japanese Original' },
       { language: 'Lồng tiếng Tiếng Việt', code: 'vi_dub', label: 'Lồng tiếng Việt' }
     ]
+  },
+  {
+    id: 'mov_7',
+    title: 'Na Tra 2 : Ma Đồng Náo Hải (Ne Zha 2)',
+    originalTitle: 'Ne Zha 2',
+    rating: 9.3,
+    releaseYear: 2025,
+    duration: '2h 14m',
+    durationSeconds: 8040,
+    country: 'Trung Quốc',
+    ageRating: 'P',
+    isFeatured: true,
+    isHot: true,
+    isNew: true,
+    isTrending: true,
+    isUpcoming: false,
+    viewCount: 3250000,
+    genres: ['Hoạt hình', 'Anime', 'Kỳ ảo', 'Hành động', 'Chiếu Rạp'],
+    director: 'Giảo Tử',
+    categoryTag: 'animation',
+    overview: 'Sau đại kiếp thiên lôi, linh hồn Na Tra và Ngao Bính cùng tái sinh trong hành trình cứu độ tam giới và định đoạt lại số mệnh của chính mình.',
+    backdropUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1200&auto=format&fit=crop&q=80',
+    posterUrl: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=600&auto=format&fit=crop&q=80',
+    trailerUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    videoSources: {
+      '1080p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+      '720p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      'auto': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+    },
+    subtitles: [{ language: 'Tiếng Việt', code: 'vi', label: 'Tiếng Việt' }],
+    audioTracks: [{ language: 'Lồng tiếng', code: 'vi_dub', label: 'Thuyết minh Tiếng Việt' }]
+  },
+  {
+    id: 'mov_8',
+    title: 'Doraemon: Bản Giao Hưởng Địa Cầu',
+    originalTitle: 'Doraemon: Nobita\'s Earth Symphony',
+    rating: 8.9,
+    releaseYear: 2024,
+    duration: '1h 55m',
+    durationSeconds: 6900,
+    country: 'Nhật Bản',
+    ageRating: 'P',
+    isFeatured: false,
+    isHot: true,
+    isNew: false,
+    isTrending: true,
+    isUpcoming: false,
+    viewCount: 2100000,
+    genres: ['Hoạt hình', 'Anime', 'Phiêu lưu', 'Gia đình'],
+    director: 'Kazuaki Imai',
+    categoryTag: 'animation',
+    overview: 'Nobita và các bạn cùng bước vào thế giới âm nhạc kỳ diệu ngoài không gian để giải cứu Trái Đất khỏi hiểm họa mất đi giai điệu vĩnh viễn.',
+    backdropUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200&auto=format&fit=crop&q=80',
+    posterUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80',
+    trailerUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    videoSources: {
+      '1080p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      '720p': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+      'auto': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+    },
+    subtitles: [{ language: 'Tiếng Việt', code: 'vi', label: 'Tiếng Việt' }],
+    audioTracks: [{ language: 'Lồng tiếng Việt', code: 'vi_dub', label: 'Lồng tiếng Chuẩn HTV3' }]
   }
 ];
 

@@ -6,15 +6,14 @@ const { width, height } = Dimensions.get('window');
 
 const NETFLIX_GENRES = [
   { id: 'all', name: 'Tất cả thể loại' },
-  { id: 'cinema', name: 'Phim Chiếu Rạp Bom Tấn' },
-  { id: 'vietnam', name: 'Điện Ảnh Việt Nam' },
-  { id: 'korean', name: 'Phim Hàn Quốc & K-Drama' },
-  { id: 'hollywood', name: 'Bom Tấn Hollywood' },
+  { id: 'cinema', name: 'Phim Chiếu Rạp Mới Nhất' },
+  { id: 'animation', name: 'Phim Hoạt Hình Mới Nhất' },
+  { id: 'korean', name: 'Phim Hàn Quốc' },
+  { id: 'hollywood', name: 'Bom Tấn Hollywood & Âu Mỹ' },
   { id: 'action', name: 'Hành Động & Phiêu Lưu' },
   { id: 'drama', name: 'Tâm Lý & Tình Cảm' },
   { id: 'horror', name: 'Kinh Dị & Giật Gân' },
-  { id: 'anime', name: 'Hoạt Hình & Anime' },
-  { id: 'comedy', name: 'Hài Hước Đặc Sắc' },
+  { id: 'vietnam', name: 'Điện Ảnh Việt Nam' },
   { id: 'sci-fi', name: 'Khoa Học Viễn Tưởng' }
 ];
 

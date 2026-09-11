@@ -143,6 +143,22 @@ async function syncFromWebSource() {
             viewsStore[movieId] = currentViews;
           }
 
+          const isAnimation = (m.title && (
+            m.title.toLowerCase().includes('na tra') ||
+            m.title.toLowerCase().includes('suzume') ||
+            m.title.toLowerCase().includes('doraemon') ||
+            m.title.toLowerCase().includes('mèo đi hia') ||
+            m.title.toLowerCase().includes('minion') ||
+            m.title.toLowerCase().includes('con ké') ||
+            m.title.toLowerCase().includes('anime') ||
+            m.title.toLowerCase().includes('hoạt hình') ||
+            m.title.toLowerCase().includes('spider-verse')
+          ));
+
+          const movieGenres = isAnimation
+            ? ['Hoạt hình', 'Anime', 'Chiếu Rạp', 'Kỳ ảo']
+            : ['Điện ảnh', 'Chiếu Rạp', cat === 'korean' ? 'Hàn Quốc' : (cat === 'vietnam' ? 'Việt Nam' : 'Âu Mỹ')];
+
           movies.push({
             id: movieId,
             title: m.title,
@@ -151,7 +167,7 @@ async function syncFromWebSource() {
             releaseYear: m.release_date ? parseInt(m.release_date.substring(0, 4)) : 2025,
             duration: (m.duration || 115) + ' phút',
             country: cat === 'vietnam' ? 'Việt Nam' : (cat === 'korean' ? 'Hàn Quốc' : 'Âu Mỹ'),
-            genres: ['Điện ảnh', 'Chiếu Rạp', cat.toUpperCase()],
+            genres: movieGenres,
             overview: m.description || `Bộ phim ${m.title} chiếu rạp đặc sắc trên FIMAX.`,
             posterUrl: m.poster_path,
             backdropUrl: m.backdrop_path || m.poster_path,
@@ -162,7 +178,7 @@ async function syncFromWebSource() {
               'auto': validVideoUrl
             },
             viewCount: currentViews,
-            categoryTag: cat
+            categoryTag: isAnimation ? 'animation' : cat
           });
         }
       }

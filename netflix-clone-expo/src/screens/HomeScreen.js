@@ -29,27 +29,32 @@ export const HomeScreen = ({ navigation }) => {
     const allList = MOCK_MOVIES;
     return {
       all: allList,
-      trending: allList.slice(0, 4),
-      newReleases: allList.filter(m => m.categoryTag === 'latest' || m.isNew).slice(0, 4),
-      topRated: allList.filter(m => m.categoryTag === 'cinema' || m.rating >= 8.5).slice(0, 4),
-      comingSoon: allList.slice(2, 6),
-      vietnam: allList.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam'),
-      hollywood: allList.filter(m => m.country !== 'Việt Nam' && m.categoryTag !== 'vietnam'),
-      korean: allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean')
+      trending: allList.slice(0, 6),
+      cinema: allList.filter(m => m.categoryTag === 'cinema' || m.categoryTag === 'latest' || m.genres?.some(g => g.toLowerCase().includes('chiếu rạp'))),
+      animation: allList.filter(m => m.categoryTag === 'animation' || m.genres?.some(g => g.toLowerCase().includes('hoạt hình') || g.toLowerCase().includes('anime')) || m.title?.toLowerCase().includes('suzume')),
+      korean: allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean'),
+      hollywood: allList.filter(m => m.country === 'Mỹ' || m.country === 'Âu Mỹ' || m.categoryTag === 'hollywood')
     };
   });
 
   const updateSectionState = (allList) => {
     if (!allList || allList.length === 0) return;
+    const cinemaList = allList.filter(m => m.categoryTag === 'cinema' || m.categoryTag === 'latest' || (m.genres && m.genres.some(g => g.toLowerCase().includes('chiếu rạp'))));
+    const animationList = allList.filter(m =>
+      m.categoryTag === 'animation' ||
+      (m.genres && m.genres.some(g => g.toLowerCase().includes('hoạt hình') || g.toLowerCase().includes('anime'))) ||
+      (m.title && (m.title.toLowerCase().includes('na tra') || m.title.toLowerCase().includes('suzume') || m.title.toLowerCase().includes('doraemon') || m.title.toLowerCase().includes('mèo đi hia') || m.title.toLowerCase().includes('minion') || m.title.toLowerCase().includes('con ké') || m.title.toLowerCase().includes('spider-verse')))
+    );
+    const koreanList = allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean');
+    const hollywoodList = allList.filter(m => m.country === 'Mỹ' || m.country === 'Âu Mỹ' || (m.country !== 'Việt Nam' && m.country !== 'Hàn Quốc'));
+
     setMoviesBySection({
       all: allList,
       trending: allList.slice(0, 10),
-      newReleases: allList.filter(m => m.categoryTag === 'latest' || m.isNew).slice(0, 8),
-      topRated: allList.filter(m => m.categoryTag === 'cinema' || m.rating >= 8.5).slice(0, 8),
-      comingSoon: allList.slice(10, 18),
-      vietnam: allList.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam'),
-      hollywood: allList.filter(m => m.country !== 'Việt Nam' && m.categoryTag !== 'vietnam'),
-      korean: allList.filter(m => m.country === 'Hàn Quốc' || m.categoryTag === 'korean')
+      cinema: cinemaList.length > 0 ? cinemaList : allList.slice(0, 8),
+      animation: animationList.length > 0 ? animationList : allList.filter(m => m.genres?.includes('Hoạt hình')),
+      korean: koreanList.length > 0 ? koreanList : allList.filter(m => m.country === 'Hàn Quốc'),
+      hollywood: hollywoodList.length > 0 ? hollywoodList : allList.slice(4, 10)
     });
   };
 
@@ -121,10 +126,11 @@ export const HomeScreen = ({ navigation }) => {
   // Filter movies when a specific category is selected
   const getFilteredCategoryMovies = () => {
     if (selectedCategory === 'Tất Cả' || selectedCategory === 'Tất cả thể loại') return moviesBySection.all;
-    if (selectedCategory.includes('Việt Nam')) return moviesBySection.vietnam;
-    if (selectedCategory.includes('Hollywood')) return moviesBySection.hollywood;
+    if (selectedCategory.includes('Chiếu Rạp')) return moviesBySection.cinema;
+    if (selectedCategory.includes('Hoạt Hình') || selectedCategory.includes('Anime')) return moviesBySection.animation;
     if (selectedCategory.includes('Hàn Quốc')) return moviesBySection.korean;
-    if (selectedCategory.includes('Chiếu Rạp')) return moviesBySection.topRated;
+    if (selectedCategory.includes('Việt Nam')) return moviesBySection.all.filter(m => m.country === 'Việt Nam' || m.categoryTag === 'vietnam');
+    if (selectedCategory.includes('Hollywood') || selectedCategory.includes('Âu Mỹ')) return moviesBySection.hollywood;
 
     const keyword = selectedCategory.split(' ')[0].toLowerCase();
     return moviesBySection.all.filter(m =>
@@ -150,17 +156,25 @@ export const HomeScreen = ({ navigation }) => {
             <TouchableOpacity
               style={styles.navLinkBtn}
               activeOpacity={0.7}
-              onPress={() => setSelectedCategory('Phim Chiếu Rạp Bom Tấn')}
+              onPress={() => setSelectedCategory('Phim Chiếu Rạp Mới Nhất')}
             >
-              <Text style={styles.navLinkText}>Phim Chiếu Rạp</Text>
+              <Text style={styles.navLinkText}>{t('cinema_movies') || 'Phim Chiếu Rạp'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.navLinkBtn}
               activeOpacity={0.7}
-              onPress={() => setSelectedCategory('Điện Ảnh Việt Nam')}
+              onPress={() => setSelectedCategory('Phim Hoạt Hình Mới Nhất')}
             >
-              <Text style={styles.navLinkText}>Phim Việt Nam</Text>
+              <Text style={styles.navLinkText}>{t('animation_movies') || 'Phim Hoạt Hình'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navLinkBtn}
+              activeOpacity={0.7}
+              onPress={() => setSelectedCategory('Phim Hàn Quốc')}
+            >
+              <Text style={styles.navLinkText}>{t('korean_movies') || 'Phim Hàn Quốc'}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -168,7 +182,7 @@ export const HomeScreen = ({ navigation }) => {
               activeOpacity={0.7}
               onPress={() => setShowGenreModal(true)}
             >
-              <Text style={styles.genreDropdownText}>Thể loại</Text>
+              <Text style={styles.genreDropdownText}>{t('categories') || 'Thể loại'}</Text>
               <Ionicons name="chevron-down" size={14} color="#FFFFFF" style={{ marginLeft: 2 }} />
             </TouchableOpacity>
           </View>
@@ -210,60 +224,54 @@ export const HomeScreen = ({ navigation }) => {
           />
         )}
 
-        {/* View mode 1: "Tất Cả" displays rich categorized rows */}
+        {/* View mode 1: "Tất Cả" displays rich categorized rows (ALL UNLOCKED) */}
         {selectedCategory === 'Tất Cả' ? (
           <>
             {moviesBySection.trending.length > 0 && (
               <MovieRow
-                title={t('trending_now')}
+                title={t('trending_now') || 'Đang thịnh hành'}
                 movies={moviesBySection.trending}
                 navigation={navigation}
                 onLongPressMovie={handleLongPressMovie}
                 isComingSoon={false}
               />
             )}
-            <MovieRow
-              title={t('popular_movies')}
-              movies={moviesBySection.newReleases}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-              isComingSoon={true}
-            />
-            <MovieRow
-              title={t('top_10_today')}
-              movies={moviesBySection.topRated}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-              isComingSoon={true}
-            />
-            <MovieRow
-              title={t('fimax_exclusives')}
-              movies={moviesBySection.vietnam}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-              isComingSoon={true}
-            />
-            <MovieRow
-              title={t('korean_drama')}
-              movies={moviesBySection.korean}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-              isComingSoon={true}
-            />
-            <MovieRow
-              title={t('action_packed')}
-              movies={moviesBySection.hollywood}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-              isComingSoon={true}
-            />
-            <MovieRow
-              title={t('popular_series')}
-              movies={moviesBySection.comingSoon}
-              navigation={navigation}
-              onLongPressMovie={handleLongPressMovie}
-              isComingSoon={true}
-            />
+            {moviesBySection.cinema.length > 0 && (
+              <MovieRow
+                title={t('cinema_movies') || 'Phim Chiếu Rạp Mới Nhất'}
+                movies={moviesBySection.cinema}
+                navigation={navigation}
+                onLongPressMovie={handleLongPressMovie}
+                isComingSoon={false}
+              />
+            )}
+            {moviesBySection.animation.length > 0 && (
+              <MovieRow
+                title={t('latest_animation') || 'Phim Hoạt Hình Mới Nhất'}
+                movies={moviesBySection.animation}
+                navigation={navigation}
+                onLongPressMovie={handleLongPressMovie}
+                isComingSoon={false}
+              />
+            )}
+            {moviesBySection.korean.length > 0 && (
+              <MovieRow
+                title={t('korean_movies') || 'Phim Hàn Quốc'}
+                movies={moviesBySection.korean}
+                navigation={navigation}
+                onLongPressMovie={handleLongPressMovie}
+                isComingSoon={false}
+              />
+            )}
+            {moviesBySection.hollywood.length > 0 && (
+              <MovieRow
+                title={t('action_packed') || 'Hành Động & Bom Tấn'}
+                movies={moviesBySection.hollywood}
+                navigation={navigation}
+                onLongPressMovie={handleLongPressMovie}
+                isComingSoon={false}
+              />
+            )}
           </>
         ) : (
           /* View mode 2: Specific Category Grid */
