@@ -19,7 +19,7 @@ const { width } = Dimensions.get('window');
 const CATEGORIES = ['Tất Cả', 'Việt Nam', 'Chiếu Rạp', 'Hàn Quốc'];
 
 export const RankingsScreen = ({ navigation }) => {
-  const { themeMode, accentColor, fontSizeScale, setActiveMovieForPlayer } = useContext(AppContext);
+  const { themeMode, accentColor, fontSizeScale, setActiveMovieForPlayer, t } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   const [allMovies, setAllMovies] = useState(MOCK_MOVIES);
@@ -117,12 +117,12 @@ export const RankingsScreen = ({ navigation }) => {
               onPress={() => setActiveMovieForPlayer(movie)}
             >
               <Ionicons name="play" size={13} color="#FFFFFF" />
-              <Text style={styles.playBtnText}>Xem ngay</Text>
+              <Text style={styles.playBtnText}>{t('play')}</Text>
             </TouchableOpacity>
 
             <View style={styles.trendingBadge}>
               <Ionicons name="flame" size={13} color="#FF9500" />
-              <Text style={styles.trendingText}>Top {rank} tuần này</Text>
+              <Text style={styles.trendingText}>Top {rank}</Text>
             </View>
           </View>
         </View>
@@ -135,10 +135,10 @@ export const RankingsScreen = ({ navigation }) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.screenTitle, { color: theme.textPrimary, fontSize: 26 * fontSizeScale }]}>
-          Bảng Xếp Hạng
+          {t('tab_rankings')}
         </Text>
         <Text style={[styles.screenSubtitle, { color: theme.textMuted }]}>
-          Top 10 phim bom tấn chiếu rạp được xem nhiều nhất
+          {t('rankings_title')}
         </Text>
       </View>
 

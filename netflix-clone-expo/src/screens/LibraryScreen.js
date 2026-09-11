@@ -32,7 +32,8 @@ export const LibraryScreen = ({ navigation }) => {
     themeMode,
     accentColor,
     fontSizeScale,
-    user
+    user,
+    t
   } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
@@ -166,17 +167,17 @@ export const LibraryScreen = ({ navigation }) => {
       <View style={styles.header}>
         <View>
           <Text style={[styles.screenTitle, { color: theme.textPrimary, fontSize: 26 * fontSizeScale }]}>
-            Thư Viện Của Tôi
+            {t('tab_library')}
           </Text>
           <Text style={[styles.screenSubtitle, { color: theme.textMuted }]}>
-            {user ? user.name : 'Khách FIMAX'} • {favoriteMovies.length} phim yêu thích
+            {user ? user.name : t('guest_user')} • {favoriteMovies.length} {t('movies_count')}
           </Text>
         </View>
 
         {activeTab === 'history' && historyMovies.length > 0 && (
           <TouchableOpacity style={[styles.clearBtn, { backgroundColor: theme.surfaceSecondary }]} onPress={handleClearHistory}>
             <Ionicons name="trash-outline" size={16} color="#FF3B30" />
-            <Text style={styles.clearBtnText}>Xóa</Text>
+            <Text style={styles.clearBtnText}>{t('cancel')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -202,7 +203,7 @@ export const LibraryScreen = ({ navigation }) => {
               { color: activeTab === 'favorites' ? accentColor : theme.textSecondary, fontWeight: activeTab === 'favorites' ? '700' : '500' }
             ]}
           >
-            Yêu Thích ({favoriteMovies.length})
+            {t('my_list')} ({favoriteMovies.length})
           </Text>
         </TouchableOpacity>
 
@@ -225,7 +226,7 @@ export const LibraryScreen = ({ navigation }) => {
               { color: activeTab === 'continue' ? accentColor : theme.textSecondary, fontWeight: activeTab === 'continue' ? '700' : '500' }
             ]}
           >
-            Đang Xem ({continueWatchingMovies.length})
+            {t('continue_watching')} ({continueWatchingMovies.length})
           </Text>
         </TouchableOpacity>
 
@@ -248,7 +249,7 @@ export const LibraryScreen = ({ navigation }) => {
               { color: activeTab === 'history' ? accentColor : theme.textSecondary, fontWeight: activeTab === 'history' ? '700' : '500' }
             ]}
           >
-            Đã Xem ({historyMovies.length})
+            {t('watch_history')} ({historyMovies.length})
           </Text>
         </TouchableOpacity>
       </View>

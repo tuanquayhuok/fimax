@@ -30,7 +30,8 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
     accentColor,
     frameRate,
     setFrameRate,
-    fimaxPoints
+    fimaxPoints,
+    t
   } = useContext(AppContext);
 
   const theme = getThemeColors(themeMode);
@@ -178,13 +179,13 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                     onPress={() => handleNavigate('AccountTab')}
                   >
                     <Ionicons name="log-in-outline" size={16} color="#FFFFFF" />
-                    <Text style={styles.guestLoginBtnText}>Đăng Nhập / Đăng Ký</Text>
+                    <Text style={styles.guestLoginBtnText}>{t('login')} / {t('register')}</Text>
                   </TouchableOpacity>
                 </View>
               )}
 
               {/* SECTION: BỘ SƯU TẬP & KHO PHIM */}
-              <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>KHO PHIM & BỘ SƯU TẬP</Text>
+              <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>{t('drawer_cinema')}</Text>
 
               {/* 1. Danh Sách Yêu Thích */}
               <TouchableOpacity
@@ -196,8 +197,8 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                   <Ionicons name="heart-outline" size={18} color={theme.textPrimary} />
                 </View>
                 <View style={styles.menuItemContent}>
-                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>Danh Sách Yêu Thích</Text>
-                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>Các bộ phim bạn đã lưu lại</Text>
+                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>{t('my_list')}</Text>
+                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>{t('fimax_exclusives')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
               </TouchableOpacity>
@@ -212,8 +213,8 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                   <Ionicons name="time-outline" size={18} color={theme.textPrimary} />
                 </View>
                 <View style={styles.menuItemContent}>
-                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>Lịch Sử Xem Phim</Text>
-                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>Tiếp tục xem các tập dang dở</Text>
+                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>{t('continue_watching')}</Text>
+                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>{t('tab_library')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
               </TouchableOpacity>
@@ -231,8 +232,8 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                   <Ionicons name="people-outline" size={18} color={theme.textPrimary} />
                 </View>
                 <View style={styles.menuItemContent}>
-                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>Phòng Xem Chung (Watch Party)</Text>
-                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>Tạo room xem phim & live chat cùng bạn bè</Text>
+                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>{t('watch_party')}</Text>
+                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>{t('drawer_watch_party')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
               </TouchableOpacity>
@@ -251,12 +252,12 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                 </View>
                 <View style={styles.menuItemContent}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>Điểm Danh & Đổi Quà VIP</Text>
+                    <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>{t('daily_checkin')}</Text>
                     <View style={[styles.pointsBadge, { backgroundColor: 'rgba(212, 175, 55, 0.15)', borderColor: 'rgba(212, 175, 55, 0.3)', borderWidth: 0.5 }]}>
                       <Text style={styles.pointsBadgeText}>{fimaxPoints || 0} PTS</Text>
                     </View>
                   </View>
-                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>Tích lũy 7 ngày đổi vé rạp, bắp nước & VIP</Text>
+                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>{t('vip_member')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
               </TouchableOpacity>
@@ -274,8 +275,8 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                   <Ionicons name="film-outline" size={18} color={theme.textPrimary} />
                 </View>
                 <View style={styles.menuItemContent}>
-                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>Yêu Cầu Thêm Phim Mới</Text>
-                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>Gửi tên phim bạn muốn rạp cập nhật</Text>
+                  <Text style={[styles.menuItemTitle, { color: theme.textPrimary }]}>{t('movie_request')}</Text>
+                  <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>{t('drawer_requests')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
               </TouchableOpacity>
@@ -388,10 +389,10 @@ export const HamburgerMenuModal = ({ visible, onClose, navigation }) => {
                     <Ionicons name="log-out-outline" size={18} color="#FF453A" />
                   </View>
                   <View style={styles.menuItemContent}>
-                    <Text style={[styles.menuItemTitle, { color: '#FF453A', fontWeight: '700' }]}>Đăng Xuất</Text>
-                    <Text style={[styles.menuItemSub, { color: 'rgba(255, 69, 58, 0.7)' }]}>Thoát tài khoản khỏi thiết bị</Text>
+                    <Text style={[styles.menuItemTitle, { color: '#FF453A' }]}>{t('logout')}</Text>
+                    <Text style={[styles.menuItemSub, { color: theme.textMuted }]}>{user.email}</Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={16} color="#FF453A" />
+                  <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
                 </TouchableOpacity>
               )}
 

@@ -20,7 +20,8 @@ export const AccountScreen = () => {
     themeMode, accentColor, fontSizeScale, fontWeightMode,
     appIcon, fimaxPoints,
     notificationsEnabled, setNotificationsEnabled, showNotificationPopup,
-    apiUrl, setApiUrl, callbackUrl, setCallbackUrl
+    apiUrl, setApiUrl, callbackUrl, setCallbackUrl,
+    t
   } = useContext(AppContext);
   
   const theme = getThemeColors(themeMode);
@@ -210,10 +211,10 @@ export const AccountScreen = () => {
           {/* Login / Register Switcher */}
           <View style={[styles.tabSwitcher, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TouchableOpacity style={[styles.tabBtn, authMode === 'login' && { backgroundColor: theme.surfaceSecondary }]} onPress={() => setAuthMode('login')}>
-              <Text style={[styles.tabText, { color: authMode === 'login' ? theme.textPrimary : theme.textSecondary }]}>Đăng Nhập</Text>
+              <Text style={[styles.tabText, { color: authMode === 'login' ? theme.textPrimary : theme.textSecondary }]}>{t('login')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.tabBtn, authMode === 'register' && { backgroundColor: theme.surfaceSecondary }]} onPress={() => setAuthMode('register')}>
-              <Text style={[styles.tabText, { color: authMode === 'register' ? theme.textPrimary : theme.textSecondary }]}>Đăng Ký</Text>
+              <Text style={[styles.tabText, { color: authMode === 'register' ? theme.textPrimary : theme.textSecondary }]}>{t('register')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -224,7 +225,7 @@ export const AccountScreen = () => {
                 <Ionicons name="person-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.cleanInput, { color: theme.textPrimary }]}
-                  placeholder="Họ và tên"
+                  placeholder={t('full_name')}
                   placeholderTextColor={theme.textMuted}
                   value={name}
                   onChangeText={setName}
@@ -237,7 +238,7 @@ export const AccountScreen = () => {
               <Ionicons name="mail-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.cleanInput, { color: theme.textPrimary }]}
-                placeholder="Email @gmail.com"
+                placeholder={t('email')}
                 placeholderTextColor={theme.textMuted}
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -251,7 +252,7 @@ export const AccountScreen = () => {
               <Ionicons name="lock-closed-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
               <TextInput
                 style={[styles.cleanInput, { color: theme.textPrimary }]}
-                placeholder="Mật khẩu"
+                placeholder={t('password')}
                 placeholderTextColor={theme.textMuted}
                 secureTextEntry={!showPassword}
                 value={password}
@@ -276,7 +277,7 @@ export const AccountScreen = () => {
                 <Ionicons name="shield-checkmark-outline" size={18} color={theme.textMuted} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.cleanInput, { color: theme.textPrimary }]}
-                  placeholder="Xác nhận mật khẩu"
+                  placeholder={t('confirm_password')}
                   placeholderTextColor={theme.textMuted}
                   secureTextEntry={!showConfirmPassword}
                   value={confirmPassword}
@@ -308,7 +309,7 @@ export const AccountScreen = () => {
                   size={20}
                   color={rememberMe ? accentColor : theme.textMuted}
                 />
-                <Text style={[styles.rememberText, { color: theme.textSecondary }]}>Duy trì đăng nhập</Text>
+                <Text style={[styles.rememberText, { color: theme.textSecondary }]}>{t('remember_me')}</Text>
               </TouchableOpacity>
 
               {authMode === 'login' && (
@@ -317,14 +318,14 @@ export const AccountScreen = () => {
                   onPress={() => setShowForgotModal(true)}
                   style={styles.forgotBtn}
                 >
-                  <Text style={[styles.forgotText, { color: accentColor }]}>Quên mật khẩu?</Text>
+                  <Text style={[styles.forgotText, { color: accentColor }]}>{t('forgot_password')}</Text>
                 </TouchableOpacity>
               )}
             </View>
 
             {/* Submit Button */}
             <TouchableOpacity style={[styles.submitBtn, { backgroundColor: accentColor }]} activeOpacity={0.85} onPress={handleAuthSubmit}>
-              <Text style={styles.submitBtnText}>{authMode === 'login' ? 'ĐĂNG NHẬP' : 'TẠO TÀI KHOẢN'}</Text>
+              <Text style={styles.submitBtnText}>{authMode === 'login' ? t('login').toUpperCase() : t('register').toUpperCase()}</Text>
             </TouchableOpacity>
           </View>
 
@@ -380,23 +381,23 @@ export const AccountScreen = () => {
         <View style={styles.quickActionRow}>
           <TouchableOpacity style={[styles.quickPillPrimary, { backgroundColor: accentColor }]} activeOpacity={0.85} onPress={() => setShowVipModal(true)}>
             <Ionicons name="sparkles" size={16} color="#FFFFFF" />
-            <Text style={styles.quickPillPrimaryText}>Nâng Cấp VIP</Text>
+            <Text style={styles.quickPillPrimaryText}>{t('vip_member')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.quickPillSecondary, { backgroundColor: theme.surface, borderColor: theme.border }]} activeOpacity={0.85} onPress={() => setShowRedeemModal(true)}>
             <Ionicons name="gift-outline" size={16} color="#D4AF37" />
-            <Text style={styles.quickPillSecondaryText}>Đổi Mã Giftcode</Text>
+            <Text style={styles.quickPillSecondaryText}>{t('redeem_code')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* 1. Thông Tin Cá Nhân & Gói Cước */}
-        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>TÀI KHOẢN & HỘI VIÊN</Text>
+        <Text style={[styles.sectionHeader, { color: theme.textSecondary }]}>{t('tab_account').toUpperCase()}</Text>
         <View style={[styles.cardGroup, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => setShowEditProfileModal(true)}>
             <Ionicons name="person-circle-outline" size={22} color={theme.textPrimary} />
             <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Thông tin cá nhân</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Họ tên, SĐT, giới tính, đổi avatar</Text>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>{t('profile')}</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>{user.email}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
@@ -404,8 +405,8 @@ export const AccountScreen = () => {
           <TouchableOpacity style={[styles.rowItem, { borderBottomColor: theme.borderLight }]} onPress={() => setShowSubManagerModal(true)}>
             <Ionicons name="diamond-outline" size={20} color="#D4AF37" />
             <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Quản lý gói đang sử dụng</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Xem hạn dùng, gia hạn & hủy gói cước</Text>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>{t('vip_member')}</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>{user.plan || 'VIP Cinema 4K'}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
@@ -413,8 +414,8 @@ export const AccountScreen = () => {
           <TouchableOpacity style={styles.rowItem} onPress={() => setShowRedeemModal(true)}>
             <Ionicons name="key-outline" size={20} color={theme.textPrimary} />
             <View style={styles.rowContent}>
-              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>Kích hoạt mã quà tặng (Giftcode)</Text>
-              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Nhập mã voucher hoặc mã đối tác</Text>
+              <Text style={[styles.rowTitle, { color: theme.textPrimary, fontSize: 14 * fontSizeScale }]}>{t('redeem_code')}</Text>
+              <Text style={[styles.rowSub, { color: theme.textSecondary }]}>Giftcode / Voucher</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
@@ -585,13 +586,13 @@ export const AccountScreen = () => {
           style={[styles.logoutBtn, { backgroundColor: theme.surface, borderColor: `${accentColor}44` }]}
           activeOpacity={0.8}
           onPress={() => {
-            Alert.alert('Đăng xuất', 'Bạn có chắc chắn muốn đăng xuất?', [
-              { text: 'Hủy', style: 'cancel' },
-              { text: 'Đăng xuất', style: 'destructive', onPress: logout }
+            Alert.alert(t('logout'), 'Bạn có chắc chắn muốn đăng xuất?', [
+              { text: t('cancel'), style: 'cancel' },
+              { text: t('logout'), style: 'destructive', onPress: logout }
             ]);
           }}
         >
-          <Text style={[styles.logoutBtnText, { color: accentColor }]}>Đăng Xuất</Text>
+          <Text style={[styles.logoutBtnText, { color: accentColor }]}>{t('logout')}</Text>
         </TouchableOpacity>
 
         {/* Secret 5-Tap Gesture on App Version to trigger Master Admin */}

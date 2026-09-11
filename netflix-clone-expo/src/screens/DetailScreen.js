@@ -87,7 +87,7 @@ const getMovieCast = (movie) => {
 
 export const DetailScreen = ({ route, navigation }) => {
   const { movie } = route.params || {};
-  const { user, favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor, fontSizeScale } = useContext(AppContext);
+  const { user, favorites, toggleFavorite, setActiveMovieForPlayer, themeMode, accentColor, fontSizeScale, t } = useContext(AppContext);
   const theme = getThemeColors(themeMode);
 
   const pageFade = useRef(new Animated.Value(0)).current;
@@ -295,7 +295,7 @@ export const DetailScreen = ({ route, navigation }) => {
               onPress={() => setActiveMovieForPlayer(movie)}
             >
               <Ionicons name="play" size={22} color="#FFFFFF" />
-              <Text style={styles.primaryPlayText}>XEM PHIM NGAY</Text>
+              <Text style={styles.primaryPlayText}>{t('play').toUpperCase()}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -304,7 +304,7 @@ export const DetailScreen = ({ route, navigation }) => {
               onPress={() => setShowTrailerModal(true)}
             >
               <Ionicons name="videocam-outline" size={20} color={theme.textPrimary} />
-              <Text style={[styles.secondaryTrailerText, { color: theme.textPrimary }]}>Trailer</Text>
+              <Text style={[styles.secondaryTrailerText, { color: theme.textPrimary }]}>{t('trailer')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -315,7 +315,7 @@ export const DetailScreen = ({ route, navigation }) => {
                 <Ionicons name={isFav ? "heart" : "heart-outline"} size={20} color={isFav ? accentColor : theme.textPrimary} />
               </View>
               <Text style={[styles.actionLabel, { color: isFav ? accentColor : theme.textMuted }]}>
-                {isFav ? 'Đã Lưu' : 'Yêu Thích'}
+                {isFav ? t('in_list') : t('my_list')}
               </Text>
             </TouchableOpacity>
 
@@ -324,7 +324,7 @@ export const DetailScreen = ({ route, navigation }) => {
                 <Ionicons name={userRating ? "star" : "star-outline"} size={20} color={userRating ? "#D4AF37" : theme.textPrimary} />
               </View>
               <Text style={[styles.actionLabel, { color: userRating ? '#D4AF37' : theme.textMuted }]}>
-                {userRating ? `${userRating} ⭐` : 'Đánh Giá'}
+                {userRating ? `${userRating} ⭐` : t('rating')}
               </Text>
             </TouchableOpacity>
 
@@ -332,7 +332,7 @@ export const DetailScreen = ({ route, navigation }) => {
               <View style={[styles.actionIconCircle, { backgroundColor: theme.surfaceSecondary }]}>
                 <Ionicons name="share-social-outline" size={20} color={theme.textPrimary} />
               </View>
-              <Text style={[styles.actionLabel, { color: theme.textMuted }]}>Chia Sẻ</Text>
+              <Text style={[styles.actionLabel, { color: theme.textMuted }]}>{t('share')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -350,8 +350,8 @@ export const DetailScreen = ({ route, navigation }) => {
           {/* FEATURED ACTOR AVATARS CAROUSEL (Always visible on detail screen) */}
           <View style={styles.actorsSection}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>Diễn Viên & Nghệ Sĩ</Text>
-              <Text style={[styles.sectionCountText, { color: theme.textMuted }]}>{castMembers.length} người</Text>
+              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>{t('cast_crew')}</Text>
+              <Text style={[styles.sectionCountText, { color: theme.textMuted }]}>{castMembers.length}</Text>
             </View>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.actorsScroll}>
@@ -387,7 +387,7 @@ export const DetailScreen = ({ route, navigation }) => {
               activeOpacity={0.85}
             >
               <Text style={[styles.tabBtnText, { color: activeTab === 'overview' ? '#FFFFFF' : theme.textMuted }]}>
-                Tổng Quan
+                {t('overview')}
               </Text>
             </TouchableOpacity>
 
@@ -397,7 +397,7 @@ export const DetailScreen = ({ route, navigation }) => {
               activeOpacity={0.85}
             >
               <Text style={[styles.tabBtnText, { color: activeTab === 'similar' ? '#FFFFFF' : theme.textMuted }]}>
-                Phim Tương Tự ({similarMovies.length})
+                {t('similar_movies')} ({similarMovies.length})
               </Text>
             </TouchableOpacity>
           </View>
@@ -405,7 +405,7 @@ export const DetailScreen = ({ route, navigation }) => {
           {/* TAB 1: OVERVIEW & TECH SPECS */}
           {activeTab === 'overview' && (
             <View style={styles.tabContentBlock}>
-              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>Cốt Truyện</Text>
+              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>{t('overview')}</Text>
               <Text style={[styles.overviewParagraph, { color: theme.textSecondary }]}>
                 {movie.overview || 'Bộ phim đang được cập nhật tóm tắt nội dung chi tiết. Mời bạn bấm Xem Phim để thưởng thức trọn vẹn bản 4K Ultra HD!'}
               </Text>
@@ -413,7 +413,7 @@ export const DetailScreen = ({ route, navigation }) => {
               {/* Cinema Specifications Grid */}
               <View style={[styles.specsTable, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={styles.specsRow}>
-                  <Text style={[styles.specsKey, { color: theme.textMuted }]}>Đạo diễn:</Text>
+                  <Text style={[styles.specsKey, { color: theme.textMuted }]}>{t('director')}:</Text>
                   <Text style={[styles.specsVal, { color: theme.textPrimary }]}>{movie.director || 'Chưa cập nhật'}</Text>
                 </View>
                 <View style={styles.specsDivider} />
@@ -423,12 +423,12 @@ export const DetailScreen = ({ route, navigation }) => {
                 </View>
                 <View style={styles.specsDivider} />
                 <View style={styles.specsRow}>
-                  <Text style={[styles.specsKey, { color: theme.textMuted }]}>Độ phân giải:</Text>
+                  <Text style={[styles.specsKey, { color: theme.textMuted }]}>{t('quality')}:</Text>
                   <Text style={[styles.specsVal, { color: '#30D158' }]}>3840 x 2160 (4K UHD)</Text>
                 </View>
                 <View style={styles.specsDivider} />
                 <View style={styles.specsRow}>
-                  <Text style={[styles.specsKey, { color: theme.textMuted }]}>Âm thanh:</Text>
+                  <Text style={[styles.specsKey, { color: theme.textMuted }]}>{t('audio_sub')}:</Text>
                   <Text style={[styles.specsVal, { color: theme.textPrimary }]}>Dolby Atmos 7.1 / Stereo</Text>
                 </View>
               </View>
